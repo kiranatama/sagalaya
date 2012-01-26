@@ -1,0 +1,15 @@
+{% set message = this.session.message() %}
+<div class="ym-g50">
+	{% if message %}
+    	<p id="session-flash-message" class="box warning">{{message}}</p>
+	{% endif %}
+	{{ this.form.create(null, {'class':'ym-form ym-columnar'}) }}
+		<fieldset>			
+			{{ this.form.field('email',{'wrap':{'class':'ym-fbox-text'}}) }}
+			{{ this.form.field('password',{'wrap':{'class':'ym-fbox-text'}, 'type':'password'}) }}
+			<div class="ym-fbox-button">
+				{{ this.form.submit('Login') }}
+			</div>
+		</fieldset>
+	{{ this.form.end() }}
+</div>

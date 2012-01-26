@@ -1,0 +1,14 @@
+@import url(http://fonts.googleapis.com/css?family=Droid+Serif:400,400italic,700|Droid+Sans:700);
+
+/* import core styles | Basis-Stylesheets einbinden */
+@import url(../css/yaml/core/base.css);
+
+/* import screen layout | Screen-Layout einbinden */
+@import url(../css/yaml/navigation/hlist.css);
+@import url(../css/yaml/forms/gray-theme.css);
+@import url(../css/yaml/screen/typography.css);
+
+@import url(../css/yaml/screen/screen-FULLPAGE-layout.css);
+
+/* import print layout | Druck-Layout einbinden */
+@import url(../css/yaml/print/print.css);

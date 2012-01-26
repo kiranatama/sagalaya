@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         bootstrap="tests/bootstrap.php"
+         syntaxCheck="false">
+
+    <testsuites>
+        <testsuite name="PHPca">
+            <directory suffix="Test.php">tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist addUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">src</directory>
+        </whitelist>
+        <blacklist>
+            <file>src/phpca.php</file>
+        </blacklist>
+    </filter>
+
+    <logging>
+        <log type="coverage-html" target="_logs/coverage" charset="UTF-8" yui="true" highlight="true"/>
+        <log type="coverage-xml" target="_logs/coverage-xml/clover.xml"/>
+        <log type="testdox-html" target="_logs/testdox/testdox.html"/>
+        <log type="junit" target="_logs/junit/junit.xml" logIncompleteSkipped="false"/>
+    </logging>
+    
+</phpunit>
