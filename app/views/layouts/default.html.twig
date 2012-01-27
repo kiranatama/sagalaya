@@ -2,7 +2,16 @@
 <html
     <head>
         {{this.html.charset()}}
+        {{ this.html.script(['jquery/jquery-1.7.1.min', 'jquery/jquery.tabs']) }}
         {{this.html.style(['layout', 'custom'])}}
+        {% if this.server.matchUrl('pages/tutorial', this.request.url) %}
+        		{{this.html.script(['syntax/shCore', 'syntax/shLegacy', 
+        							'syntax/shAutoloader', 
+        							'syntax/shBrushPhp', 'syntax/shBrushBash'])}}
+    			{{this.html.style(['syntax/shCore', 'syntax/shThemeDefault',
+    							   'yaml/add-ons/accessible-tabs/tabs'])}}   
+        {% endif %}
+        {{ this.scripts() }}
         <title>Sagalaya</title>
         {{this.html.link('Icon', null, {'type' : 'icon'})}}
     </head>

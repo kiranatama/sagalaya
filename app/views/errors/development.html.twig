@@ -31,7 +31,7 @@
 						{{ frame.file }} : {{ frame.line }}
 				</div>
 				<div class="lithium-code-dump">
-					<pre class="brush: php, first">									
+					<pre class="brush: php">									
 						{% for num, content in this.sourceCode.lines(frame.file, frame.line - 7, frame.line + 7) %}
 {% if content != "" and num != "" %}
 	/*{{ num }}*/ 	{{ content }}

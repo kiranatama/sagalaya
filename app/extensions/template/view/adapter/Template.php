@@ -36,7 +36,7 @@ abstract class Template extends \Twig_Template {
                 if (preg_match('|Model|', get_parent_class($object)) || 
                         preg_match('|Model|', get_parent_class(get_parent_class($object)))) {                  	                                                         
                     return $object->$item;
-                } else {                                                   	
+                } else {                                                   	                	
                     $result = (is_object($object)) ? $object->helper($item) : null;
                 }                
             }

@@ -1,22 +1,109 @@
 <div class="ym-grid">
-	<div class="ym-g66 ym-gl">
-		<div class="ym-gbox">
-			<h2>Tutorial</h2>
+
+		
+			<h2>Basic Tutorial</h2>
 			<p>This is basic tutorial, not all covered on this tutorial. This purpose just to make you has overview what this framework can do.</p>
-						
-			<h4 id="initialization">Working with Database</h4>
-		</div>
-	</div>
-	
-	<div class="ym-g33 ym-gr">
-		<div class="ym-gbox">
-			<h2>Index</h2>
-			<div class="ym-cbox">
+			<p>Before we start to coding, we need to include li3 command to PATH, because it will frequently use when we code</p>
+			<pre class="brush: bash">$>export PATH=$PATH:/to/project/libraries/lithium/bin</pre>
+			
+			<div class="jquery_tabs">
 				<h4>Working with Database</h4>
-				<ul>
-					<li>{{ this.html.link('Initialize Database','#initialization') }}</li>
-				</ul>
-			</div>
-		</div>
-	</div>
+				<div class="text">
+					<div class="ym-grid">
+						<div class="ym-g50 ym-gl">
+							<div class="ym-gbox">
+								<!-- Building Model -->
+								<h5 id="initialization">Building Model</h5>
+								<p>In sagalaya we define model using {{ this.html.link('Doctrine Annotation Driver', 'http://www.doctrine-project.org/docs/orm/2.1/en/reference/annotations-reference.html') }}. 
+								Every model in app/models folder must be inherited <code>app\extensions\data\Model</code> class. Below is the code example.</p> 
+								<pre class="brush: php">								
+									namespace app\models;
+									
+									/**
+									 * @Entity(repositoryClass="app\resources\repository\UserRepository")
+									 * @HasLifecycleCallbacks
+									 * @Table(name="users")
+									 */
+									class User extends \app\extensions\data\Model {
+									    
+									    /** @Id @Column(type="integer") @GeneratedValue */
+									    protected $id = null;
+									
+									    /** @Column(type="string", length=64) */
+									    protected $fullname = null;
+									
+									    /** @Column(type="string", length=64) */
+									    protected $email = null;
+									    
+									} 				
+								</pre>
+								
+								<!-- Using Generator -->
+								<h5 id="generator">Using Generator</h5>
+								<p>When build an application, we frequently doing some repetitive task, like create model, controller, view, test.</p>
+								<p>So to make faster creating starting code, sagalaya provide generator. Generator will read xml files from <code>app/config/design</code> folder.
+								Every xml file will parsed by generator to create model, controller, view, model test, controller test, and repository.</p>
+								<p>You can see a sample xml file on source. To generate all you just need to call generator in console at project folder.</p>
+								<pre class="brush: bash">$> li3 generator</pre>
+
+							</div>
+						</div>
+						
+						<div class="ym-g50 ym-gr">
+							<div class="ym-gbox">
+								 
+								<!-- Generate Database Scheme -->
+								<h5 id="database-scheme">Generate Database Scheme</h5>
+								
+								<p>After we crated the class model, we need to create schema database, we can using doctrine command line.</p>
+								<pre class="brush: bash">$> li3 doctrine orm:schema-tool:create</pre>
+								
+								<p>If you already has a schema from previous created schema, and you need to update schema because some changes on model file.
+								You can call this command.</p>
+								<pre class="brush: bash">$> li3 doctrine orm:schema-tool:update</pre>
+								
+								<!-- Generate Migrations -->
+								<h5 id="migrations">Generate Migrations</h5>
+								<p>When we build an app, sometime we need a dummy data. To create that we can using migrations feature in doctrine.</p>
+								<pre class="brush: bash">$> li3 doctrine migrations:generate</pre>
+								
+								<p>This command will generate php file in <code>app/migrations</code> folder that we can fill php code in up() method to create some data</p>
+								<pre class="brush: php">
+									$type = new UserType(array('type' => 'Administrator'));
+									$type->save();
+								</pre>
+								
+								<p>Then you can call up() from migrations from console</p>
+								<pre class="brush: bash">$> li3 doctrine migrations:migrate</pre>
+								
+								<p>There is also down() method, in case you want to revert the migrations. You can write like this.</p>
+								<pre class="brush: php">
+									$type = UserType::findOneBy(array('type' => 'Administrator'));
+									$type->delete();
+								</pre>
+								<p>To revert migrations you can use this command</p>
+								<pre class="brush: bash">$> li3 doctrine migrations:migrate :revision-number</pre>
+								
+							</div>
+						</div>
+					</div>																															
+				</div>
+				
+				<h4>Model Use-Case</h4>
+				<div class="text">
+					<p>some code</p>
+				</div>
+			</div>							
+	 
 </div>
+
+<script type="text/javascript">
+	SyntaxHighlighter.all();
+    $(document).ready(function(){
+        $('.jquery_tabs').accessibleTabs({
+            tabbody:'.text',
+            currentInfoText:'',
+            fx:"show",
+            fxspeed:null});
+	});
+</script>
