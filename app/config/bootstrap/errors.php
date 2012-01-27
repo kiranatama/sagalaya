@@ -14,7 +14,7 @@ use lithium\analysis\Debugger;
 ErrorHandler::apply('lithium\action\Dispatcher::run', array(), function($info, $params) {
 	$stack = Debugger::trace(array('format' => 'array', 'trace' => $info['exception']->getTrace()));
     $exception_class = get_class($info['exception']);
-
+	
     array_unshift($stack, array(
         'functionRef' => '[exception]',
         'file' => $info['exception']->getFile(),

@@ -3,8 +3,8 @@
 <head>
     {{this.html.charset()}}	
 	<title>Unhandled exception</title>
-    {{this.html.style(['debug','lithium'])}}
-    {{this.scripts()}}
+	{{this.html.script(['syntax/shCore', 'syntax/shLegacy', 'syntax/shAutoloader', 'syntax/shBrushPhp'])}}
+    {{this.html.style(['debug','lithium', 'syntax/shCore', 'syntax/shThemeDefault'])}}    
     {{this.html.link('Icon', null, {'type':'icon'})}}	
 </head>
 <body class="app">
