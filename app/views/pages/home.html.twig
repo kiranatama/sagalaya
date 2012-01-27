@@ -1,0 +1,26 @@
+<div class="ym-grid">
+	<div class="ym-g66 ym-gl">
+		<div class="ym-gbox">
+			<h2>Getting Started</h2>
+			<ul class="additional-resources">
+				<li>
+					Sagalaya is compilation framework, what do you mean? Sagalaya is not a framework that built from scratch,
+					the creator is too lazy to make something new, but not found a suitable framework.
+					So why we not combine the goods from {{ this.html.link('Doctrine', 'http://www.doctrine-project.org/') }}, 
+					{{ this.html.link('Twig', 'http://twig.sensiolabs.org/') }}, {{ this.html.link('Zend', 'http://framework.zend.com/') }}, and glued by {{ this.html.link('Lithium', 'https://github.com/UnionOfRAD/lithium') }}. 
+				</li>	
+				<li>
+					Why Lithium? Lithium is a great framework for flexibility. Has a small footprint and very...very flexible. 
+					You can built a monolithic framework with this (like i do), but Lithium ALWAYS give a choice for you to make a decission.					
+				</li>			
+			</ul>
+		</div>
+	</div>
+	
+	<div class="ym-g33 ym-gr">
+		<div class="ym-gbox">
+			<h2>Calendar Helper</h2>
+			{{ this.calendar.render({'format':'d/m/Y','date':'20/01/2012'}, {'abbreviate':true}) }}
+		</div>
+	</div>
+</div>

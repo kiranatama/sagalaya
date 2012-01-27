@@ -1,0 +1,63 @@
+{% set exception = info.exception %}
+
+<h3>Exception</h3>
+
+<div class="lithium-exception-class">
+    {{exception_class}}
+    {% if exception.getCode() %}    	
+        <span class="code">(code {{exception.getCode()}})</span>
+    {% endif %}
+    </div>
+
+    <div class="lithium-exception-message">{{exception.getMessage()}}</div>
+
+    <h3 id="source">Source</h3>
+
+    <div id="sourceCode"></div>
+
+<h3>Stack Trace</h3>
+
+<div class="lithium-stack-trace">
+    <ol>
+    {% for id, frame in stack %}    	    	
+        <li>
+	        <tt>
+	        	<a href="#source" id="{{id}}" class="display-source-excerpt">
+	        		{{frame.functionRef}}
+	        	</a>
+	        </tt>
+			<div id="sourceCode{{ id }}" style="display:none;">
+				<div class="lithium-exception-location">
+						{{ frame.file }} : {{ frame.line }}
+				</div>
+				<div class="lithium-code-dump">
+					<pre class="brush: php">									
+						{% for num, content in this.sourceCode.lines(frame.file, frame.line - 7, frame.line + 7) %}
+{% if content != "" and num != "" %}
+	/*{{ num }}*/ 	{{ content }}
+{% endif %}
+						{% endfor %}								
+					</pre>
+				</div>
+			</div>
+        </li>
+    {% endfor %}
+    </ol>
+</div>
+
+<script type="text/javascript">
+	SyntaxHighlighter.all();
+    window.onload = function() {    	
+        var $ = function() { return document.getElementById.apply(document, arguments); };
+        var links = document.getElementsByTagName('a');
+
+        for (i = 0; i < links.length; i++) {
+            if (links[i].className.indexOf('display-source-excerpt') >= 0) {
+                links[i].onclick = function() {
+                    $('sourceCode').innerHTML = $('sourceCode' + this.id).innerHTML;
+                }
+            }
+        }
+        $('sourceCode').innerHTML = $('sourceCode0').innerHTML;
+    }
+</script>
