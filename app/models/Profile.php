@@ -16,4 +16,5 @@ class Profile extends \app\extensions\data\Model {
 	
 	/** @ManyToOne(targetEntity="Country") */
 	protected $nationality;
+	
 }

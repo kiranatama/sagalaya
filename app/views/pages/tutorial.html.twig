@@ -210,6 +210,66 @@
 						
 						<!-- Model Repository -->
 						<h5 id="model-repository">Model Repository</h5>
+						<p>A Repository is a mechanism for encapsulating storage, retrieval, and search behavior which emulates a collection of objects.</p>
+						
+						<p>As default, every model has basic repository methods like <code>find, findOne, findOneBy, findAll</code>. But you can extends function of your models with adding 
+						more function to model repository. As default repository placed at <code>app/resources/repository</code>, this path is defined at model class.</p>
+						
+						<pre class="brush: php">
+							/**
+							 * @Entity(repositoryClass="app\resources\repository\UserRepository")
+							 * @HasLifecycleCallbacks
+							 * @Table(name="users")
+							 */
+							class User extends \app\extensions\data\Model
+						</pre>
+						<p>On repository class you can adding more function.</p>
+						<pre class="brush: php">
+							class UserRepository extends \Doctrine\ORM\EntityRepository
+							{							
+								public function getLastRegisterUser() {
+									// doing something
+								}
+							}
+						</pre>
+						<p>You can call this function using static method in object</p>
+						<pre class="brush: php">$lastRegistered = User::getlastRegisterUser();</pre> 
+						
+					</div>
+				</div>
+				
+			</div>	
+		</div>
+		
+		<h4>Working with Controller</h4>
+		<div class="text">
+			<div class="ym-grid">
+				
+				<div class="ym-g20 ym-gl">
+					<div class="ym-gbox">
+						<div class="ym-vlist">
+							<h6>Chapter Index</h6>
+							<ul>
+								<li><a href="#default-routing">Default Routing</a></li>
+								<li><a href="#action-configuration">Action Configuration</a></li>
+								<li><a href="#redirecting">Redirecting</a></li>								
+							</ul>
+						</div>
+					</div>
+				</div>
+				
+				<div class="ym-g80 ym-gr">
+					<div class="ym-gbox">
+					
+						<!-- Default Routing -->
+						<h5 id="default-routing">Default Routing</h5>
+						
+						<!-- Action Configuration -->
+						<h5 id="action-configuration">Action Configuration</h5>
+						
+						<!-- Redirecting -->
+						<h5 id="redirecting">Redirecting</h5>
+						
 						
 					</div>
 				</div>
@@ -226,11 +286,9 @@
 						<div class="ym-vlist">
 							<h6>Chapter Index</h6>
 							<ul>
-								<li><a href="#configuration">Configuration</a></li>
-								<li><a href="#initialization">Building Model</a></li>
-								<li><a href="#generator">Using XML Generator</a></li>
-								<li><a href="#database-scheme">Generate Database Scheme</a></li>
-								<li><a href="#migrations">Generate Migrations</a></li>
+								<li><a href="#twig-templating">Twig Templating</a></li>
+								<li><a href="#layout">Element and Layout</a></li>
+								<li><a href="#view-helper">View Helper</a></li>
 							</ul>
 						</div>
 					</div>
@@ -238,13 +296,22 @@
 				
 				<div class="ym-g80 ym-gr">
 					<div class="ym-gbox">
-
+						
+						<!-- Twig Templating -->
+						<h5 id="twig-templating">Twig Templating</h5>
+						
+						<!-- Element and Layout -->
+						<h5 id="layout">Element and Layout</h5>
+						
+						<!-- View Helper -->
+						<h5 id="view-helper">View Helper</h5>
 						
 					</div>
 				</div>
 				
-			</div>	
+			</div>			
 		</div>
+		
 	</div>								 
 </div>
 
