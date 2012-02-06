@@ -1,3 +1,4 @@
+/.settings/
 /app/resources/tmp/cache/Doctrine/*
 /app/resources/tmp/cache/templates/*
 /app/resources/tmp/cache/doc.cache
