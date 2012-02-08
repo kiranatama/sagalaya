@@ -4,6 +4,15 @@ SAGALAYA PHP-FRAMEWORK
 Framework build based on lithium (https://github.com/UnionOfRAD/lithium), integrating Twig as View layer and Doctrine as Model layer. 
 Using Doctrine and Twig building web application become more intuitive.
 
+Installation instruction 
+-----------------------------
+
+- Clone the framework to your application directory e.g <code> git clone https://github.com/kiranatama/sagalaya.git app_dir </code>
+- Change your connection setting (host/login/password/database) at <code> app/config/bootstrap/connections.php </code> 
+- Change default root url ('/') at <code> app/config/routes.php </code>, default is redirected to Pages::view
+- Gain an overview with reading basic tutorial on running app
+
+
 e.g Model creation use-case :
 -----------------------------
 <pre>

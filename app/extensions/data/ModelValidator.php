@@ -30,7 +30,7 @@ class ModelValidator {
 		
 		if (!empty($validations)) {
 			
-			$unique = $equalWith = array();			 
+			$unique = $equalWith = $custom = array();			 
 			
 			foreach ($validations as $field => $rules) {
 				foreach ($rules as $key => $value) {
@@ -48,6 +48,13 @@ class ModelValidator {
 						} else {
 							unset($validations[$field][$key]);
 						}
+					} else if ($value[0] == "custom") {
+						$custom[] = array($field, "message" => $value['message'], "function" => $value['function']);
+						if (count($validations[$field]) == 1) {
+							unset($validations[$field]);
+						} else {
+							unset($validations[$field][$key]);
+						} 
 					}
 				}
 			}
@@ -66,6 +73,14 @@ class ModelValidator {
 			foreach ($equalWith as $key => $value) {
 				if ($object->$value[0] != $object->$value['with']) {
 					$errors[$value[0]][] = $value["message"];
+				}
+			}
+			
+			/** Custom validations */
+			foreach ($custom as $key => $value) {
+				$rule = create_function('$object', $value['function']);
+				if ($rule($object, $object->$value[0]) === false) {
+					$errors[$value[0]][] = $value['message'];
 				}
 			}
 						
