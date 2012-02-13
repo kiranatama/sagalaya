@@ -112,7 +112,8 @@
 							<ul>
 								<li><a href="#crud">Create-Update-Delete</a></li>
 								<li><a href="#querying">Querying Model</a></li>
-								<li><a href="#model-repository">Model Repository</a></li>
+								<li><a href="#model-repository">Model Repository</a></li>	
+								<li><a href="#model-validation">Model Validation</a></li>							
 							</ul>
 						</div>
 					</div>
@@ -234,6 +235,157 @@
 						</pre>
 						<p>You can call this function using static method in object</p>
 						<pre class="brush: php">$lastRegistered = User::getlastRegisterUser();</pre> 
+						
+						<!-- Model Validation -->
+						<h5 id="model-validation">Model Validation</h5>
+						<p>To define validations on model we declare <code>$validations</code> property, below is the code examples.</p>
+						
+						<pre class="brush: php">
+							protected $validations = array(
+								'fullname' => array(
+									array('notEmpty', 'message' => 'Fullname can\'t be empty'),
+									array('custom', 'message' => 'message' => 'Fullname can\'t be George Bush', 
+											'function' => 'return strcasecmp($object->fullname, "George Bush") != 0;')
+								),
+								'email' => array(
+									array('notEmpty', 'message' => 'Email can\'t be empty'),
+									array('unique', 'message' => 'Email has been used, try another!')
+								)
+							);							
+						</pre>						
+						
+						<table>
+							<caption>Validation types</caption>
+							<thead>
+								<tr>
+									<th>Type</th>
+									<th>Format</th>
+									<th>Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>notEmpty</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a string contains at least one non-whitespace character.</td>
+								</tr>
+								<tr>
+									<td>alphaNumeric</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a string contains only integer or letters.</td>
+								</tr>
+								<tr>
+									<td>lengthBetween</td>
+									<td>'type', 'message', 'min', 'max'</td>
+									<td>Checks that a string length is within a specified range. Spaces are included in the character count.</td>
+								</tr>
+								<tr>
+									<td>blank</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a field is left blank **OR** only whitespace characters are present in its value. Whitespace characters include spaces, tabs, carriage returns and newlines.</td>
+								</tr>
+								<tr>
+									<td>creditCard</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is a valid credit card number.</td>
+								</tr>
+								<tr>
+									<td>date</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is a valid date that complies with one or more formats.</td>
+								</tr>
+								<tr>
+									<td>time</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is a valid time. Validates time as 24hr (HH:MM) or am/pm ([ H]H:MM[a|p]m). Does not allow / validate seconds.</td>
+								</tr>
+								<tr>
+									<td>boolean</td>
+									<td>'type', 'message'</td>
+									<td>Checks that the value is or looks like a boolean value. The following types of values are interpreted as boolean and will pass the check.</td>
+								</tr>
+								<tr>
+									<td>decimal</td>
+									<td>'type', 'message', 'precission'</td>
+									<td>Checks that a value is a valid decimal.</td>
+								</tr>
+								<tr>
+									<td>email</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is (probably) a valid email address.</td>
+								</tr>
+								<tr>
+									<td>ip</td>
+									<td>'type', 'message'</td>
+									<td>Validates a string as a valid IPv4 or IPv6 address.</td>
+								</tr>
+								<tr>
+									<td>money</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is a valid monetary amount.</td>
+								</tr>
+								<tr>
+									<td>numeric</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is numeric.</td>
+								</tr>
+								<tr>
+									<td>phone</td>
+									<td>'type', 'message'</td>
+									<td>Check that a value is a valid phone number, non-locale-specific phone number.</td>
+								</tr>
+								<tr>
+									<td>postalCode</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a given value is a valid US postal code.</td>
+								</tr>
+								<tr>
+									<td>inRange</td>
+									<td>'type', 'message', 'upper', 'lower'</td>
+									<td>Checks that a numeric value is within a specified range.</td>
+								</tr>
+								<tr>
+									<td>url</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is a valid URL according to [RFC 2395](http://www.faqs.org/rfcs/rfc2396.html).</td>
+								</tr>
+								<tr>
+									<td>luhn</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is a valid credit card number according to the [Luhn algorithm](http://en.wikipedia.org/wiki/Luhn_algorithm).</td>
+								</tr>
+								<tr>
+									<td>inList</td>
+									<td>'type', 'message', 'list'</td>
+									<td>Checks that a value is in a pre-defined list of values.</td>
+								</tr>
+								<tr>
+									<td>regex</td>
+									<td>'type', 'message', 'value'</td>
+									<td>Checks that a value appears to be a valid regular expression, possibly containing PCRE-compatible options flags.</td>
+								</tr>
+								<tr>
+									<td>uuid</td>
+									<td>'type', 'message'</td>
+									<td>Checks that a value is a valid UUID.</td>
+								</tr>
+								<tr>
+									<td>unique</td>
+									<td>'type', 'message'</td>
+									<td>Check if the value of field is unique on database.</td>
+								</tr>
+								<tr>
+									<td>equalWith</td>
+									<td>'type', 'message', 'with'</td>
+									<td>Check if the value one of field is same with other field.</td>
+								</tr>
+								<tr>
+									<td>custom</td>
+									<td>'type', 'message', 'function'</td>
+									<td>Adding custom rule for the object, with function can access $object for the current instance.</td>
+								</tr>
+							</tbody>
+						</table>					
 						
 					</div>
 				</div>

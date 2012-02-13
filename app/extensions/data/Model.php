@@ -342,11 +342,19 @@ abstract class Model {
     	}    	
     	
     	if (!is_numeric($match) && !is_array($match)) {
+    		if ($match instanceof \DateTime) {
+    			$match = $match->format('Y-m-d');	
+    		}
+    		
     		if (!preg_match('|\'.*\'|', $match)) {
     			$match = "'{$match}'";
     		}    		
     	} else if (is_array($match) && $condition == 'between') {
-    		foreach ($match as $index => $value) {
+    		foreach ($match as $index => $value) {    			
+    			if ($value instanceof \DateTime) {
+    				$value = $value->format('Y-m-d');
+    			}
+    			
     			if (!preg_match('|\'.*\'|', $value)) {
     				$match[$index] = "'{$value}'";
     			}
