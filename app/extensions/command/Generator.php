@@ -134,9 +134,11 @@ class Generator extends \lithium\console\Command {
 		foreach ($model->fields->field as $field) {							
 			
 			$type = "{$field->type}";
-			$nullable = (isset($field->nullable))?", nullable=\"{$field->nullable}\"":null;
-			$length = (isset($field->length))?", length=\"{$field->length}\"":null;
-			$default = (isset($field->default))?"{$field->default}":null;			
+			$nullable = (isset($field->nullable))?", nullable={$field->nullable}":null;
+			$length = (isset($field->length))?", length={$field->length}":null;
+			$default = (isset($field->default))?"{$field->default}":null;		
+			$precision = (isset($field->precision))?", precision={$field->precision}":null;
+			$scale = (isset($field->scale))?", scale={$field->scale}":null;	
 			
 			if ($type == "boolean" && $default) {
 				$default = ($default == "true")?true:false;
@@ -161,17 +163,19 @@ class Generator extends \lithium\console\Command {
 					$docblock = "@{$field->relation}(targetEntity=\"{$field->targetEntity}\"{$mappedBy}{$inversedBy}{$cascades})";
 					break;
 				default :
-					$docblock = "@Column(type=\"{$type}\"{$nullable}{$length})";
+					$docblock = "@Column(type=\"{$type}\"{$nullable}{$length}{$precision}{$scale})";
 			}
 			
 			$property->setDocblock($docblock);
 			$class->setProperty($property);
 		}		
 		
-		foreach ($model->validations->validation as $validation) {
-			$validations["{$validation->field}"] = array();
-			foreach ($validation->rules->rule as $rule) {
-				$validations["{$validation->field}"][] = array("{$rule->type}", "message" => "{$rule->message}");
+		if ($model->validations) {
+			foreach ($model->validations->validation as $validation) {
+				$validations["{$validation->field}"] = array();
+				foreach ($validation->rules->rule as $rule) {
+					$validations["{$validation->field}"][] = array("{$rule->type}", "message" => "{$rule->message}");
+				}
 			}
 		}
 		
