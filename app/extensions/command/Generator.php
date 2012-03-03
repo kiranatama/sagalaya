@@ -7,6 +7,7 @@ use Zend\Code\Generator\ClassGenerator;
 use Zend\Code\Generator\PropertyGenerator;
 use Zend\Code\Generator\DocblockGenerator;
 use Zend\Code\Generator\MethodGenerator;
+use lithium\util\Inflector;
 
 /**
  * generator command provide automatic generator for CRUD like model, controller, and views
@@ -134,12 +135,14 @@ class Generator extends \lithium\console\Command {
 		foreach ($model->fields->field as $field) {							
 			
 			$type = "{$field->type}";
-			$nullable = (isset($field->nullable))?", nullable={$field->nullable}":null;
-			$length = (isset($field->length))?", length={$field->length}":null;
-			$default = (isset($field->default))?"{$field->default}":null;		
-			$precision = (isset($field->precision))?", precision={$field->precision}":null;
-			$scale = (isset($field->scale))?", scale={$field->scale}":null;	
-			
+			$attributes = null;
+			$attributes .= (isset($field->nullable))?", nullable={$field->nullable}":null;
+			$attributes .= (isset($field->length))?", length={$field->length}":null;					
+			$attributes .= (isset($field->precision))?", precision={$field->precision}":null;
+			$attributes .= (isset($field->scale))?", scale={$field->scale}":null;
+			$attributes .= (isset($field->unique))?", unique={$field->unique}":null;
+
+			$default = isset($field->default)?"$field->default":null;
 			if ($type == "boolean" && $default) {
 				$default = ($default == "true")?true:false;
 			}
@@ -163,7 +166,7 @@ class Generator extends \lithium\console\Command {
 					$docblock = "@{$field->relation}(targetEntity=\"{$field->targetEntity}\"{$mappedBy}{$inversedBy}{$cascades})";
 					break;
 				default :
-					$docblock = "@Column(type=\"{$type}\"{$nullable}{$length}{$precision}{$scale})";
+					$docblock = "@Column(type=\"{$type}\"{$attributes})";
 			}
 			
 			$property->setDocblock($docblock);
@@ -208,7 +211,7 @@ class Generator extends \lithium\console\Command {
 	}
 	
 	public function buildController($model) {
-		$class = new ClassGenerator($model->config->name . 'sController');
+		$class = new ClassGenerator(Inflector::pluralize("{$model->config->name}") . 'Controller');
 		$class->setExtendedClass('\lithium\action\Controller');
 		$class->setNamespaceName('app\controllers');		
 		
@@ -290,7 +293,7 @@ class Generator extends \lithium\console\Command {
 	}
 	
 	public function buildControllerTest($model) {
-		$class = new ClassGenerator($model->config->name . 'sControllerTest');
+		$class = new ClassGenerator(Inflector::pluralize("{$model->config->name}") . 'ControllerTest');
 		$class->setExtendedClass('\lithium\test\Unit');
 		$class->setNamespaceName('app\tests\cases\controllers');
 		

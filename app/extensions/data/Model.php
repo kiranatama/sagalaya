@@ -56,7 +56,7 @@ abstract class Model {
 	 * @param mixed $args
 	 */
 	public static function __callStatic($method, $args) {
-		return self::getRepository()->$method($args);
+		return self::getRepository()->$method($args[0]);
 	}
 
     /**
