@@ -94,7 +94,7 @@ class ModelValidator {
 						foreach ($relation as $item) {							
 							if (!in_array(spl_object_hash($item), $object_hash)) {
 								if (!ModelValidator::isValid($item, $object_hash)) {
-									$errors[$property->getName()][] = $item->getErrors();
+									$errors[$property->getName()] = $item->getErrors();
 								}
 							}
 						}
@@ -102,7 +102,7 @@ class ModelValidator {
 						if ($item = $property->getValue($object)) {
 							if (!in_array(spl_object_hash($item), $object_hash)) {
 								if (!ModelValidator::isValid($item, $object_hash)) {
-									$errors[$property->getName()][] = $item->getErrors();
+									$errors[$property->getName()] = $item->getErrors();
 								}
 							}
 						}
