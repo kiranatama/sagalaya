@@ -518,6 +518,9 @@ class ClassMetadataFactory implements ClassMetadataFactoryInterface
             case ClassMetadata::GENERATOR_TYPE_TABLE:
                 throw new ORMException("TableGenerator not yet implemented.");
                 break;
+            case ClassMetadata::GENERATOR_TYPE_UUID:
+            	$class->setIdGenerator(new \Doctrine\ORM\Id\UUIDGenerator());
+            	break;
             default:
                 throw new ORMException("Unknown generator type: " . $class->generatorType);
         }

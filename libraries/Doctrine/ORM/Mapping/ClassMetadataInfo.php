@@ -93,7 +93,8 @@ class ClassMetadataInfo implements ClassMetadata
      * NONE means the class does not have a generated id. That means the class
      * must have a natural, manually assigned id.
      */
-    const GENERATOR_TYPE_NONE = 5;
+    const GENERATOR_TYPE_NONE = 5;    
+    const GENERATOR_TYPE_UUID = 6;
     /**
      * DEFERRED_IMPLICIT means that changes of entities are calculated at commit-time
      * by doing a property-by-property comparison with the original data. This will
