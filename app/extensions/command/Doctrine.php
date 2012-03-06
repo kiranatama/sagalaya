@@ -28,22 +28,6 @@ class Doctrine extends \lithium\console\Command {
 	 */
 	public $connection = 'default';
 
-	/**
-	 * When installing Doctrine from a remote repository, this is the version that will be checked
-	 * out. This must be a valid SVN tag in the Doctrine repository.
-	 *
-	 * @var string
-	 */
-	public $installVersion = '2.0.6';
-
-	/**
-	 * Indicates the SVN command to use when installing Doctrine. Can be set to 'checkout' or
-	 * 'export'.
-	 *
-	 * @var string
-	 */
-	public $installCmd = 'clone';
-
 	public function run($args = array()) {
 
 		$defaults = array(
