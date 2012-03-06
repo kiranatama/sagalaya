@@ -150,7 +150,15 @@ class Generator extends \lithium\console\Command {
 			$property = new PropertyGenerator("{$field->name}", $default, PropertyGenerator::FLAG_PROTECTED);			
 			switch ($type) {
 				case "index" :
-					$docblock = '@Id @Column(type="integer") @GeneratedValue';
+					if (isset($field->strategy)) {
+						switch ("{$field->strategy}") {
+							case "uuid" :
+								$docblock = '@Id @Column(type="string", length=36) @GeneratedValue(strategy="UUID")';
+								break;
+						}	
+					} else {
+						$docblock = '@Id @Column(type="integer") @GeneratedValue';
+					}
 					break;
 				case "relation" :
 					$mappedBy = (isset($field->mappedBy))?", mappedBy=\"{$field->mappedBy}\"":"";
