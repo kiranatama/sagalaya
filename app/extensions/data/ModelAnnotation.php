@@ -11,6 +11,9 @@ class ModelAnnotation {
 	
 	private static $cached, $filename;
 	
+	/**
+	 * 
+	 */
 	public static function init() {
 		
 		static::$filename = LITHIUM_APP_PATH . '/resources/tmp/cache/doc.cache';
@@ -24,6 +27,12 @@ class ModelAnnotation {
 		static::$cached = (empty($content))?array():json_decode($content, true);
 	} 
 	
+	/**
+	 * 
+	 * @param unknown_type $class
+	 * @param unknown_type $field
+	 * @param unknown_type $arg
+	 */
 	public static function get($class, $field, $arg = null) {		
 		
 		static::init();		
@@ -51,6 +60,11 @@ class ModelAnnotation {
 		
 	}
 	
+	/**
+	 * 
+	 * @param \ReflectionProperty $property
+	 * @param unknown_type $matches
+	 */
 	public static function match(\ReflectionProperty $property, $matches = array()) {
 		$comment = static::get($property->getDeclaringClass()->getName(), $property->getName());
 		foreach ($matches as $match) {

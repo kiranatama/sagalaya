@@ -13,12 +13,21 @@ class ModelBuilder {
 	
 	public static $properties, $class, $namespace;	
 	
+	/**
+	 * 
+	 * @param unknown_type $object
+	 */
 	public static function init($object) {		
 		static::$class = new \ReflectionClass($object);
 		static::$properties = static::$class->getProperties(\ReflectionProperty::IS_PROTECTED);
 		static::$namespace = static::$class->getNamespaceName();		
 	}
 	
+	/**
+	 * 
+	 * @param unknown_type $object
+	 * @param unknown_type $data
+	 */
 	public static function create($object, $data = array()) {
 		
 		static::init($object);
@@ -72,6 +81,12 @@ class ModelBuilder {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param unknown_type $object
+	 * @param unknown_type $field
+	 * @param unknown_type $value
+	 */
 	public static function set($object, $field, $value) {
 		
 		$comment = ModelAnnotation::get($object, $field);
@@ -97,6 +112,12 @@ class ModelBuilder {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param unknown_type $object
+	 * @param unknown_type $field
+	 * @param unknown_type $value
+	 */
 	public static function add($object, $field, $value) {		
 		$targetEntity = static::$namespace . '\\' . ModelAnnotation::get($object, $field, 'targetEntity');		
 		foreach ($value as $index => $item) {

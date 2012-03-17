@@ -13,11 +13,21 @@ class ModelValidator {
 	
 	public static $_errors;
 	
+	/**
+	 * 
+	 * @param Model $object
+	 * @param array $object_hash
+	 */
 	public static function isValid($object, $object_hash = array()) {
 		$errors = ModelValidator::validate($object, $object_hash);
 		return empty($errors);
 	}
 	
+	/**
+	 * 
+	 * @param Model $object
+	 * @param array $object_hash
+	 */
 	public static function validate($object, $object_hash = array()) {
 		
 		$errors = null;			
@@ -64,14 +74,14 @@ class ModelValidator {
 			/** Unique checking */
 			foreach ($unique as $key => $value) {
 				$result = $classname::getRepository()->findOneBy(array($value[0] => $object->$value[0]));
-				if (!empty($result)) {
+				if (!empty($result) && !(isset($object->id) && $object->id == $result->id)) {
 					$errors[$value[0]][] = $value["message"];
 				}
 			}
 			
 			/** EqualWith checking */
 			foreach ($equalWith as $key => $value) {
-				if ($object->$value[0] != $object->$value['with']) {
+				if (isset($object->$value['with']) && $object->$value[0] != $object->$value['with']) {
 					$errors[$value[0]][] = $value["message"];
 				}
 			}
@@ -118,10 +128,18 @@ class ModelValidator {
 		return $errors;		
 	}
 	
+	/**
+	 * 
+	 * @param Model $object
+	 */
 	public static function getErrors($object) {
 		return ModelValidator::$_errors[spl_object_hash($object)];		
 	}
 	
+	/**
+	 * 
+	 * @param Model $object
+	 */
 	public static function convertToArray($object) {
 		$result = array();
 		$reflector = new \ReflectionClass($object);
