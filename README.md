@@ -18,11 +18,13 @@ e.g Model creation use-case :
 <pre>
 	<code>
 		$user = new User($this->request->data);
+		
 		if ($user->save()) {
 			$this->redirect('Users::index');
 		} else {
 			$errors = $user->getErrors();
 		}
+		
 		return compact('user', 'errors');
 	</code>
 </pre>
