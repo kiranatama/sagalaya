@@ -35,6 +35,9 @@ e.g Model Access use-case :
 	<code>
 		$user = User::findOneById($id);
 		$other = User::get($other_id);
+		
+		// access user repository
+		$lastUser = User::getLastUserLogin();
 	</code>
 </pre>
 
@@ -44,8 +47,8 @@ e.g Model Access use-case :
 	<code>
 		$user = User::findOneById($id);
 		$other = User::get($other_id);
-	<code>
-<pre>
+	</code>
+</pre>
 
 e.g Model filtering use-case :
 ------------------------------
