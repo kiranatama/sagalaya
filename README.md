@@ -27,6 +27,15 @@ e.g Model creation use-case :
 	</code>
 </pre>
 
+e.g Model Access use-case :
+------------------------------
+<pre>
+	<code>
+		$user = User::findOneById($id);
+		$other = User::get($other_id);
+	</code>
+</pre>
+
 e.g Model filtering use-case :
 ------------------------------
 <pre>
@@ -36,6 +45,9 @@ e.g Model filtering use-case :
 				'and' => array(
 					array('fullname' => array('neq' => 'someone')),
 					array('created' => array('gte' => '2010-10-10'))
+				), 
+				'or' => array(
+					array('public' => array('eq' => true))
 				)
 			),
 			'leftJoin' => array(
