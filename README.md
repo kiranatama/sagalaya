@@ -38,6 +38,15 @@ e.g Model Access use-case :
 	</code>
 </pre>
 
+e.g Model Access use-case :
+------------------------------
+<pre>
+	<code>
+		$user = User::findOneById($id);
+		$other = User::get($other_id);
+	<code>
+<pre>
+
 e.g Model filtering use-case :
 ------------------------------
 <pre>
