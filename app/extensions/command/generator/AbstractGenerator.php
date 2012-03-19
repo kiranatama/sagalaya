@@ -10,9 +10,10 @@ abstract class AbstractGenerator {
 	public $base, $path, $class, $name;
 
 	public function __construct($xml) {
-		$this->shell = new \lithium\console\Command();
+				
 		$this->class = $this->build($xml);
 		$className = substr(get_class($this), strrpos(get_class($this),'\\') + 1);		
+				
 		switch ($className) {
 			case 'Model' :
 				$this->base = '/models';
@@ -41,7 +42,7 @@ abstract class AbstractGenerator {
 	public function build($xml) {
 	}
 	
-	public function generate() {
+	public function generate() {		
 		return $this->class->generate();
 	}
 }

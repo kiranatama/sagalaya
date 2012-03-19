@@ -11,23 +11,31 @@ use lithium\util\Inflector;
 class Controller extends AbstractGenerator {	
 	
 	public function build($model) {
+		
 		$class = new ClassGenerator(Inflector::pluralize("{$model->config->name}") . 'Controller');
 		$class->setExtendedClass('\lithium\action\Controller');
 		$class->setNamespaceName('app\controllers');
+				
+		mkdir(LITHIUM_APP_PATH . '/views/' . strtolower(Inflector::pluralize("{$model->config->name}")));
+		$view_directory = LITHIUM_APP_PATH . '/views/' . strtolower(Inflector::pluralize("{$model->config->name}"));
 	
 		$publicActions = new PropertyGenerator('publicActions', array(), PropertyGenerator::FLAG_PUBLIC);
 		$class->setProperty($publicActions);
 	
-		$messageMethod = new MethodGenerator('message');
+		$messageMethod = new MethodGenerator('_message');
 		$messageMethod->setParameter('value');
 		$messageMethod->setBody("\lithium\storage\Session::write('message', \$value);");
 		$class->setMethod($messageMethod);
 	
 		foreach (array('index', 'create', 'edit', 'view', 'delete') as $action) {
 			$method = new MethodGenerator($action);
-	
+			
 			$single = strtolower("{$model->config->name}");
-			$plurals = $single . "s";
+			$plurals = Inflector::pluralize($single);
+			
+			if (!file_exists($view_directory . '/' . $action . '.html.twig')) {
+				file_put_contents($view_directory . '/' . $action . '.html.twig', '');
+			}
 	
 			switch ($action) {
 				case 'index' :
@@ -39,10 +47,10 @@ class Controller extends AbstractGenerator {
 					$body = "if (\$this->request->data) {\n\n";
 					$body .= "\t\${$single} = new {$model->config->name}(\$this->request->data);\n\n";
 					$body .= "\tif(\${$single}->save()) {\n";
-					$body .= "\t\t\$this->message('Successfully to create {$model->config->name}');\n";
+					$body .= "\t\t\$this->_message('Successfully to create {$model->config->name}');\n";
 					$body .= "\t\t\$this->redirect('{$model->config->name}s::index');\n";
 					$body .= "\t} else {\n";
-					$body .= "\t\t\$this->message('Failed to create {$model->config->name}, please check the error');\n";
+					$body .= "\t\t\$this->_message('Failed to create {$model->config->name}, please check the error');\n";
 					$body .= "\t\t\$errors = \${$single}->getErrors();\n";
 					$body .= "\t}\n\n";
 					$body .= "}\n\n";
@@ -54,10 +62,10 @@ class Controller extends AbstractGenerator {
 					$body .= "\t\${$single} = {$model->config->name}::get(\$this->request->id);\n";
 					$body .= "\t\${$single}->properties = \$this->request->data;\n\n";
 					$body .= "\tif(\${$single}->save()) {\n";
-					$body .= "\t\t\$this->message('Successfully to update {$model->config->name}');\n";
+					$body .= "\t\t\$this->_message('Successfully to update {$model->config->name}');\n";
 					$body .= "\t\t\$this->redirect('{$model->config->name}s::index');\n";
 					$body .= "\t} else {\n";
-					$body .= "\t\t\$this->message('Failed to update {$model->config->name}, please check the error');\n";
+					$body .= "\t\t\$this->_message('Failed to update {$model->config->name}, please check the error');\n";
 					$body .= "\t\t\$errors = \${$single}->getErrors();\n";
 					$body .= "\t}\n\n";
 					$body .= "}\n\n";
@@ -75,20 +83,32 @@ class Controller extends AbstractGenerator {
 					$body = "if (\$this->request->id) {\n";
 					$body .= "\t\${$single} = {$model->config->name}::get(\$this->request->id);\n";
 					$body .= "\t\${$single}->delete();\n";
-					$body .= "\t\$this->message('Success to delete {$model->config->name}');\n";
+					$body .= "\t\$this->_message('Success to delete {$model->config->name}');\n";
 					$body .= "\t\$this->redirect('{$model->config->name}s::index');\n";
 					$body .= "\treturn true;\n";
 					$body .= "}\n\n";
-					$body .= "\$this->message('{$model->config->name} id cannot be empty');\n";
+					$body .= "\$this->_message('{$model->config->name} id cannot be empty');\n";
 					$body .= "\$this->redirect(\$this->request->referer());\n";
 					$body .= "return false;";
 					$method->setBody($body);
 					break;
+			}	
+			$class->setMethod($method);
+		}
+		
+		foreach ($model->actions->action as $action) {
+			$method = new MethodGenerator("{$action->name}");
+			$method->setBody("{$action->code}");
+			if (!file_exists($view_directory . '/' . $action . '.html.twig')) {
+				file_put_contents($view_directory . '/' . $action . '.html.twig', '');
 			}
-	
 			$class->setMethod($method);
 		}
 	
 		return $class;
+	}
+	
+	public function createView($filename) {
+		
 	}
 }

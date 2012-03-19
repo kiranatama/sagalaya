@@ -5,11 +5,14 @@
 		<table>users</table>
 		<callback>true</callback>
 		<repository>true</repository>
+		<resource>true</resource>
+		<role>true</role>
 	</config>
 	<fields>
 		<field>
 			<name>id</name>
 			<type>index</type>
+			<strategy>uuid</strategy>
 		</field>
 		<field>
 			<name>fullname</name>
@@ -102,4 +105,32 @@
 			</rules>
 		</validation>		
 	</validations>
+	<actions>
+		<action>
+			<name>register</name>
+			<code>
+if ($this->request->data) {
+	$user = new User($this->request->data);
+	if ($user->save()) {
+		$this->_message('Success');
+		$this->redirect('Users::index');
+	} else {
+		$errors = $user->getErrors();
+	}
+}
+
+return compact('user', 'errors');
+			</code>
+		</action>
+		<action>
+			<name>search</name>
+			<code>
+if ($this->request->data) {
+	$users = User::findAll();
+}
+
+return compact('users');			
+			</code>
+		</action>
+	</actions>
 </model>

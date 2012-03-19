@@ -24,7 +24,7 @@ abstract class Model {
 	 * @param string $field
 	 */
 	public function __get($field) {
-		if (isset($this->$field)) {
+		if (isset($this->$field)) {			
 			return $this->$field;
 		} else {
 			return null;
@@ -55,7 +55,7 @@ abstract class Model {
 	 * @param string $method
 	 * @param mixed $args
 	 */
-	public static function __callStatic($method, $args) {
+	public static function __callStatic($method, $args) {			
 		return self::getRepository()->$method($args[0]);
 	}
 
@@ -64,7 +64,7 @@ abstract class Model {
      * @param boolean $short
      * @return string
      */
-    public static function name($short = false) {
+    public static function _name($short = false) {
         $className = get_called_class();
         if ($short) {
             $splitted = explode('\\', $className);
@@ -79,11 +79,11 @@ abstract class Model {
      * @param string $alias
      * @return string
      */
-    public static function alias($alias = null) {
+    public static function _alias($alias = null) {
     	if ($alias) {
     		$className = $alias;
     	} else {
-    		$className = self::name(true);
+    		$className = self::_name(true);
     	}
     	if (in_array($className, array('group'))) {
     		$className = "_{$className}";
@@ -178,7 +178,7 @@ abstract class Model {
      */
     public static function processQuery($options = array()) {       
 
-        $className = self::alias();        
+        $className = self::_alias();        
         $qb = Model::getEntity()->createQueryBuilder();        
         $selected = array();              
 
@@ -202,13 +202,13 @@ abstract class Model {
 
         if (isset($options['leftJoin'])) {
 	        foreach ($options['leftJoin'] as $join) {
-	        	$selected[] = self::alias($join['field']);
+	        	$selected[] = self::_alias($join['field']);
 	        }
         }
 
         if (isset($options['innerJoin'])) {
 	        foreach ($options['innerJoin'] as $join) {
-	        	$selected[] = self::alias($join['field']);
+	        	$selected[] = self::_alias($join['field']);
 	        }
         }
 
@@ -311,13 +311,13 @@ abstract class Model {
     						$and = $qb->expr()->andx();
     					}
     					foreach ($join['where'] as $rule) {
-    						$and->add(self::addRule($qb, $rule, self::alias($join['field'])));
+    						$and->add(self::addRule($qb, $rule, self::_alias($join['field'])));
     					}
     				}
-    				$qb->$joinType("{$className}.{$join['field']}", self::alias($join['field']));
+    				$qb->$joinType("{$className}.{$join['field']}", self::_alias($join['field']));
     				
     				if (isset($join[$joinType])) {
-    					$and = self::addJoin($qb, $join, self::alias($join['field']), $and);
+    					$and = self::addJoin($qb, $join, self::_alias($join['field']), $and);
     				}
     			}
     		}
@@ -361,7 +361,7 @@ abstract class Model {
     		}
     	}
 
-    	$className = self::alias($alias);    	
+    	$className = self::_alias($alias);    	
     
     	switch ($condition) {
     		case 'is' :
@@ -394,6 +394,22 @@ abstract class Model {
     			return $qb->expr()->eq("{$className}.{$field}", $match);
     	}
     
+    }
+    
+    /**
+     * Return array of model object
+     * @param array $joins
+     * @return array
+     */
+    public function toArray($joins = array()) {
+    	return end(self::findAll(array(
+    		'where' => array(
+    			'and' => array(
+    				array('id' => array('eq' => $this->id))
+    			)
+    		),
+    		'leftJoin' => $joins
+    	), 'ARRAY'));
     }
 }
 

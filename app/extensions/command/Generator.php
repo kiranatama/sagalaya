@@ -16,9 +16,9 @@ use app\extensions\command\generator\Model;
  */
 class Generator extends \lithium\console\Command {
 
-	protected $generateAll = false;
+	protected $generateAll = false;	
 
-	public function run($args = array()) {
+	public function run($args = array()) {		
 		$blueprint = opendir(LITHIUM_APP_PATH . '/config/design');
 		while (($filename = readdir($blueprint)) !== false) {
 			if (!is_dir($filename)) {
@@ -38,7 +38,7 @@ class Generator extends \lithium\console\Command {
 		$controller = new Controller($xml);
 		$controllerTest = new ControllerTest($xml);
 		$repository = new Repository($xml);
-		//$view = new View($xml);
+
 		$this->write(array($model, $modelTest, $controller, $controllerTest, $repository));	
 	}
 
@@ -61,7 +61,7 @@ class Generator extends \lithium\console\Command {
 	}
 	
 	public function put_file($path, $content) {
-		file_put_contents($path, $content);
+		file_put_contents($path, $content);					
 		print "{$path} has created. \n";
 	}
 
