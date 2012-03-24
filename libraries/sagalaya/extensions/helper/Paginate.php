@@ -31,3 +31,4 @@ class Paginate extends \lithium\template\Helper {
 	}
 	
 }
+?>

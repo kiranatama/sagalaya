@@ -15,6 +15,6 @@ class Auth extends Helper {
 		$user = ModelAuth::check('default');
 		return $user[$field];
 	}
-
 }
+
 ?>

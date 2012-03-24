@@ -11,3 +11,4 @@ class SourceCode extends \lithium\template\Helper {
 	}
 	
 }
+?>

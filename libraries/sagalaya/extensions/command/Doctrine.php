@@ -10,8 +10,6 @@
 namespace sagalaya\extensions\command;
 
 use \lithium\data\Connections;
-use \Doctrine\Common\ClassLoader;
-use \Doctrine\ORM\Configuration;
 
 /**
  * The `doctrine` command provides a direct interface between the Doctrine command-line and Lithium
@@ -139,7 +137,7 @@ class Doctrine extends \lithium\console\Command {
 			new \Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand(),
 			new \Doctrine\ORM\Tools\Console\Command\InfoCommand(),
 			new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
-			new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand()
 		));
 
 		// If command called is a doctrine migration command
@@ -170,7 +168,7 @@ class Doctrine extends \lithium\console\Command {
 	protected function checkWritable($directory) {
 		$this->out("Checking permissions on {$directory}...");
 		$info = pathinfo($directory);
-		if(!is_writable($directory)){
+		if(!is_writable($directory)) {
 			$message = "Could not write to {$info['basename']} directory ({$directory}), ";
 			$this->out("{$message} please run this command with appropriate privileges.");
 			return;

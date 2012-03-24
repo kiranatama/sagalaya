@@ -17,8 +17,7 @@ class Server extends Helper {
     
     public function matchUrl($match, $url) {        
         return preg_match("|{$match}|", $url);
-    }
-        
+    }      
 }
 
 ?>

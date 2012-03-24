@@ -44,11 +44,9 @@ class Session extends Helper {
      * @return string The value stored in the session, or null if it does not exist.
      */
     public function read($key = null) {
-        $class = $this->_classes['session'];
-        var_dump($class);
+        $class = $this->_classes['session'];        
         return $class::read($key);
     }
-
 }
 
 ?>

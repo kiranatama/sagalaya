@@ -2,11 +2,11 @@
 
 namespace sagalaya\extensions\command;
 
-use \sagalaya\extensions\command\generator\Repository;
-use \sagalaya\extensions\command\generator\ControllerTest;
-use \sagalaya\extensions\command\generator\Controller;
-use \sagalaya\extensions\command\generator\ModelTest;
-use \sagalaya\extensions\command\generator\Model;
+use sagalaya\extensions\command\generator\Repository;
+use sagalaya\extensions\command\generator\ControllerTest;
+use sagalaya\extensions\command\generator\Controller;
+use sagalaya\extensions\command\generator\ModelTest;
+use sagalaya\extensions\command\generator\Model;
 
 /**
  * generator command provide automatic generator for CRUD like model, controller, and views
