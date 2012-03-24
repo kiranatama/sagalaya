@@ -88,7 +88,7 @@ class Twig extends \lithium\template\view\Renderer {
         $this->_context = $options['context'] + $this->_context;
         
         $directories = array_map(function ($item) {
-                    return dirname($item);
+                    return LITHIUM_APP_PATH . dirname($item);
                 }, $paths);
 		$directories[] = LITHIUM_APP_PATH . '/views';
 				
