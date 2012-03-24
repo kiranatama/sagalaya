@@ -2,19 +2,13 @@
 <html>
 <head>
     {{this.html.charset()}}	
-	<title>Unhandled exception</title>
-	{{this.html.script(['syntax/shCore', 'syntax/shLegacy', 'syntax/shAutoloader', 'syntax/shBrushPhp'])}}
-    {{this.html.style(['debug','lithium', 'syntax/shCore', 'syntax/shThemeDefault'])}}        
+	<title>{{ this.title() }}</title>
+	{{ this.scripts() }}     
     {{this.html.link('Icon', null, {'type':'icon'})}}	
 </head>
 <body class="app">
-	<div id="container">
-		<div id="header">
-			<h1>An unhandled exception was thrown</h1>
-		</div>
-		<div id="content">
-            {{this.content()}}			
-		</div>
+	<div id="container">				
+        {{this.content()}}					
 	</div>
 </body>
 </html>

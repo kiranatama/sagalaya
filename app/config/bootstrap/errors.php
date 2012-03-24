@@ -25,13 +25,15 @@ ErrorHandler::apply('lithium\action\Dispatcher::run', array(), function($info, $
                 'request' => $params['request'],
                 'status' => $info['exception']->getCode()
             ));
-
+	
+    
     Media::render($response, compact('info', 'params', 'stack', 'exception_class'), array(
         'controller' => 'errors',
-        'template' => 'development',
+        'template' => ($info['exception']->getCode() == 404)?"404":"development",
         'layout' => 'error',
         'request' => $params['request']
     ));
+    
     return $response;
 });
 
