@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -11,6 +11,7 @@ namespace lithium\storage\session\strategy;
 use RuntimeException;
 use lithium\core\ConfigException;
 use lithium\storage\session\strategy\MissingSignatureException;
+use lithium\util\String;
 
 /**
  * This strategy allows you to sign your `Session` and / or `Cookie` data with a passphrase
@@ -63,7 +64,7 @@ class Hmac extends \lithium\core\Object {
 	/**
 	 * Write strategy method.
 	 * Adds an HMAC signature to the data. Note that this will transform the
-	 * passed `$data` to an array, and add a `__signature` key with the HMAC-caculated
+	 * passed `$data` to an array, and add a `__signature` key with the HMAC-calculated
 	 * value.
 	 *
 	 * @see lithium\storage\Session
@@ -110,7 +111,7 @@ class Hmac extends \lithium\core\Object {
 		$currentSignature = $currentData['__signature'];
 		$signature = static::_signature($currentData);
 
-		if ($signature !== $currentSignature) {
+		if (!String::compare($signature, $currentSignature)) {
 			$message = "Possible data tampering: HMAC signature does not match data.";
 			throw new RuntimeException($message);
 		}

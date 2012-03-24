@@ -14,7 +14,7 @@
  *
  * @category  Zend
  * @package   Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -32,7 +32,7 @@ use Zend\Loader;
  * @uses      \Zend\Validator\File\Count
  * @category  Zend
  * @package   Zend_Validate
- * @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 class WordCount extends Count
@@ -74,37 +74,14 @@ class WordCount extends Count
 
         $content = file_get_contents($value);
         $this->_count = str_word_count($content);
-        if (($this->_max !== null) && ($this->_count > $this->_max)) {
+        if (($this->getMax() !== null) && ($this->_count > $this->getMax())) {
             return $this->_throw($file, self::TOO_MUCH);
         }
 
-        if (($this->_min !== null) && ($this->_count < $this->_min)) {
+        if (($this->getMin() !== null) && ($this->_count < $this->getMin())) {
             return $this->_throw($file, self::TOO_LESS);
         }
 
         return true;
-    }
-
-    /**
-     * Throws an error of the given type
-     *
-     * @param  string $file
-     * @param  string $errorType
-     * @return false
-     */
-    protected function _throw($file, $errorType)
-    {
-        if ($file !== null) {
-            if (is_array($file)) {
-                if(array_key_exists('name', $file)) {
-                    $this->_value = $file['name'];
-                }
-            } else if (is_string($file)) {
-                $this->_value = $file;
-            }
-        }
-
-        $this->_error($errorType);
-        return false;
     }
 }

@@ -16,7 +16,7 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Health
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -30,17 +30,10 @@ namespace Zend\GData;
  *
  * @link http://code.google.com/apis/health
  *
- * @uses       \Zend\GData\GData
- * @uses       \Zend\GData\App\AuthException
- * @uses       \Zend\GData\App\InvalidArgumentException
- * @uses       \Zend\GData\Health\ProfileEntry
- * @uses       \Zend\GData\Health\ProfileFeed
- * @uses       \Zend\GData\Health\ProfileListEntry
- * @uses       \Zend\GData\Health\ProfileListFeed
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Health
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Health extends GData

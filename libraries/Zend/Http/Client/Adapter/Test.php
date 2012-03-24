@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_Http
  * @subpackage Client_Adapter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -38,7 +38,7 @@ use Zend\Http\Client\Adapter as HttpAdapter,
  * @category   Zend
  * @package    Zend_Http
  * @subpackage Client_Adapter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Test implements HttpAdapter
@@ -194,10 +194,10 @@ class Test implements HttpAdapter
     public function setResponse($response)
     {
         if ($response instanceof Response) {
-            $response = $response->asString("\r\n");
+            $response = $response->toString();
         }
 
-        $this->responses = (array)$response;
+        $this->responses = (array) $response;
         $this->responseIndex = 0;
     }
 

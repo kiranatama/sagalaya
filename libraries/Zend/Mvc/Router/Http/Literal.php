@@ -25,10 +25,9 @@
 namespace Zend\Mvc\Router\Http;
 
 use Traversable,
-    Zend\Stdlib\IteratorToArray,
+    Zend\Stdlib\ArrayUtils,
     Zend\Stdlib\RequestDescription as Request,
-    Zend\Mvc\Router\Exception,
-    Zend\Mvc\Router\Route;
+    Zend\Mvc\Router\Exception;
 
 /**
  * Literal route.
@@ -77,13 +76,10 @@ class Literal implements Route
      */
     public static function factory($options = array())
     {
-        if (!is_array($options) && !$options instanceof Traversable) {
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
+        } elseif (!is_array($options)) {
             throw new Exception\InvalidArgumentException(__METHOD__ . ' expects an array or Traversable set of options');
-        }
-
-        // Convert options to array if Traversable object not implementing ArrayAccess
-        if ($options instanceof Traversable && !$options instanceof ArrayAccess) {
-            $options = IteratorToArray::convert($options);
         }
 
         if (!isset($options['route'])) {
@@ -141,5 +137,16 @@ class Literal implements Route
     public function assemble(array $params = array(), array $options = array())
     {
         return $this->route;
+    }
+    
+    /**
+     * getAssembledParams(): defined by Route interface.
+     * 
+     * @see    Route::getAssembledParams
+     * @return array
+     */
+    public function getAssembledParams()
+    {
+        return array();
     }
 }

@@ -20,29 +20,33 @@
 namespace Doctrine\DBAL\Platforms;
 
 /**
- * Platform to ensure compatibility of Doctrine with the old SQLServer2005 version.
+ * Platform to ensure compatibility of Doctrine with SQLServer2005 version and
+ * higher.
  *
  * Differences to SQL Server 2008 are:
  *
  * - DATETIME2 datatype does not exist, only DATETIME which has a precision of
  *   3. This is not supported by PHP DateTime, so we are emulating it by
  *   setting .000 manually.
+ * - Starting with SQLServer2005 VARCHAR(MAX), VARBINARY(MAX) and
+ *   NVARCHAR(max) replace the old TEXT, NTEXT and IMAGE types. See
+ *   {@link http://www.sql-server-helper.com/faq/sql-server-2005-varchar-max-p01.aspx}
+ *   for more information.
  */
-class SQLServer2005Platform extends MsSqlPlatform
+class SQLServer2005Platform extends SQLServerPlatform
 {
-    public function getDateTimeTypeDeclarationSQL(array $fieldDeclaration)
-    {
-        // 3 - microseconds precision length
-        // http://msdn.microsoft.com/en-us/library/ms187819.aspx
-        return 'DATETIME';
-    }
-
     /**
      * @override
      */
-    public function getDateTimeFormatString()
+    public function supportsLimitOffset()
     {
-        return 'Y-m-d H:i:s.000';
+        return true;
+    }
+	
+    /** @override */
+    public function getClobTypeDeclarationSQL(array $field)
+    {
+        return 'VARCHAR(MAX)';
     }
 }
 

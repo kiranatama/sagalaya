@@ -93,7 +93,11 @@ class ClassMetadataInfo implements ClassMetadata
      * NONE means the class does not have a generated id. That means the class
      * must have a natural, manually assigned id.
      */
-    const GENERATOR_TYPE_NONE = 5;    
+    const GENERATOR_TYPE_NONE = 5;
+    /**
+     * UUID means that a UUID/GUID expression is used for id generation. Full
+     * portability is currently not guaranteed.
+     */
     const GENERATOR_TYPE_UUID = 6;
     /**
      * DEFERRED_IMPLICIT means that changes of entities are calculated at commit-time
@@ -772,17 +776,18 @@ class ClassMetadataInfo implements ClassMetadata
      * Initializes a new ClassMetadata instance that will hold the object-relational mapping
      * metadata of the class with the given name.
      *
-     * @param string $entityName The name of the entity class the new instance is used for.
+     * @param ReflectionService $reflService The reflection service.
      */
     public function initializeReflection($reflService)
     {
         $this->reflClass = $reflService->getClass($this->name);
         $this->namespace = $reflService->getClassNamespace($this->name);
-        $this->table['name'] = $this->namingStrategy->classToTableName($reflService->getClassShortName($this->name));
 
         if ($this->reflClass) {
             $this->name = $this->rootEntityName = $this->reflClass->getName();
         }
+
+        $this->table['name'] = $this->namingStrategy->classToTableName($this->name);
     }
 
     /**
@@ -1115,7 +1120,7 @@ class ClassMetadataInfo implements ClassMetadata
             $mapping['targetEntity'] = ltrim($mapping['targetEntity'], '\\');
         }
 
-        if ( ($mapping['type'] & (self::MANY_TO_ONE|self::MANY_TO_MANY)) > 0 &&
+        if ( ($mapping['type'] & self::MANY_TO_ONE) > 0 &&
                 isset($mapping['orphanRemoval']) &&
                 $mapping['orphanRemoval'] == true) {
 
@@ -1217,9 +1222,11 @@ class ClassMetadataInfo implements ClassMetadata
 
             $uniqueContraintColumns = array();
             foreach ($mapping['joinColumns'] as $key => &$joinColumn) {
-                if ($mapping['type'] === self::ONE_TO_ONE) {
+                if ($mapping['type'] === self::ONE_TO_ONE && ! $this->isInheritanceTypeSingleTable()) {
                     if (count($mapping['joinColumns']) == 1) {
-                        $joinColumn['unique'] = true;
+                        if (! isset($mapping['id']) || ! $mapping['id']) {
+                            $joinColumn['unique'] = true;
+                        }
                     } else {
                         $uniqueContraintColumns[] = $joinColumn['name'];
                     }
@@ -1334,6 +1341,8 @@ class ClassMetadataInfo implements ClassMetadata
                 $mapping['joinTableColumns'][] = $inverseJoinColumn['name'];
             }
         }
+
+        $mapping['orphanRemoval'] = isset($mapping['orphanRemoval']) ? (bool) $mapping['orphanRemoval'] : false;
 
         if (isset($mapping['orderBy'])) {
             if ( ! is_array($mapping['orderBy'])) {
@@ -1557,6 +1566,16 @@ class ClassMetadataInfo implements ClassMetadata
     {
         return $this->generatorType == self::GENERATOR_TYPE_NONE;
     }
+    
+    /**
+     * Checks whether the class use a UUID for id generation
+     *
+     * @return boolean
+     */
+    public function isIdentifierUuid()
+    {
+        return $this->generatorType == self::GENERATOR_TYPE_UUID;
+    }
 
     /**
      * Gets the type of a field.
@@ -1704,6 +1723,10 @@ class ClassMetadataInfo implements ClassMetadata
 
         if (isset($table['uniqueConstraints'])) {
             $this->table['uniqueConstraints'] = $table['uniqueConstraints'];
+        }
+
+        if (isset($table['options'])) {
+            $this->table['options'] = $table['options'];
         }
     }
 
@@ -1933,19 +1956,22 @@ class ClassMetadataInfo implements ClassMetadata
     public function setDiscriminatorColumn($columnDef)
     {
         if ($columnDef !== null) {
+            if ( ! isset($columnDef['name'])) {
+                throw MappingException::nameIsMandatoryForDiscriminatorColumns($this->name);
+            }
+
             if (isset($this->fieldNames[$columnDef['name']])) {
                 throw MappingException::duplicateColumnName($this->name, $columnDef['name']);
             }
 
-            if ( ! isset($columnDef['name'])) {
-                throw MappingException::nameIsMandatoryForDiscriminatorColumns($this->name, $columnDef);
-            }
             if ( ! isset($columnDef['fieldName'])) {
                 $columnDef['fieldName'] = $columnDef['name'];
             }
+
             if ( ! isset($columnDef['type'])) {
                 $columnDef['type'] = "string";
             }
+
             if (in_array($columnDef['type'], array("boolean", "array", "object", "datetime", "time", "date"))) {
                 throw MappingException::invalidDiscriminatorColumnType($this->name, $columnDef['type']);
             }

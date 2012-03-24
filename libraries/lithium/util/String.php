@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -183,6 +183,26 @@ class String {
 			return hash_hmac($options['type'], $string, $options['key'], $options['raw']);
 		}
 		return hash($options['type'], $string, $options['raw']);
+	}
+
+	/**
+	 * Compares two strings in constant time to prevent timing attacks.
+	 *
+	 * @link http://codahale.com/a-lesson-in-timing-attacks/ More about timing attacks.
+	 * @param string $left The left side of the comparison.
+	 * @param string $right The right side of the comparison.
+	 * @return boolean Returns a boolean indicating whether the two strings are equal.
+	 */
+	public static function compare($left, $right) {
+		$result = true;
+
+		if (($length = strlen($left)) != strlen($right)) {
+			return false;
+		}
+		for ($i = 0; $i < $length; $i++) {
+			$result = $result && ($left[$i] === $right[$i]);
+		}
+		return $result;
 	}
 
 	/**

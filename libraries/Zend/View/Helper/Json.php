@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -23,57 +23,53 @@
  * @namespace
  */
 namespace Zend\View\Helper;
-use Zend\Layout\Layout as LayoutManager;
+
+use Zend\Http\Response,
+    Zend\Json\Json as JsonFormatter;
 
 /**
  * Helper for simplifying JSON responses
  *
- * @uses       \Zend\Controller\Front
- * @uses       \Zend\Json\Json
- * @uses       \Zend\Layout\Layout
- * @uses       \Zend\View\Helper\AbstractHelper
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Json extends AbstractHelper
 {
     /**
-     * Encode data as JSON, disable layouts, and set response header
-     *
-     * If $keepLayouts is true, does not disable layouts.
+     * @var Response
+     */
+    protected $response;
+
+    /**
+     * Set the response object
+     * 
+     * @param  Response $response 
+     * @return Json
+     */
+    public function setResponse(Response $response)
+    {
+        $this->response = $response;
+        return $this;
+    }
+
+    /**
+     * Encode data as JSON and set response header
      *
      * @param  mixed $data
-     * @param  bool $keepLayouts
-     * NOTE:   if boolean, establish $keepLayouts to true|false
-     *         if array, admit params for Zend_Json::encode as enableJsonExprFinder=>true|false
-     *         this array can contains a 'keepLayout'=>true|false
-     *         that will not be passed to Zend_Json::encode method but will be used here
+     * @param  array $jsonOptions Options to pass to JsonFormatter::encode()
      * @return string|void
      */
-    public function __invoke($data, $keepLayouts = false)
+    public function __invoke($data, array $jsonOptions = array())
     {
-        $options = array();
-        if (is_array($keepLayouts))
-        {
-            $options     = $keepLayouts;
-            $keepLayouts = (array_key_exists('keepLayouts', $keepLayouts))
-                            ? $keepLayouts['keepLayouts']
-                            : false;
-            unset($options['keepLayouts']);
+        $data = JsonFormatter::encode($data, null, $jsonOptions);
+
+        if ($this->response instanceof Response) {
+            $headers = $this->response->headers();
+            $headers->addHeaderLine('Content-Type', 'application/json');
         }
 
-        $data = \Zend\Json\Json::encode($data, null, $options);
-        if (!$keepLayouts) {
-            $layout = LayoutManager::getMvcInstance();
-            if ($layout instanceof LayoutManager) {
-                $layout->disableLayout();
-            }
-        }
-
-        $response = \Zend\Controller\Front::getInstance()->getResponse();
-        $response->setHeader('Content-Type', 'application/json');
         return $data;
     }
 }

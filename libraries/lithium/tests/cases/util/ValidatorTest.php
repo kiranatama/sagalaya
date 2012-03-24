@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -253,6 +253,7 @@ class ValidatorTest extends \lithium\test\Unit {
 		$this->assertTrue(Validator::isBoolean('off'));
 		$this->assertTrue(Validator::isBoolean('yes'));
 		$this->assertTrue(Validator::isBoolean('no'));
+		$this->assertTrue(Validator::isBoolean(''));
 
 		$this->assertFalse(Validator::isBoolean('11'));
 		$this->assertFalse(Validator::isBoolean('-1'));
@@ -955,22 +956,22 @@ class ValidatorTest extends \lithium\test\Unit {
 		$result = Validator::check($data, $rules);
 		$this->assertTrue(empty($result));
 	}
-	
+
 	public function testCheckSkipEmpty() {
 		$rules = array(
 			'email' => array('email', 'skipEmpty' => true, 'message' => 'email is not valid')
 		);
-		
+
 		// empty string should pass
 		$data = array('email' => '');
 		$result = Validator::check($data, $rules);
 		$this->assertTrue(empty($result));
-		
+
 		// null value should pass
 		$data = array('email' => null);
 		$result = Validator::check($data, $rules);
 		$this->assertTrue(empty($result));
-		
+
 		// string with spaces should NOT pass
 		$data = array('email' => ' ');
 		$result = Validator::check($data, $rules);

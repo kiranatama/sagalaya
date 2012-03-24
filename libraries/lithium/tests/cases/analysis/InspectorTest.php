@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -10,6 +10,7 @@ namespace lithium\tests\cases\analysis;
 
 use ReflectionMethod;
 use lithium\analysis\Inspector;
+use lithium\core\Libraries;
 
 class InspectorTest extends \lithium\test\Unit {
 
@@ -76,6 +77,15 @@ class InspectorTest extends \lithium\test\Unit {
 	public function testExecutableLines() {
 		do {
 			// These lines should be ignored
+			//
+
+			/* And these as well are ignored */
+
+			/**
+			 * Testing never proves the absence of faults,
+			 * it only shows their presence.
+			 * - Dijkstra
+			 */
 		} while (false);
 
 		$result = Inspector::executable($this, array('methods' => __FUNCTION__));
@@ -93,13 +103,39 @@ class InspectorTest extends \lithium\test\Unit {
 		$expected = array(__LINE__ - 2 => "\tpublic function testLineIntrospection() {");
 		$this->assertEqual($expected, $result);
 
-		$result = Inspector::lines(__CLASS__, array(14));
-		$expected = array(14 => 'class InspectorTest extends \lithium\test\Unit {');
+		$result = Inspector::lines(__CLASS__, array(15));
+		$expected = array(15 => 'class InspectorTest extends \lithium\test\Unit {');
+		$this->assertEqual($expected, $result);
+
+		$lines = 'This is the first line.' . PHP_EOL . 'And this the second.';
+		$result = Inspector::lines($lines, array(2));
+		$expected = array(2 => 'And this the second.');
 		$this->assertEqual($expected, $result);
 
 		$this->expectException('/Missing argument 2/');
 		$this->assertNull(Inspector::lines('\lithium\core\Foo'));
 		$this->assertNull(Inspector::lines(__CLASS__, array()));
+	}
+
+	/**
+	 * Tests reading specific line numbers of a file that has CRLF line endings.
+	 *
+	 * @return void
+	 */
+	public function testLineIntrospectionWithCRLFLineEndings() {
+		$tmpPath = Libraries::get(true, 'resources') . '/tmp/tests/inspector_crlf';
+		$contents = implode("\r\n", array('one', 'two', 'three', 'four', 'five'));
+		file_put_contents($tmpPath, $contents);
+
+		$result = Inspector::lines($tmpPath, array(2));
+		$expected = array(2 => 'two');
+		$this->assertEqual($expected, $result);
+
+		$result = Inspector::lines($tmpPath, array(1,5));
+		$expected = array(1 => 'one', 5 => 'five');
+		$this->assertEqual($expected, $result);
+
+		$this->_cleanUp();
 	}
 
 	/**
@@ -188,7 +224,7 @@ class InspectorTest extends \lithium\test\Unit {
 	public function testClassDependencies() {
 		$expected = array(
 			'Exception', 'ReflectionClass', 'ReflectionProperty', 'ReflectionException',
-			'lithium\\core\\Libraries'
+			'SplFileObject', 'lithium\\core\\Libraries'
 		);
 
 		$result = Inspector::dependencies($this->subject(), array('type' => 'static'));

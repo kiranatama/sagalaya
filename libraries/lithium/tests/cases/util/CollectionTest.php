@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -319,15 +319,15 @@ class CollectionTest extends \lithium\test\Unit {
 			'Delete me'
 		);
 		$collection = new Collection(array('data' => $data));
-		
+
 		$this->assertIdentical($data, $collection->to('array'));
-		
+
 		foreach ($collection as $i => $word) {
 			if ($word == 'Delete me') {
 				unset($collection[$i]);
 			}
 		}
-	
+
 		$expected = array(0 => 'Hello', 6 => 'Hello again!');
 		$results = $collection->to('array');
 		$this->assertIdentical($expected, $results);

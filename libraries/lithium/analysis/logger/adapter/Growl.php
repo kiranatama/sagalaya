@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -158,7 +158,7 @@ class Growl extends \lithium\core\Object {
 		$message = compact('type', 'title', 'description') + array('app' => $this->_config['name']);
 		$message = array_map('utf8_encode', $message);
 
-        $flags = ($options['priority'] & 7) * 2;
+		$flags = ($options['priority'] & 7) * 2;
 		$flags = ($options['priority'] < 0) ? $flags |= 8 : $flags;
 		$flags = ($options['sticky']) ? $flags | 256 : $flags;
 

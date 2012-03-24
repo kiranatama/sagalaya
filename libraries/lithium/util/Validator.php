@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -246,7 +246,7 @@ class Validator extends \lithium\core\StaticObject {
 			'boolean'      => function($value) {
 				$bool = is_bool($value);
 				$filter = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-				return ($bool || $filter !== null);
+				return ($bool || $filter !== null || empty($value));
 			},
 			'decimal' => function($value, $format = null, array $options = array()) {
 				if (isset($options['precision'])) {
@@ -446,7 +446,7 @@ class Validator extends \lithium\core\StaticObject {
 			$values = $params['values'];
 			$rules = $params['rules'];
 			$options = $params['options'];
-			
+
 			$errors = array();
 			$events = (array) (isset($options['events']) ? $options['events'] : null);
 			$values = Set::flatten($values);
@@ -464,7 +464,7 @@ class Validator extends \lithium\core\StaticObject {
 					if ($events && $rule['on'] && !array_intersect($events, (array) $rule['on'])) {
 						continue;
 					}
-					if (!isset($values[$field])) {
+					if (!array_key_exists($field, $values)) {
 						if ($rule['required']) {
 							$errors[$field][] = $rule['message'] ?: $key;
 						}
@@ -479,7 +479,7 @@ class Validator extends \lithium\core\StaticObject {
 
 					if (!$self::rule($name, $values[$field], $rule['format'], $rule + $options)) {
 						$errors[$field][] = $rule['message'] ?: $key;
-					
+
 						if ($rule['last']) {
 							break;
 						}

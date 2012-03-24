@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -32,7 +32,7 @@ use Zend\View\Exception;
  * @uses       Iterator
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Escape extends AbstractHelper
@@ -56,6 +56,21 @@ class Escape extends AbstractHelper
     protected $encoding = 'UTF-8';
 
     /**
+     * @var array Supported encodings used to avoid an illegal call
+     */
+    protected $supportedEncodings = array(
+        'iso-8859-1',   'iso8859-1',    'iso-8859-5',   'iso8859-5',
+        'iso-8859-15',  'iso8859-15',   'utf-8',        'cp866',
+        'ibm866',       '866',          'cp1251',       'windows-1251',
+        'win-1251',     '1251',         'cp1252',       'windows-1252',
+        '1252',         'koi8-r',       'koi8-ru',      'koi8r',
+        'big5',         '950',          'gb2312',       '936',
+        'big5-hkscs',   'shift_jis',    'sjis',         'sjis-win',
+        'cp932',        '932',          'euc-jp',       'eucjp',
+        'eucjp-win',    'macroman'
+    );
+
+    /**
      * Set the encoding to use for escape operations
      * 
      * @param  string $encoding 
@@ -63,6 +78,18 @@ class Escape extends AbstractHelper
      */
     public function setEncoding($encoding)
     {
+        if (empty($encoding)) {
+            throw new Exception\InvalidArgumentException(
+                get_called_class() . '::setEncoding() does not allow a NULL or '
+                . 'blank string value'
+            );
+        }
+        if (!in_array(strtolower($encoding), $this->supportedEncodings)) {
+            throw new Exception\InvalidArgumentException(
+                'Value of \'' . $encoding . '\' passed to ' . get_called_class()
+                . '::setEncoding() is invalid. Provide an encoding supported by htmlspecialchars()'
+            );
+        }
         $this->encoding = $encoding;
         return $this;
     }
@@ -82,12 +109,12 @@ class Escape extends AbstractHelper
      * 
      * @param  callback $callback 
      * @return Escape
-     * @throws Exception if provided callback is not callable
+     * @throws Exception\InvalidArgumentException if provided callback is not callable
      */
     public function setCallback($callback)
     {
         if (!is_callable($callback)) {
-            throw new Exception('Invalid callback provided to ' . get_called_class());
+            throw new Exception\InvalidArgumentException('Invalid callback provided to ' . get_called_class());
         }
         $this->callback = $callback;
         return $this;
@@ -106,7 +133,7 @@ class Escape extends AbstractHelper
         if (!is_callable($this->callback)) {
             $encoding = $this->getEncoding();
             $callback = function($value) use ($encoding) {
-                return htmlspecialchars($value, ENT_COMPAT, $encoding, false);
+                return htmlspecialchars($value, ENT_QUOTES, $encoding, false);
             };
             $this->setCallback($callback);
         }
@@ -119,6 +146,7 @@ class Escape extends AbstractHelper
      * @param  mixed $value 
      * @param  int $recurse Expects one of the recursion constants; used to decide whether or not to recurse the given value when escaping
      * @return mixed Given a scalar, a scalar value is returned. Given an object, with the $recurse flag not allowing object recursion, returns a string. Otherwise, returns an array.
+     * @throws Exception\InvalidArgumentException
      */
     public function __invoke($value, $recurse = self::RECURSE_NONE)
     {
@@ -128,7 +156,9 @@ class Escape extends AbstractHelper
         }
         if (is_array($value)) {
             if (!(self::RECURSE_ARRAY & $recurse)) {
-                throw new Exception('Array provided to Escape helper, but flags do not allow recursion');
+                throw new Exception\InvalidArgumentException(
+                    'Array provided to Escape helper, but flags do not allow recursion'
+                );
             }
             foreach ($value as $k => $v) {
                 $value[$k] = $this->__invoke($v, $recurse);
@@ -143,7 +173,9 @@ class Escape extends AbstractHelper
                     return call_user_func($callback, (string) $value);
                 }
 
-                throw new Exception('Object provided to Escape helper, but flags do not allow recursion');
+                throw new Exception\InvalidArgumentException(
+                    'Object provided to Escape helper, but flags do not allow recursion'
+                );
             }
             if (method_exists($value, 'toArray')) {
                 return $this->__invoke($value->toArray(), $recurse | self::RECURSE_ARRAY);

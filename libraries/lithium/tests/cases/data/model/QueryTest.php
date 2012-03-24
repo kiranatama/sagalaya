@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -158,14 +158,14 @@ class QueryTest extends \lithium\test\Unit {
 		$record->title = 'Lorem Ipsum';
 
 		$query->entity($record);
-		$query_record = $query->entity();
+		$queryRecord = $query->entity();
 
 		$expected = 12;
-		$result = $query_record->id;
+		$result = $queryRecord->id;
 		$this->assertEqual($expected, $result);
 
 		$expected = 'Lorem Ipsum';
-		$result = $query_record->title;
+		$result = $queryRecord->title;
 		$this->assertEqual($expected, $result);
 
 		$this->assertTrue($record == $query->entity());

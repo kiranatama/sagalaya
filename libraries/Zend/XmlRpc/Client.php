@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_XmlRpc
  * @subpackage Client
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -23,28 +23,21 @@
  * @namespace
  */
 namespace Zend\XmlRpc;
+
 use Zend\Http,
+    Zend\Server\Client as ServerClient,
     Zend\XmlRpc\Value;
 
 /**
  * An XML-RPC client implementation
  *
- * @uses       Zend\Http\Client
- * @uses       Zend\XmlRpc\Client\FaultException
- * @uses       Zend\XmlRpc\Client\HttpException
- * @uses       Zend\XmlRpc\Client\ServerIntrospection
- * @uses       Zend\XmlRpc\Client\ServerProxy
- * @uses       Zend\XmlRpc\Fault
- * @uses       Zend\XmlRpc\Request
- * @uses       Zend\XmlRpc\Response
- * @uses       Zend\XmlRpc\Value
  * @category   Zend
  * @package    Zend_XmlRpc
  * @subpackage Client
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Client
+class Client implements ServerClient
 {
     /**
      * Full address of the XML-RPC service
@@ -231,37 +224,40 @@ class Client
         iconv_set_encoding('output_encoding', 'UTF-8');
         iconv_set_encoding('internal_encoding', 'UTF-8');
 
-        $http = $this->getHttpClient();
-        if($http->getUri() === null) {
+        $http        = $this->getHttpClient();
+        $httpRequest = $http->getRequest();
+        if ($httpRequest->getUri() === null) {
             $http->setUri($this->_serverAddress);
         }
 
-        $http->setHeaders(array(
+        $headers = $httpRequest->headers();
+        $headers->addHeaders(array(
             'Content-Type: text/xml; charset=utf-8',
             'Accept: text/xml',
         ));
 
-        if ($http->getHeader('user-agent') === null) {
-            $http->setHeaders(array('User-Agent: Zend_XmlRpc_Client'));
+        if (!$headers->get('user-agent')) {
+            $headers->addHeaderLine('user-agent', 'Zend_XmlRpc_Client');
         }
 
         $xml = $this->_lastRequest->__toString();
-        $http->setRawData($xml);
-        $httpResponse = $http->request(Http\Client::POST);
+        $http->setRawBody($xml);
+        $httpResponse = $http->setMethod('POST')->send();
 
-        if (! $httpResponse->isSuccessful()) {
+        if (!$httpResponse->isSuccess()) {
             /**
              * Exception thrown when an HTTP error occurs
              */
             throw new Client\Exception\HttpException(
-                $httpResponse->getMessage(),
-                $httpResponse->getStatus()
+                $httpResponse->getReasonPhrase(),
+                $httpResponse->getStatusCode()
             );
         }
 
         if ($response === null) {
             $response = new Response();
         }
+
         $this->_lastResponse = $response;
         $this->_lastResponse->loadXml($httpResponse->getBody());
     }
@@ -316,7 +312,7 @@ class Client
 
                         if (isset($signature['parameters'][$key])) {
                             $type = $signature['parameters'][$key];
-                            $type = in_array($type, $validTypes) ? $type : Value\Value::AUTO_DETECT_TYPE;
+                            $type = in_array($type, $validTypes) ? $type : Value::AUTO_DETECT_TYPE;
                         }
                     }
 

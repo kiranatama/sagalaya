@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -304,9 +304,11 @@ class RouteTest extends \lithium\test\Unit {
 			'template' => '/images/image_{:width}x{:height}.{:format}',
 			'params' => array('format' => 'png')
 		));
+
+		$ptrn = '@^/images/image_(?P<width>[^\\/]+)x(?P<height>[^\\/]+)\\.(?P<format>[^\\/]+)?$@';
 		$expected = array(
 			'template' => '/images/image_{:width}x{:height}.{:format}',
-			'pattern' => '@^/images/image_(?P<width>[^\\/]+)x(?P<height>[^\\/]+)\\.(?P<format>[^\\/]+)?$@',
+			'pattern' => $ptrn,
 			'params' => array('format' => 'png', 'action' => 'index'),
 			'match' => array('action' => 'index'),
 			'meta' => array(),
@@ -611,7 +613,7 @@ class RouteTest extends \lithium\test\Unit {
 	public function testTwoParameterRoutes() {
 		$route = new Route(array(
 			'template' => '/personnel/{:personnel_id}/position/{:position_id}/actions/create',
-			'params' => array('controller' => 'actions', 'action' => 'create'),
+			'params' => array('controller' => 'actions', 'action' => 'create')
 		));
 
 		$route->compile();

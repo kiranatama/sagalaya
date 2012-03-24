@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -102,16 +102,16 @@ abstract class Database extends \lithium\data\Source {
 
 	/**
 	 * Return the last errors produced by a the execution of a query.
- 	 * Abstract. Must be defined by child class.
- 	 *
+	 * Abstract. Must be defined by child class.
+	 *
 	 */
 	abstract public function error();
 
 	/**
 	 * Execute a given query
- 	 * Abstract. Must be defined by child class.
- 	 *
- 	 * @see lithium\data\source\Database::renderCommand()
+	 * Abstract. Must be defined by child class.
+	 *
+	 * @see lithium\data\source\Database::renderCommand()
 	 * @param string $sql The sql string to execute
 	 * @return resource
 	 */
@@ -834,7 +834,9 @@ abstract class Database extends \lithium\data\Source {
 			if ($field = $model::schema($column)) {
 				$name = $this->name($model::meta('name')) . '.' . $this->name($column);
 				$result[] = "{$name} {$dir}";
+				continue;
 			}
+			$result[] = "{$column} {$dir}";
 		}
 		$order = join(', ', $result);
 		return "ORDER BY {$order}";
@@ -937,6 +939,7 @@ abstract class Database extends \lithium\data\Source {
 	 * Returns a fully-qualified table name (i.e. with prefix), quoted.
 	 *
 	 * @param string $entity
+	 * @param array $options
 	 * @return string
 	 */
 	protected function _entityName($entity, array $options = array()) {

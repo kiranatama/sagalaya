@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -28,7 +28,8 @@ use Zend\Loader\ShortNameLocator,
     Zend\Loader\PluginClassLoader,
     Zend\Navigation\Container,
     Zend\View\Helper\Navigation\AbstractHelper as AbstractNavigationHelper,
-    Zend\View\Helper\Navigation\Helper as NavigationHelper;
+    Zend\View\Helper\Navigation\Helper as NavigationHelper,
+    Zend\View\Exception;
 
 /**
  * Proxy helper for retrieving navigational helpers and forwarding calls
@@ -38,7 +39,7 @@ use Zend\Loader\ShortNameLocator,
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Navigation extends AbstractNavigationHelper
@@ -135,7 +136,8 @@ class Navigation extends AbstractNavigationHelper
     public function __call($method, array $arguments = array())
     {
         // check if call should proxy to another helper
-        if ($helper = $this->findHelper($method, false)) {
+        $helper = $this->findHelper($method, false);
+        if ($helper) {
             return call_user_func_array($helper, $arguments);
         }
 
@@ -145,8 +147,8 @@ class Navigation extends AbstractNavigationHelper
 
     /**
      * Set plugin loader for retrieving navigation helpers
-     * 
-     * @param ShortNameLocator $loader 
+     *
+     * @param ShortNameLocator $loader
      * @return void
      */
     public function setPluginLoader(ShortNameLocator $loader)
@@ -158,9 +160,9 @@ class Navigation extends AbstractNavigationHelper
     /**
      * Retrieve plugin loader for navigation helpers
      *
-     * Lazy-loads an instance of Navigation\HelperLoader if none currently 
+     * Lazy-loads an instance of Navigation\HelperLoader if none currently
      * registered.
-     * 
+     *
      * @return ShortNameLocator
      */
     public function getPluginLoader()
@@ -184,10 +186,9 @@ class Navigation extends AbstractNavigationHelper
      *                                             wrong. Default is true.
      * @return \Zend\View\Helper\Navigation\Helper  helper instance
      * @throws \Zend\Loader\PluginLoader\Exception  if $strict is true and
-     *                                             helper cannot be found
-     * @throws \Zend\View\Exception                 if $strict is true and
-     *                                             helper does not implement
-     *                                             the specified interface
+     *         helper cannot be found
+     * @throws Exception\InvalidArgumentException if $strict is true and
+     *         helper does not implement the specified interface
      */
     public function findHelper($proxy, $strict = true)
     {
@@ -211,12 +212,11 @@ class Navigation extends AbstractNavigationHelper
 
         if (!$helper instanceof AbstractNavigationHelper) {
             if ($strict) {
-                $e = new \Zend\View\Exception(sprintf(
+                throw new Exception\InvalidArgumentException(sprintf(
                         'Proxy helper "%s" is not an instance of ' .
                         'Zend\View\Helper\Navigation\Helper',
-                        get_class($helper)));
-                $e->setView($this->view);
-                throw $e;
+                        get_class($helper)
+                ));
             }
 
             return null;

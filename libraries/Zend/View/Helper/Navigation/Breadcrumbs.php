@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -25,18 +25,17 @@
 namespace Zend\View\Helper\Navigation;
 
 use Zend\Navigation\Container,
-    Zend\Navigation\AbstractPage,
-    Zend\View;
+    Zend\Navigation\Page\AbstractPage,
+    Zend\View,
+    Zend\View\Exception;
 
 /**
  * Helper for printing breadcrumbs
  *
- * @uses       \Zend\View\Exception
- * @uses       \Zend\View\Helper\Navigation\AbstractHelper
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Breadcrumbs extends AbstractHelper
@@ -46,37 +45,35 @@ class Breadcrumbs extends AbstractHelper
      *
      * @var string
      */
-    protected $_separator = ' &gt; ';
+    protected $separator = ' &gt; ';
 
     /**
      * The minimum depth a page must have to be included when rendering
      *
      * @var int
      */
-    protected $_minDepth = 1;
+    protected $minDepth = 1;
 
     /**
      * Whether last page in breadcrumb should be hyperlinked
      *
      * @var bool
      */
-    protected $_linkLast = false;
+    protected $linkLast = false;
 
     /**
      * Partial view script to use for rendering menu
      *
      * @var string|array
      */
-    protected $_partial;
+    protected $partial;
 
     /**
      * View helper entry point:
      * Retrieves helper and optionally sets container to operate on
      *
-     * @param  \Zend\Navigation\Container $container     [optional] container to
-     *                                                  operate on
-     * @return \Zend\View\Helper\Navigation\Breadcrumbs  fluent interface,
-     *                                                  returns self
+     * @param  Container $container [optional] container to operate on
+     * @return Breadcrumbs  fluent interface, returns self
      */
     public function __invoke(Container $container = null)
     {
@@ -92,14 +89,13 @@ class Breadcrumbs extends AbstractHelper
     /**
      * Sets breadcrumb separator
      *
-     * @param  string $separator                        separator string
-     * @return \Zend\View\Helper\Navigation\Breadcrumbs  fluent interface,
-     *                                                  returns self
+     * @param  string $separator separator string
+     * @return Breadcrumbs fluent interface, returns self
      */
     public function setSeparator($separator)
     {
         if (is_string($separator)) {
-            $this->_separator = $separator;
+            $this->separator = $separator;
         }
 
         return $this;
@@ -112,20 +108,18 @@ class Breadcrumbs extends AbstractHelper
      */
     public function getSeparator()
     {
-        return $this->_separator;
+        return $this->separator;
     }
 
     /**
      * Sets whether last page in breadcrumbs should be hyperlinked
      *
-     * @param  bool $linkLast                           whether last page should
-     *                                                  be hyperlinked
-     * @return \Zend\View\Helper\Navigation\Breadcrumbs  fluent interface,
-     *                                                  returns self
+     * @param  bool $linkLast whether last page should be hyperlinked
+     * @return Breadcrumbs fluent interface, returns self
      */
     public function setLinkLast($linkLast)
     {
-        $this->_linkLast = (bool) $linkLast;
+        $this->linkLast = (bool) $linkLast;
         return $this;
     }
 
@@ -136,27 +130,23 @@ class Breadcrumbs extends AbstractHelper
      */
     public function getLinkLast()
     {
-        return $this->_linkLast;
+        return $this->linkLast;
     }
 
     /**
      * Sets which partial view script to use for rendering menu
      *
-     * @param  string|array $partial                    partial view script or
-     *                                                  null. If an array is
-     *                                                  given, it is expected to
-     *                                                  contain two values;
-     *                                                  the partial view script
-     *                                                  to use, and the module
-     *                                                  where the script can be
-     *                                                  found.
-     * @return \Zend\View\Helper\Navigation\Breadcrumbs  fluent interface,
-     *                                                  returns self
+     * @param  string|array $partial partial view script or null. If an array is
+     *                               given, it is expected to contain two 
+     *                               values; the partial view script to use, 
+     *                               and the module where the script can be 
+     *                               found.
+     * @return Breadcrumbs fluent interface, returns self
      */
     public function setPartial($partial)
     {
         if (null === $partial || is_string($partial) || is_array($partial)) {
-            $this->_partial = $partial;
+            $this->partial = $partial;
         }
 
         return $this;
@@ -169,7 +159,7 @@ class Breadcrumbs extends AbstractHelper
      */
     public function getPartial()
     {
-        return $this->_partial;
+        return $this->partial;
     }
 
     // Render methods:
@@ -178,11 +168,9 @@ class Breadcrumbs extends AbstractHelper
      * Renders breadcrumbs by chaining 'a' elements with the separator
      * registered in the helper
      *
-     * @param  \Zend\Navigation\Container $container  [optional] container to
-     *                                               render. Default is to
-     *                                               render the container
-     *                                               registered in the helper.
-     * @return string                                helper output
+     * @param  Container $container [optional] container to render. Default is
+     *                              to render the container registered in the helper.
+     * @return string               helper output
      */
     public function renderStraight(Container $container = null)
     {
@@ -205,7 +193,8 @@ class Breadcrumbs extends AbstractHelper
             if ($this->getUseTranslator() && $t = $this->getTranslator()) {
                 $html = $t->translate($html);
             }
-            $html = $this->view->vars()->escape($html);
+            $escaper = $this->view->plugin('escape');
+            $html    = $escaper($html);
         }
 
         // walk back to root
@@ -234,22 +223,18 @@ class Breadcrumbs extends AbstractHelper
      * The container will simply be passed on as a model to the view script,
      * so in the script it will be available in <code>$this->container</code>.
      *
-     * @param  \Zend\Navigation\Container $container  [optional] container to
-     *                                               pass to view script.
-     *                                               Default is to use the
-     *                                               container registered in the
-     *                                               helper.
-     * @param  string|array             $partial     [optional] partial view
-     *                                               script to use. Default is
-     *                                               to use the partial
-     *                                               registered in the helper.
-     *                                               If an array is given, it is
-     *                                               expected to contain two
-     *                                               values; the partial view
-     *                                               script to use, and the
-     *                                               module where the script can
-     *                                               be found.
-     * @return string                                helper output
+     * @param  Container $container [optional] container to pass to view script.
+     *                              Default is to use the container registered 
+     *                              in the helper.
+     * @param  string|array $partial [optional] partial view script to use. 
+     *                               Default is to use the partial registered 
+     *                               in the helper.  If an array is given, it 
+     *                               is expected to contain two values; the 
+     *                               partial view script to use, and the module 
+     *                               where the script can be found.
+     * @return string               helper output
+     * @throws Exception\RuntimeException if no partial provided
+     * @throws Exception\InvalidArgumentException if partial is invalid array
      */
     public function renderPartial(Container $container = null,
                                   $partial = null)
@@ -263,16 +248,15 @@ class Breadcrumbs extends AbstractHelper
         }
 
         if (empty($partial)) {
-            $e = new View\Exception(
+            throw new Exception\RuntimeException(
                 'Unable to render menu: No partial view script provided'
             );
-            $e->setView($this->view);
-            throw $e;
         }
 
         // put breadcrumb pages in model
-        $model = array('pages' => array());
-        if ($active = $this->findActive($container)) {
+        $model  = array('pages' => array());
+        $active = $this->findActive($container);
+        if ($active) {
             $active = $active['page'];
             $model['pages'][] = $active;
             while ($parent = $active->getParent()) {
@@ -294,21 +278,19 @@ class Breadcrumbs extends AbstractHelper
 
         if (is_array($partial)) {
             if (count($partial) != 2) {
-                $e = new View\Exception(
-                    'Unable to render menu: A view partial supplied as ' 
-                    .  'an array must contain two values: partial view ' 
+                throw new Exception\InvalidArgumentException(
+                    'Unable to render menu: A view partial supplied as '
+                    .  'an array must contain two values: partial view '
                     .  'script and module where script can be found'
                 );
-                $e->setView($this->view);
-                throw $e;
             }
 
             $partialHelper = $this->view->plugin('partial');
-            return $partialHelper($partial[0], $partial[1], $model);
+            return $partialHelper($partial[0], /*$partial[1], */$model);
         }
 
         $partialHelper = $this->view->plugin('partial');
-        return $partialHelper($partial, null, $model);
+        return $partialHelper($partial, $model);
     }
 
     // Zend\View\Helper\Navigation\Helper:
@@ -316,17 +298,16 @@ class Breadcrumbs extends AbstractHelper
     /**
      * Renders helper
      *
-     * Implements {@link Zend\View\Helper\Navigation\Helper::render()}.
+     * Implements {@link Helper::render()}.
      *
-     * @param  \Zend\Navigation\Container $container  [optional] container to
-     *                                               render. Default is to
-     *                                               render the container
-     *                                               registered in the helper.
-     * @return string                                helper output
+     * @param  Container $container [optional] container to render. Default is
+     *                              to render the container registered in the helper.
+     * @return string               helper output
      */
     public function render(Container $container = null)
     {
-        if ($partial = $this->getPartial()) {
+        $partial = $this->getPartial();
+        if ($partial) {
             return $this->renderPartial($container, $partial);
         } else {
             return $this->renderStraight($container);

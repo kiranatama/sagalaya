@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -144,7 +144,7 @@ class Controller extends \lithium\core\Object {
 			$this->_render['type'] = $this->request->accepts();
 			return;
 		}
-		$this->_render['type'] = $this->request->type ?: 'html';
+		$this->_render['type'] = $this->request->get('params:type') ?: 'html';
 	}
 
 	/**
@@ -220,7 +220,7 @@ class Controller extends \lithium\core\Object {
 	 *
 	 * The options specified here are merged with the values in the `Controller::$_render`
 	 * property. You may refer to it for other options accepted by this method.
-	 * @return void
+	 * @return object Returns the `Response` object associated with this `Controller` instance.
 	 */
 	public function render(array $options = array()) {
 		$media = $this->_classes['media'];
@@ -255,8 +255,10 @@ class Controller extends \lithium\core\Object {
 		if ($options['head']) {
 			return;
 		}
-		$data = $this->_render['data'];
-		$media::render($this->response, $data, $options + array('request' => $this->request));
+		$response = $media::render($this->response, $this->_render['data'], $options + array(
+			'request' => $this->request
+		));
+		return ($this->response = $response ?: $this->response);
 	}
 
 	/**

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -55,8 +55,7 @@ class FormTest extends \lithium\test\Unit {
 		$this->context = new MockFormRenderer(compact('request'));
 		$this->form = new Form(array('context' => $this->context));
 
-		$base = trim($this->context->request()->env('base'), '/') . '/';
-		$this->base = ($base == '/') ? $base : '/' . $base;
+		$this->base = $this->context->request()->env('base') . '/';
 	}
 
 	public function tearDown() {
@@ -69,9 +68,9 @@ class FormTest extends \lithium\test\Unit {
 
 	public function testFormCreation() {
 		$result = $this->form->create();
-		$this->assertTags($result, array(
-			'form' => array('action' => "{$this->base}posts", 'method' => 'post')
-		));
+		$this->assertTags($result, array('form' => array(
+			'action' => "{$this->base}posts", 'method' => 'post'
+		)));
 
 		$result = $this->form->create(null, array('method' => 'get'));
 		$this->assertTags($result, array(
@@ -163,8 +162,6 @@ class FormTest extends \lithium\test\Unit {
 	}
 
 	public function testFormDataBinding() {
-		$this->expectException('The data connection default is not configured');
-
 		try {
 			MockFormPost::config(array('connection' => false));
 		} catch (Exception $e) {
@@ -421,7 +418,7 @@ class FormTest extends \lithium\test\Unit {
 		$this->assertTags($result, array(
 			array('input' => array('type' => 'hidden', 'value' => '', 'name' => 'foo')),
 			array('input' => array(
-				'type' => 'checkbox', 'value' => '1',  'name' => 'foo', 
+				'type' => 'checkbox', 'value' => '1',  'name' => 'foo',
 				'id' => 'MockFormPostFoo', 'checked' => 'checked'
 			))
 		));
@@ -452,6 +449,114 @@ class FormTest extends \lithium\test\Unit {
 			array('input' => array('type' => 'hidden', 'value' => '', 'name' => 'foo')),
 			array('input' => array(
 				'type' => 'checkbox', 'value' => 'nose', 'name' => 'foo',
+				'id' => 'MockFormPostFoo', 'checked' => 'checked'
+			))
+		));
+
+		$record = new Record(array('model' => $this->_model, 'data' => array('foo' => 'foot')));
+		$this->form->create($record);
+
+		$result = $this->form->checkbox('foo', array('value' => 'nose'));
+		$this->assertTags($result, array(
+			array('input' => array('type' => 'hidden', 'value' => '', 'name' => 'foo')),
+			array('input' => array(
+				'type' => 'checkbox', 'value' => 'nose', 'name' => 'foo', 'id' => 'MockFormPostFoo'
+			))
+		));
+	}
+
+	public function testRadioGeneration() {
+		$result = $this->form->radio('foo');
+		$this->assertTags($result, array(array(
+			'input' => array('type' => 'radio', 'value' => '1', 'name' => 'foo', 'id' => 'Foo'))
+		));
+
+		$result = $this->form->radio('foo', array('checked' => false));
+		$this->assertTags($result, array(array(
+			'input' => array('type' => 'radio', 'value' => '1', 'name' => 'foo', 'id' => 'Foo'))
+		));
+
+		$result = $this->form->radio('foo', array('checked' => true));
+		$this->assertTags($result, array(array(
+			'input' => array(
+				'type' => 'radio',
+				'value' => '1',
+				'name' => 'foo',
+				'checked' => 'checked',
+				'id' => 'Foo')
+			)
+		));
+
+		$record = new Record(array('model' => $this->_model, 'data' => array('foo' => true)));
+		$this->form->create($record);
+
+		$result = $this->form->radio('foo');
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1', 'name' => 'foo',
+				'checked' => 'checked', 'id' => 'MockFormPostFoo'
+			))
+		));
+	}
+
+	public function testCustomRadio() {
+		$result = $this->form->radio('foo', array('value' => '1'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1',  'name' => 'foo', 'id' => 'Foo'
+			))
+		));
+
+		$result = $this->form->radio('foo', array('checked' => true, 'value' => '1'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1',  'name' => 'foo',
+				'checked' => 'checked', 'id' => 'Foo'
+			))
+		));
+
+		$record = new Record(array('model' => $this->_model, 'data' => array('foo' => true)));
+		$this->form->create($record);
+
+		$result = $this->form->radio('foo', array('value' => '1'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1',  'name' => 'foo',
+				'id' => 'MockFormPostFoo', 'checked' => 'checked'
+			))
+		));
+
+		$result = $this->form->radio('foo', array('value' => true));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1',  'name' => 'foo',
+				'id' => 'MockFormPostFoo', 'checked' => 'checked'
+			))
+		));
+	}
+
+	public function testCustomValueRadio() {
+		$result = $this->form->radio('foo', array('value' => 'HERO'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => 'HERO', 'name' => 'foo', 'id' => 'Foo'
+			))
+		));
+
+		$result = $this->form->radio('foo', array('value' => 'nose'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => 'nose', 'name' => 'foo', 'id' => 'Foo'
+			))
+		));
+
+		$record = new Record(array('model' => $this->_model, 'data' => array('foo' => 'nose')));
+		$this->form->create($record);
+
+		$result = $this->form->radio('foo', array('value' => 'nose'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => 'nose', 'name' => 'foo',
 				'id' => 'MockFormPostFoo', 'checked' => 'checked'
 			))
 		));
@@ -958,7 +1063,6 @@ class FormTest extends \lithium\test\Unit {
 	 * Tests that the string template form `Form::field()` can be overridden.
 	 */
 	public function testFieldTemplateOverride() {
-		$result = $this->form->field('name', array('type' => 'text'));
 		$this->form->config(array('templates' => array('field' => '{:label}{:input}{:error}')));
 		$result = $this->form->field('name', array('type' => 'text'));
 		$this->assertTags($result, array(
@@ -1077,6 +1181,22 @@ class FormTest extends \lithium\test\Unit {
 	public function testLabelIdGeneration() {
 		$this->assertTags($this->form->label('user.name'), array(
 			'label' => array('for' => 'UserName'), 'User Name', '/label'
+		));
+	}
+
+	/**
+	 * Test that field already defined template strings with special types (e.g. radio, checkbox,
+	 * etc.) and passed customize template, and the template must apply.
+	 */
+	public function testRadioTypeFieldWithCustomTemplate() {
+		$result = $this->form->field('name', array(
+			'template' => '<span{:wrap}>{:label}: {:input}{:error}</span>',
+			'type' => 'radio'
+		));
+		$this->assertTags($result, array(
+			'span' => array(),
+			'label' => array('for' => 'Name'), 'Name', '/label', ':',
+			'input' => array('type' => 'radio', 'name' => 'name', 'id' => 'Name', 'value' => '1')
 		));
 	}
 }

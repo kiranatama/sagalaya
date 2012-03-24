@@ -57,29 +57,31 @@ class Twig_Node_Module extends Twig_Node
 
         $this->compileIsTraitable($compiler);
 
+        $this->compileDebugInfo($compiler);
+
         $this->compileClassFooter($compiler);
     }
 
     protected function compileGetParent(Twig_Compiler $compiler)
     {
+        if (null === $this->getNode('parent')) {
+            return;
+        }
+
         $compiler
             ->write("protected function doGetParent(array \$context)\n", "{\n")
             ->indent()
             ->write("return ")
         ;
 
-        if (null === $this->getNode('parent')) {
-            $compiler->raw("false");
+        if ($this->getNode('parent') instanceof Twig_Node_Expression_Constant) {
+            $compiler->subcompile($this->getNode('parent'));
         } else {
-            if ($this->getNode('parent') instanceof Twig_Node_Expression_Constant) {
-                $compiler->subcompile($this->getNode('parent'));
-            } else {
-                $compiler
-                    ->raw("\$this->env->resolveTemplate(")
-                    ->subcompile($this->getNode('parent'))
-                    ->raw(")")
-                ;
-            }
+            $compiler
+                ->raw("\$this->env->resolveTemplate(")
+                ->subcompile($this->getNode('parent'))
+                ->raw(")")
+            ;
         }
 
         $compiler
@@ -285,10 +287,25 @@ class Twig_Node_Module extends Twig_Node
             }
         }
 
+        if ($traitable) {
+            return;
+        }
+
         $compiler
             ->write("public function isTraitable()\n", "{\n")
             ->indent()
             ->write(sprintf("return %s;\n", $traitable ? 'true' : 'false'))
+            ->outdent()
+            ->write("}\n\n")
+        ;
+    }
+
+    public function compileDebugInfo(Twig_Compiler $compiler)
+    {
+        $compiler
+            ->write("public function getDebugInfo()\n", "{\n")
+            ->indent()
+            ->write(sprintf("return %s;\n", str_replace("\n", '', var_export(array_reverse($compiler->getDebugInfo(), true), true))))
             ->outdent()
             ->write("}\n")
         ;

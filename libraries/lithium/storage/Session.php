@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -172,7 +172,7 @@ class Session extends \lithium\core\Adaptable {
 	 *                of the configuration (i.e. `'default'`) here.
 	 *              - `'strategies'` _boolean_: Indicates whether or not a configuration's applied
 	 *                strategy classes should be enabled for this operation. Defaults to `true`.
-	 * @return boolean Returns `true` on sucessful delete, or `false` on failure.
+	 * @return boolean Returns `true` on successful delete, or `false` on failure.
 	 * @filter This method may be filtered.
 	 */
 	public static function delete($key, array $options = array()) {

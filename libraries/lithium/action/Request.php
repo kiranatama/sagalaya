@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -241,7 +241,7 @@ class Request extends \lithium\net\http\Request {
 		$val = array_key_exists($key, $this->_env) ? $this->_env[$key] : getenv($key);
 		$this->_env[$key] = $val;
 
-		if ($key == 'REMOTE_ADDR' && $val == $this->env('SERVER_ADDR')) {
+		if ($key == 'REMOTE_ADDR') {
 			$val = ($addr = $this->env('HTTP_PC_REMOTE_ADDR')) ? $addr : $val;
 		}
 
@@ -354,7 +354,7 @@ class Request extends \lithium\net\http\Request {
 	 * @see lithium\action\Request::env()
 	 * @see lithium\net\http\Media::type()
 	 * @see lithium\net\http\Router
-	 * @param string $key A prefixed key indiciating what part of the request data the requested
+	 * @param string $key A prefixed key indicating what part of the request data the requested
 	 *               value should come from, and the name of the value to retrieve, in lower case.
 	 * @return string Returns the value of a GET, POST, routing or environment variable, or an
 	 *         HTTP header or method name.
@@ -440,7 +440,7 @@ class Request extends \lithium\net\http\Request {
 
 	/**
 	 * Sets/Gets the content type. If `'type'` is null, the method will attempt to determine the
-	 * type first, from the params, then from the environment setting
+	 * type from the params, then from the environment setting
 	 *
 	 * @param string $type a full content type i.e. `'application/json'` or simple name `'json'`
 	 * @return string A simple content type name, i.e. `'html'`, `'xml'`, `'json'`, etc., depending
@@ -520,8 +520,7 @@ class Request extends \lithium\net\http\Request {
 		$defaults = array(
 			'scheme' => $this->env('HTTPS') ? 'https' : 'http',
 			'host' => $this->env('HTTP_HOST'),
-			'path' => $this->_base . $this->url,
-			'query' => $this->query
+			'path' => $this->_base . '/' . $this->url
 		);
 		return parent::to($format, $options + $defaults);
 	}

@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Akismet
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -32,7 +32,7 @@ use Zend\Http,
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Akismet
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Akismet extends \Zend\Service\AbstractService
@@ -233,8 +233,8 @@ class Akismet extends \Zend\Service\AbstractService
         ));
         $client->setParameterPost($params);
 
-        $client->setMethod(Http\Client::POST);
-        return $client->request();
+        $client->setMethod(Http\Request::METHOD_POST);
+        return $client->send();
     }
 
     /**

@@ -2,12 +2,15 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
 namespace lithium\data\source\database\adapter;
 
+use PDO;
+use PDOStatement;
+use PDOException;
 use lithium\data\model\QueryException;
 
 /**
@@ -19,6 +22,11 @@ use lithium\data\model\QueryException;
  * @see lithium\data\source\database\adapter\MySql::__construct()
  */
 class MySql extends \lithium\data\source\Database {
+
+	/**
+	 * @var PDO
+	 */
+	public $connection;
 
 	protected $_classes = array(
 		'entity' => 'lithium\data\entity\Record',
@@ -96,7 +104,7 @@ class MySql extends \lithium\data\source\Database {
 	 */
 	public static function enabled($feature = null) {
 		if (!$feature) {
-			return extension_loaded('mysql');
+			return extension_loaded('pdo_mysql');
 		}
 		$features = array(
 			'arrays' => false,
@@ -122,27 +130,27 @@ class MySql extends \lithium\data\source\Database {
 			return false;
 		}
 
-		if (!$config['persistent']) {
-			$this->connection = mysql_connect($host, $config['login'], $config['password'], true);
-		} else {
-			$this->connection = mysql_pconnect($host, $config['login'], $config['password']);
-		}
+		$options = array(
+			PDO::ATTR_PERSISTENT => $config['persistent'],
+			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+		);
 
-		if (!$this->connection) {
+		try {
+			list($host, $port) = explode(':', $host) + array(1 => "3306");
+			$dsn = sprintf("mysql:host=%s;port=%s;dbname=%s", $host, $port, $config['database']);
+			$this->connection = new PDO($dsn, $config['login'], $config['password'], $options);
+		} catch (PDOException $e) {
 			return false;
 		}
 
-		if (mysql_select_db($config['database'], $this->connection)) {
-			$this->_isConnected = true;
-		} else {
-			return false;
-		}
+		$this->_isConnected = true;
 
 		if ($config['encoding']) {
 			$this->encoding($config['encoding']);
 		}
 
-		$info = mysql_get_server_info($this->connection);
+		$info = $this->connection->getAttribute(PDO::ATTR_SERVER_VERSION);
+
 		$this->_useAlias = (boolean) version_compare($info, "4.1", ">=");
 		return $this->_isConnected;
 	}
@@ -154,8 +162,9 @@ class MySql extends \lithium\data\source\Database {
 	 */
 	public function disconnect() {
 		if ($this->_isConnected) {
-			$this->_isConnected = !mysql_close($this->connection);
-			return !$this->_isConnected;
+			unset($this->connection);
+			$this->_isConnected = false;
+			return true;
 		}
 		return true;
 	}
@@ -180,7 +189,7 @@ class MySql extends \lithium\data\source\Database {
 			$sources = array();
 
 			while ($data = $result->next()) {
-				list($sources[]) = $data;
+				$sources[] = array_shift($data);
 			}
 			return $sources;
 		});
@@ -233,11 +242,17 @@ class MySql extends \lithium\data\source\Database {
 		$encodingMap = array('UTF-8' => 'utf8');
 
 		if (empty($encoding)) {
-			$encoding = mysql_client_encoding($this->connection);
+			$query = $this->connection->query("SHOW VARIABLES LIKE 'character_set_client'");
+			$encoding = $query->fetchColumn(1);
 			return ($key = array_search($encoding, $encodingMap)) ? $key : $encoding;
 		}
 		$encoding = isset($encodingMap[$encoding]) ? $encodingMap[$encoding] : $encoding;
-		return mysql_set_charset($encoding, $this->connection);
+		try {
+			$this->connection->exec("SET NAMES '$encoding'");
+			return true;
+		} catch (PDOException $e) {
+			return false;
+		}
 	}
 
 	/**
@@ -252,7 +267,7 @@ class MySql extends \lithium\data\source\Database {
 		if (($result = parent::value($value, $schema)) !== null) {
 			return $result;
 		}
-		return "'" . mysql_real_escape_string((string) $value, $this->connection) . "'";
+		return $this->connection->quote((string) $value);
 	}
 
 	/**
@@ -270,10 +285,11 @@ class MySql extends \lithium\data\source\Database {
 		}
 
 		$result = array();
-		$count = mysql_num_fields($resource->resource());
+		$count = $resource->resource()->columnCount();
 
 		for ($i = 0; $i < $count; $i++) {
-			$result[] = mysql_field_name($resource->resource(), $i);
+			$meta = $resource->resource()->getColumnMeta($i);
+			$result[] = $meta['name'];
 		}
 		return $result;
 	}
@@ -284,8 +300,8 @@ class MySql extends \lithium\data\source\Database {
 	 * @return array
 	 */
 	public function error() {
-		if (mysql_error($this->connection)) {
-			return array(mysql_errno($this->connection), mysql_error($this->connection));
+		if ($error = $this->connection->errorInfo()) {
+			return array($error[1], $error[2]);
 		}
 		return null;
 	}
@@ -311,8 +327,8 @@ class MySql extends \lithium\data\source\Database {
 
 	/**
 	 * Execute a given query.
- 	 *
- 	 * @see lithium\data\source\Database::renderCommand()
+	 *
+	 * @see lithium\data\source\Database::renderCommand()
 	 * @param string $sql The sql string to execute
 	 * @param array $options Available options:
 	 *        - 'buffered': If set to `false` uses mysql_unbuffered_query which
@@ -324,34 +340,35 @@ class MySql extends \lithium\data\source\Database {
 	protected function _execute($sql, array $options = array()) {
 		$defaults = array('buffered' => true);
 		$options += $defaults;
-		mysql_select_db($this->_config['database'], $this->connection);
+		$this->connection->exec("USE  `{$this->_config['database']}`");
 
-		return $this->_filter(__METHOD__, compact('sql', 'options'), function($self, $params) {
+		$conn = $this->connection;
+
+		$params = compact('sql', 'options');
+
+		return $this->_filter(__METHOD__, $params, function($self, $params) use ($conn) {
 			$sql = $params['sql'];
 			$options = $params['options'];
 
-			$func = ($options['buffered']) ? 'mysql_query' : 'mysql_unbuffered_query';
-			$resource = $func($sql, $self->connection);
+			$conn->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, $options['buffered']);
 
-			if ($resource === true) {
-				return true;
+			if (!($resource = $conn->query($sql)) instanceof PDOStatement) {
+				list($code, $error) = $self->error();
+				throw new QueryException("{$sql}: {$error}", $code);
 			}
-			if (is_resource($resource)) {
-				return $self->invokeMethod('_instance', array('result', compact('resource')));
-			}
-			list($code, $error) = $self->error();
-			throw new QueryException("{$sql}: {$error}", $code);
+			return $self->invokeMethod('_instance', array('result', compact('resource')));
 		});
 	}
 
 	protected function _results($results) {
-		$numFields = mysql_num_fields($results);
+		/* @var $results PDOStatement */
+		$numFields = $results->columnCount();
 		$index = $j = 0;
 
 		while ($j < $numFields) {
-			$column = mysql_fetch_field($results, $j);
-			$name = $column->name;
-			$table = $column->table;
+			$column = $results->getColumnMeta($j);
+			$name = $column['name'];
+			$table = $column['table'];
 			$this->map[$index++] = empty($table) ? array(0, $name) : array($table, $name);
 			$j++;
 		}

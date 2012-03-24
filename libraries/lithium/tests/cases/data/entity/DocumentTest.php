@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -717,6 +717,26 @@ class DocumentTest extends \lithium\test\Unit {
 
 		$document->_id == "";
 		$this->assertFalse(array_key_exists('_id', $document->data()), $message);
+	}
+
+	/**
+	 * Ensures that the data returned from the `data()` method matches the
+	 * internal state of the object.
+	 */
+	public function testEnsureArrayExportFidelity() {
+		$data = array(
+			'department_3' => 0,
+			4 => 0,
+			5 => 0,
+			6 => 0,
+			'6x' => 0,
+			7 => 0,
+			8 => 0,
+			10 => 0,
+			12 => 0
+		);
+		$doc = new Document(compact('data'));
+		$this->assertIdentical($data, $doc->data());
 	}
 }
 

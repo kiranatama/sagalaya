@@ -2,15 +2,22 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
 namespace lithium\tests\cases\test;
 
 use lithium\test\Group;
-use lithium\util\Collection;
 use lithium\core\Libraries;
+use lithium\util\Collection;
+use lithium\tests\cases\data\ModelTest;
+use lithium\tests\cases\core\ObjectTest;
+use lithium\tests\cases\g11n\CatalogTest;
+use lithium\tests\mocks\test\MockUnitTest;
+use lithium\tests\mocks\test\cases\MockTest;
+use lithium\tests\mocks\test\cases\MockTestErrorHandling;
+use lithium\tests\mocks\test\cases\MockSkipThrowsException;
 
 class GroupTest extends \lithium\test\Unit {
 
@@ -26,13 +33,9 @@ class GroupTest extends \lithium\test\Unit {
 		$data = (array) "\lithium\\tests\mocks\\test";
 		$group = new Group(compact('data'));
 
-		$expected = new Collection(array(
-			'data' => array(
-				new \lithium\tests\mocks\test\cases\MockSkipThrowsException(),
-				new \lithium\tests\mocks\test\cases\MockTest(),
-				new \lithium\tests\mocks\test\cases\MockTestErrorHandling()
-			)
-		));
+		$expected = new Collection(array('data' => array(
+			new MockSkipThrowsException(), new MockTest(), new MockTestErrorHandling()
+		)));
 		$result = $group->tests();
 		$this->assertEqual($expected, $result);
 	}
@@ -55,6 +58,7 @@ class GroupTest extends \lithium\test\Unit {
 			'lithium\tests\cases\g11n\catalog\AdapterTest',
 			'lithium\tests\cases\g11n\catalog\adapter\CodeTest',
 			'lithium\tests\cases\g11n\catalog\adapter\GettextTest',
+			'lithium\tests\cases\g11n\catalog\adapter\MemoryTest',
 			'lithium\tests\cases\g11n\catalog\adapter\PhpTest'
 		);
 		$this->assertEqual($expected, $result);
@@ -67,6 +71,7 @@ class GroupTest extends \lithium\test\Unit {
 			'lithium\tests\cases\g11n\catalog\AdapterTest',
 			'lithium\tests\cases\g11n\catalog\adapter\CodeTest',
 			'lithium\tests\cases\g11n\catalog\adapter\GettextTest',
+			'lithium\tests\cases\g11n\catalog\adapter\MemoryTest',
 			'lithium\tests\cases\g11n\catalog\adapter\PhpTest',
 			'lithium\tests\cases\data\ModelTest'
 		);
@@ -75,13 +80,9 @@ class GroupTest extends \lithium\test\Unit {
 
 	public function testAddByMixedThroughConstructor() {
 		$group = new Group(array('data' => array(
-			'lithium\tests\cases\data\ModelTest',
-			new \lithium\tests\cases\core\ObjectTest()
+			'lithium\tests\cases\data\ModelTest', new ObjectTest()
 		)));
-		$expected = new Collection(array('data' => array(
-			new \lithium\tests\cases\data\ModelTest(),
-			new \lithium\tests\cases\core\ObjectTest()
-		)));
+		$expected = new Collection(array('data' => array(new ModelTest(), new ObjectTest())));
 		$result = $group->tests();
 		$this->assertEqual($expected, $result);
 	}
@@ -95,10 +96,10 @@ class GroupTest extends \lithium\test\Unit {
 		$this->assertEqual($expected, $result);
 
 		$results = $group->tests();
-		$this->assertTrue(is_a($results, '\lithium\util\Collection'));
+		$this->assertTrue($results instanceof Collection);
 
 		$results = $group->tests();
-		$this->assertTrue(is_a($results->current(), 'lithium\tests\cases\g11n\CatalogTest'));
+		$this->assertTrue($results->current() instanceof CatalogTest);
 	}
 
 	public function testAddEmptyTestsRun() {
@@ -108,8 +109,8 @@ class GroupTest extends \lithium\test\Unit {
 		$this->assertEqual($expected, $result);
 
 		$results = $group->tests();
-		$this->assertTrue(is_a($results, 'lithium\util\Collection'));
-		$this->assertTrue(is_a($results->current(), 'lithium\tests\mocks\test\MockUnitTest'));
+		$this->assertTrue($results instanceof Collection);
+		$this->assertTrue($results->current() instanceof MockUnitTest);
 
 		$results = $group->tests()->run();
 
@@ -128,7 +129,7 @@ class GroupTest extends \lithium\test\Unit {
 		$expected = str_replace('\\', '/', LITHIUM_LIBRARY_PATH);
 		$expected = realpath($expected . '/lithium/tests/mocks/test/MockUnitTest.php');
 		$result = $results[0][0]['file'];
-		$this->assertEqual($expected, str_replace('\\', '/', $result));
+		$this->assertEqual($expected, $result);
 	}
 
 	public function testGroupAllForLithium() {
@@ -138,12 +139,12 @@ class GroupTest extends \lithium\test\Unit {
 	}
 
 	public function testAddTestAppGroup() {
-		$test_app = Libraries::get(true, 'resources') . '/tmp/tests/test_app';
-		mkdir($test_app);
-		Libraries::add('test_app', array('path' => $test_app));
+		$testApp = Libraries::get(true, 'resources') . '/tmp/tests/test_app';
+		mkdir($testApp, 0777, true);
+		Libraries::add('test_app', array('path' => $testApp));
 
-		mkdir($test_app . '/tests/cases/models', 0777, true);
-		file_put_contents($test_app . '/tests/cases/models/UserTest.php',
+		mkdir($testApp . '/tests/cases/models', 0777, true);
+		file_put_contents($testApp . '/tests/cases/models/UserTest.php',
 		"<?php namespace test_app\\tests\\cases\\models;\n
 			class UserTest extends \\lithium\\test\\Unit { public function testMe() {
 				\$this->assertTrue(true);
@@ -168,12 +169,12 @@ class GroupTest extends \lithium\test\Unit {
 	}
 
 	public function testRunGroupAllForTestApp() {
-		$test_app = Libraries::get(true, 'resources') . '/tmp/tests/test_app';
-		mkdir($test_app);
-		Libraries::add('test_app', array('path' => $test_app));
+		$testApp = Libraries::get(true, 'resources') . '/tmp/tests/test_app';
+		mkdir($testApp);
+		Libraries::add('test_app', array('path' => $testApp));
 
-		mkdir($test_app . '/tests/cases/models', 0777, true);
-		file_put_contents($test_app . '/tests/cases/models/UserTest.php',
+		mkdir($testApp . '/tests/cases/models', 0777, true);
+		file_put_contents($testApp . '/tests/cases/models/UserTest.php',
 		"<?php namespace test_app\\tests\\cases\\models;\n
 			class UserTest extends \\lithium\\test\\Unit { public function testMe() {
 				\$this->assertTrue(true);
@@ -190,12 +191,12 @@ class GroupTest extends \lithium\test\Unit {
 	}
 
 	public function testRunGroupForTestAppModel() {
-		$test_app = Libraries::get(true, 'resources') . '/tmp/tests/test_app';
-		mkdir($test_app);
-		Libraries::add('test_app', array('path' => $test_app));
+		$testApp = Libraries::get(true, 'resources') . '/tmp/tests/test_app';
+		mkdir($testApp);
+		Libraries::add('test_app', array('path' => $testApp));
 
-		mkdir($test_app . '/tests/cases/models', 0777, true);
-		file_put_contents($test_app . '/tests/cases/models/UserTest.php',
+		mkdir($testApp . '/tests/cases/models', 0777, true);
+		file_put_contents($testApp . '/tests/cases/models/UserTest.php',
 		"<?php namespace test_app\\tests\\cases\\models;\n
 			class UserTest extends \\lithium\\test\\Unit { public function testMe() {
 				\$this->assertTrue(true);

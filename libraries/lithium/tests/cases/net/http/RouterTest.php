@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -178,7 +178,7 @@ class RouterTest extends \lithium\test\Unit {
 		$this->assertEqual('/users/view/47#blargh', $result);
 	}
 
-    public function testQueryString() {
+	public function testQueryString() {
 		Router::connect('/{:controller}/{:action}');
 		Router::connect('/{:controller}/{:action}/{:id:[0-9]+}', array('id' => null));
 
@@ -189,7 +189,7 @@ class RouterTest extends \lithium\test\Unit {
 			'Posts::edit', 'id' => 42, '?' => array('key' => 'value', 'test' => 'foo')
 		));
 		$this->assertEqual('/posts/edit/42?key=value&test=foo', $result);
-    }
+	}
 
 	/**
 	 * Tests that URLs specified as "Controller::action" and including additional parameters are
@@ -236,10 +236,10 @@ class RouterTest extends \lithium\test\Unit {
 		$ex = "No parameter match found for URL `(";
 		$ex .= "'controller' => 'posts', 'action' => 'view', 'id' => '4bbf25bd8ead0e5180130000')`.";
 		$this->expectException($ex);
-
 		$result = Router::match(array(
 			'controller' => 'posts', 'action' => 'view', 'id' => '4bbf25bd8ead0e5180130000'
 		));
+		$this->assertFalse(ob_get_length());
 	}
 
 	public function testShorthandParameterMatching() {
@@ -730,6 +730,29 @@ class RouterTest extends \lithium\test\Unit {
 
 		$result = Router::match(array('Foo::bar', 'id' => 5, 'admin' => true, 'locale' => 'jp'));
 		$this->assertEqual('/admin/jp/foo/bar/5', $result);
+	}
+
+	/**
+	 * Tests that continuations can be used for route suffixes.
+	 */
+	public function testSuffixContinuation() {
+		Router::connect("/{:args}.{:type}", array(), array('continue' => true));
+		Router::connect('/{:controller}/{:id:[0-9]+}', array('action' => 'view'));
+
+		$result = Router::match(array(
+			'controller' => 'versions',
+			'action' => 'view',
+			'id' => 13,
+			'type' => 'jsonp'
+		));
+		$this->assertEqual('/versions/13.jsonp', $result);
+
+		$result = Router::match(array(
+			'controller' => 'versions',
+			'action' => 'view',
+			'id' => 13
+		));
+		$this->assertEqual('/versions/13', $result);
 	}
 }
 

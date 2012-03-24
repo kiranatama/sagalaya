@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -57,8 +57,15 @@ class EntityTest extends \lithium\test\Unit {
 	}
 
 	public function testMethodDispatch() {
-		$entity = new Entity(array('model' => $this->_model, 'data' => array('foo' => true)));
+		$model = $this->_model;
+		$entity = new Entity(array('model' => $model, 'data' => array('foo' => true)));
 		$this->assertTrue($entity->validates());
+
+		$model::instanceMethods(array(
+			'testInstanceMethod' => function($entity) { return 'testInstanceMethod'; }
+		));
+		$this->assertEqual('testInstanceMethod', $entity->testInstanceMethod($entity));
+
 		$this->expectException("/^No model bound or unhandled method call `foo`.$/");
 		$entity->foo();
 	}

@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_Validate
  * @subpackage Sitemap
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -35,7 +35,7 @@ use Zend\Uri;
  * @category   Zend
  * @package    Zend_Validate
  * @subpackage Sitemap
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Loc extends \Zend\Validator\AbstractValidator
@@ -68,14 +68,14 @@ class Loc extends \Zend\Validator\AbstractValidator
     public function isValid($value)
     {
         if (!is_string($value)) {
-            $this->_error(self::INVALID);
+            $this->error(self::INVALID);
             return false;
         }
 
-        $this->_setValue($value);
+        $this->setValue($value);
         $uri = Uri\UriFactory::factory($value);
         if (!$uri->isValid()) {
-            $this->_error(self::NOT_VALID);
+            $this->error(self::NOT_VALID);
             return false;
         }
 

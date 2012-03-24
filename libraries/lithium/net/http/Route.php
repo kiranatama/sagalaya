@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -304,14 +304,22 @@ class Route extends \lithium\core\Object {
 		if (array_intersect_key($options, $this->_match) != $this->_match) {
 			return false;
 		}
-		if (!$this->_config['continue']) {
+		if ($this->_config['continue']) {
+			if (array_intersect_key($this->_keys, $options + $args) != $this->_keys) {
+				return false;
+			}
+		} else {
 			if (array_diff_key(array_diff_key($options, $this->_match), $this->_keys) !== array()) {
 				return false;
 			}
 		}
 		$options += $this->_defaults;
+		$base = $this->_keys + $args;
+		$match = array_intersect_key($this->_keys, $options) + $args;
+		sort($base);
+		sort($match);
 
-		if (array_intersect_key($this->_keys, $options) + $args !== $this->_keys + $args) {
+		if ($base !== $match) {
 			return false;
 		}
 		return $options;
@@ -424,10 +432,10 @@ class Route extends \lithium\core\Object {
 	 *               `"/{:id:\d+}"`, then the value will be `"\d+"`.
 	 * @param string $param The parameter name which the capture group is assigned to, i.e.
 	 *               `'controller'`, `'id'` or `'args'`.
-	 * @param string $prefix The prefix character that separates the parameter from the other
-	 *               elements of the route. Usually `'.'` or `'/'`.
 	 * @param string $token The full token representing a matched element in a route template, i.e.
 	 *               `'/{:action}'`, `'/{:path:js|css}'`, or `'.{:type}'`.
+	 * @param string $prefix The prefix character that separates the parameter from the other
+	 *               elements of the route. Usually `'.'` or `'/'`.
 	 * @return string Returns the full route template, with the value of `$token` replaced with a
 	 *         generated regex capture group.
 	 */

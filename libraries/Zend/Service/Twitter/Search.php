@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Twitter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -23,32 +23,33 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Twitter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
- 
+
 /**
  * @namespace
  */
 namespace Zend\Service\Twitter;
-use Zend\Http;
-use Zend\Rest;
-use Zend\Feed;
-use Zend\Json;
 
-class Search extends Rest\Client\RestClient
+use Zend\Feed,
+    Zend\Http,
+    Zend\Json,
+    Zend\Rest\Client;
+
+class Search extends Client\RestClient
 {
     /**
      * Return Type
      * @var String
      */
-    protected $_responseType = 'json';
+    protected $responseType = 'json';
 
     /**
      * Response Format Types
      * @var array
      */
-    protected $_responseTypes = array(
+    protected $responseTypes = array(
         'atom',
         'json'
     );
@@ -56,9 +57,9 @@ class Search extends Rest\Client\RestClient
     /**
      * Uri Compoent
      *
-     * @var Zend_Uri_Http
+     * @var \Zend\Uri\Http
      */
-    protected $_uri;
+    protected $uri;
 
     /**
      * Constructor
@@ -78,15 +79,15 @@ class Search extends Rest\Client\RestClient
      * set responseType
      *
      * @param string $responseType
-     * @throws Zend_Service_Twitter_Exception
-     * @return Zend_Service_Twitter_Search
+     * @throws Exception\InvalidArgumentException
+     * @return Search
      */
     public function setResponseType($responseType = 'json')
     {
-        if(!in_array($responseType, $this->_responseTypes, TRUE)) {
-            throw new Exception('Invalid Response Type');
+        if (!in_array($responseType, $this->responseTypes, TRUE)) {
+            throw new Exception\InvalidArgumentException('Invalid Response Type');
         }
-        $this->_responseType = $responseType;
+        $this->responseType = $responseType;
         return $this;
     }
 
@@ -97,30 +98,17 @@ class Search extends Rest\Client\RestClient
      */
     public function getResponseType()
     {
-        return $this->_responseType;
-    }
-
-    /**
-     * Get the current twitter trends.  Currnetly only supports json as the return.
-     *
-     * @throws Zend_Http_Client_Exception
-     * @return array
-     */
-    public function trends()
-    {
-        $response     = $this->restGet('/trends.json');
-
-        return Json::decode($response->getBody());
+        return $this->responseType;
     }
 
     /**
      * Performs a Twitter search query.
      *
-     * @throws Zend_Http_Client_Exception
+     * @throws Http\Client\Exception
+     * @return mixed
      */
-    public function search($query, array $params = array())
+    public function execute($query, array $params = array())
     {
-
         $_query = array();
 
         $_query['q'] = $query;
@@ -143,14 +131,14 @@ class Search extends Rest\Client\RestClient
             }
         }
 
-        $response = $this->restGet('/search.' . $this->_responseType, $_query);
+        $response = $this->restGet('/search.' . $this->responseType, $_query);
 
-        switch($this->_responseType) {
+        switch($this->responseType) {
             case 'json':
-                return Json\Json::decode($response->getBody());
+                return Json\Json::decode($response->getBody(), Json\Json::TYPE_ARRAY);
                 break;
             case 'atom':
-                return Feed\Reader::importString($response->getBody());
+                return Feed\Reader\Reader::importString($response->getBody());
                 break;
         }
 

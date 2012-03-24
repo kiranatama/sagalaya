@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -55,7 +55,7 @@ class MongoDbTest extends \lithium\test\Unit {
 	protected $_configs = array();
 
 	public function skip() {
-		$this->skipIf(!MongoDb::enabled(), 'MongoDb is not enabled');
+		$this->skipIf(!MongoDb::enabled(), 'The `MongoDb` class is not enabled.');
 
 		$db = new MongoDb($this->_testConfig);
 		$message = "`{$this->_testConfig['database']}` database or connection unavailable";
@@ -345,7 +345,7 @@ class MongoDbTest extends \lithium\test\Unit {
 		$data = array('title' => 'New Item');
 		$result = $this->db->item($model, $data);
 
-		$this->assertTrue($result instanceof \lithium\data\entity\Document);
+		$this->assertTrue($result instanceof Document);
 
 		$expected = $data;
 		$result = $result->to('array');

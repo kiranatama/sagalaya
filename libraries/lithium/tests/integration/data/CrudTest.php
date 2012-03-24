@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -15,6 +15,8 @@ class CrudTest extends \lithium\test\Integration {
 
 	protected $_connection = null;
 
+	protected $_database = null;
+
 	protected $_key = null;
 
 	public $companyData = array(
@@ -22,23 +24,36 @@ class CrudTest extends \lithium\test\Integration {
 		array('name' => 'Ma \'n Pa\'s Data Warehousing & Bait Shop', 'active' => false)
 	);
 
+	/**
+	 * Creating the test database
+	 */
 	public function setUp() {
-		Companies::config();
-		$this->_key = Companies::key();
-		$this->_connection = Connections::get('test');
+		$this->_connection->connection->put($this->_database);
+	}
+
+	/**
+	 * Dropping the test database
+	 */
+	public function tearDown() {
+		$this->_connection->connection->delete($this->_database);
 	}
 
 	/**
 	 * Skip the test if no test database connection available.
-	 *
-	 * @return void
 	 */
 	public function skip() {
+		$connection = 'lithium_couch_test';
+		$config = Connections::get($connection, array('config' => true));
 		$isAvailable = (
-			Connections::get('test', array('config' => true)) &&
-			Connections::get('test')->isConnected(array('autoConnect' => true))
+			$config &&
+			Connections::get($connection)->isConnected(array('autoConnect' => true))
 		);
-		$this->skipIf(!$isAvailable, "No test connection available.");
+		$this->skipIf(!$isAvailable, "No {$connection} connection available.");
+
+		Companies::config();
+		$this->_key = Companies::key();
+		$this->_database = $config['database'];
+		$this->_connection = Connections::get($connection);
 	}
 
 	/**
@@ -48,11 +63,12 @@ class CrudTest extends \lithium\test\Integration {
 	 * @return void
 	 */
 	public function testCreate() {
-		Companies::all()->delete();
 		$this->assertIdentical(0, Companies::count());
 
 		$new = Companies::create(array('name' => 'Acme, Inc.', 'active' => true));
-		$this->assertEqual($new->data(), array('name' => 'Acme, Inc.', 'active' => true));
+		$expected = array('name' => 'Acme, Inc.', 'active' => true);
+		$result = $new->data();
+		$this->assertEqual($expected, $result);
 
 		$this->assertEqual(
 			array(false, true, true),
@@ -62,6 +78,7 @@ class CrudTest extends \lithium\test\Integration {
 	}
 
 	public function testRead() {
+		static::_createCompany();
 		$existing = Companies::first();
 
 		foreach (Companies::key($existing) as $val) {
@@ -73,6 +90,7 @@ class CrudTest extends \lithium\test\Integration {
 	}
 
 	public function testUpdate() {
+		static::_createCompany();
 		$existing = Companies::first();
 		$this->assertEqual($existing->name, 'Acme, Inc.');
 		$existing->name = 'Big Brother and the Holding Company';
@@ -88,6 +106,7 @@ class CrudTest extends \lithium\test\Integration {
 	}
 
 	public function testDelete() {
+		static::_createCompany();
 		$existing = Companies::first();
 		$this->assertTrue($existing->exists());
 		$this->assertTrue($existing->delete());
@@ -118,6 +137,33 @@ class CrudTest extends \lithium\test\Integration {
 		}
 		$this->assertEqual(array(true, true, true), array_values($all->delete()));
 		$this->assertEqual(0, Companies::count());
+	}
+
+	public function testUpdateWithNewProperties() {
+		$new = Companies::create(array('name' => 'Acme, Inc.', 'active' => true));
+
+		$expected = array('name' => 'Acme, Inc.', 'active' => true);
+		$result = $new->data();
+		$this->assertEqual($expected, $result);
+
+		$new->foo = 'bar';
+		$expected = array('name' => 'Acme, Inc.', 'active' => true, 'foo' => 'bar');
+		$result = $new->data();
+		$this->assertEqual($expected, $result);
+
+		$this->assertTrue($new->save());
+
+		$updated = Companies::find((string) $new->_id);
+		$expected = 'bar';
+		$result = $updated->foo;
+		$this->assertEqual($expected, $result);
+	}
+
+	protected static function _createCompany() {
+		Companies::create(array(
+			'name' => 'Acme, Inc.',
+			'active' => true
+		))->save();
 	}
 }
 

@@ -14,7 +14,7 @@
  *
  * @category   Zend
  * @package    Zend_Acl
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -23,15 +23,17 @@
  */
 namespace Zend\Acl\Role;
 
-use Zend\Acl\Role;
-use Zend\Acl;
+use Zend\Acl,
+    Zend\Acl\Exception,
+    Zend\Acl\Role;
+
 
 /**
  * @uses       Zend\Acl\Role
  * @uses       Zend\Acl\Role\Exception
  * @category   Zend
  * @package    Zend_Acl
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Registry
@@ -247,7 +249,7 @@ class Registry
 
     /**
      * Get all roles in the registry
-     * 
+     *
      * @return array
      */
     public function getRoles()

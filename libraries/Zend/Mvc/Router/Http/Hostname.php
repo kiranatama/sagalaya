@@ -25,10 +25,9 @@
 namespace Zend\Mvc\Router\Http;
 
 use Traversable,
-    Zend\Stdlib\IteratorToArray,
+    Zend\Stdlib\ArrayUtils,
     Zend\Stdlib\RequestDescription as Request,
-    Zend\Mvc\Router\Exception,
-    Zend\Mvc\Router\Route;
+    Zend\Mvc\Router\Exception;
 
 /**
  * Hostname route.
@@ -61,6 +60,13 @@ class Hostname implements Route
      * @var array
      */
     protected $defaults;
+    
+    /**
+     * List of assembled parameters.
+     * 
+     * @var array
+     */
+    protected $assembledParams = array();
 
     /**
      * Create a new hostname route.
@@ -86,13 +92,10 @@ class Hostname implements Route
      */
     public static function factory($options = array())
     {
-        if (!is_array($options) && !$options instanceof Traversable) {
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
+        } elseif (!is_array($options)) {
             throw new Exception\InvalidArgumentException(__METHOD__ . ' expects an array or Traversable set of options');
-        }
-
-        // Convert options to array if Traversable object not implementing ArrayAccess
-        if ($options instanceof Traversable && !$options instanceof ArrayAccess) {
-            $options = IteratorToArray::convert($options);
         }
 
         if (!isset($options['route'])) {
@@ -156,16 +159,21 @@ class Hostname implements Route
      */
     public function assemble(array $params = array(), array $options = array())
     {
+        $mergedParams          = array_merge($this->defaults, $params);
+        $this->assembledParams = array();
+        
         if (isset($options['uri'])) {
             $parts = array();
             
             foreach ($this->route as $index => $routePart) {
                 if (preg_match('(^:(?<name>.+)$)', $routePart, $matches)) {
-                    if (!isset($params[$matches['name']])) {
+                    if (!isset($mergedParams[$matches['name']])) {
                         throw new Exception\InvalidArgumentException(sprintf('Missing parameter "%s"', $matches['name']));
                     }
                     
-                    $parts[] = $params[$matches['name']];
+                    $parts[] = $mergedParams[$matches['name']];
+                    
+                    $this->assembledParams[] = $matches['name'];
                 } else {
                     $parts[] = $routePart;
                 }
@@ -176,5 +184,16 @@ class Hostname implements Route
         
         // A hostname does not contribute to the path, thus nothing is returned.
         return '';
+    }
+    
+    /**
+     * getAssembledParams(): defined by Route interface.
+     * 
+     * @see    Route::getAssembledParams
+     * @return array
+     */
+    public function getAssembledParams()
+    {
+        return $this->assembledParams;
     }
 }

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -50,7 +50,7 @@ use lithium\template\TemplateException;
  *
  *  _Note_: This is easily adapted for XML templating.
  *
- * Another example, this time of something that could be used in an appliation
+ * Another example, this time of something that could be used in an application
  * error handler:
  *
  * {{{
@@ -218,7 +218,7 @@ class View extends \lithium\core\Object {
 	 */
 	protected function _init() {
 		parent::_init();
-                
+
 		$encoding = 'UTF-8';
 
 		if ($this->_response) {

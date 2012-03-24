@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -103,7 +103,7 @@ class Router extends \lithium\core\StaticObject {
 
 	/**
 	 * Wrapper method which takes a `Request` object, parses it through all attached `Route`
-	 * objects, and assigns the resulting parameters to the `Request` object, and returning it.
+	 * objects, assigns the resulting parameters to the `Request` object, and returns it.
 	 *
 	 * @param object $request A request object, usually an instance of `lithium\action\Request`.
 	 * @return object Returns a copy of the `Request` object with parameters applied.

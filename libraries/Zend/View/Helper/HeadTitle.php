@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -23,7 +23,8 @@
  * @namespace
  */
 namespace Zend\View\Helper;
-use Zend;
+
+use Zend\View\Exception;
 
 /**
  * Helper for setting and retrieving title element for HTML head
@@ -34,7 +35,7 @@ use Zend;
  * @uses       \Zend\View\Helper\Placeholder\Container\Standalone
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class HeadTitle extends Placeholder\Container\Standalone
@@ -75,9 +76,9 @@ class HeadTitle extends Placeholder\Container\Standalone
      */
     public function __invoke($title = null, $setType = null)
     {
-        if ($setType === null && is_null($this->getDefaultAttachOrder())) {
+        if ($setType === null && $this->getDefaultAttachOrder() === null) {
             $setType = Placeholder\Container\AbstractContainer::APPEND;
-        } elseif ($setType === null && !is_null($this->getDefaultAttachOrder())) {
+        } elseif ($setType === null && $this->getDefaultAttachOrder() !== null) {
             $setType = $this->getDefaultAttachOrder();
         }
         $title = (string) $title;
@@ -98,6 +99,8 @@ class HeadTitle extends Placeholder\Container\Standalone
      * Set a default order to add titles
      *
      * @param string $setType
+     * @return void
+     * @throws Exception\DomainException
      */
     public function setDefaultAttachOrder($setType)
     {
@@ -106,7 +109,9 @@ class HeadTitle extends Placeholder\Container\Standalone
             Placeholder\Container\AbstractContainer::SET,
             Placeholder\Container\AbstractContainer::PREPEND
         ))) {
-            throw new Zend\View\Exception("You must use a valid attach order: 'PREPEND', 'APPEND' or 'SET'");
+            throw new Exception\DomainException(
+                "You must use a valid attach order: 'PREPEND', 'APPEND' or 'SET'"
+            );
         }
         $this->_defaultAttachOrder = $setType;
     }
@@ -126,6 +131,7 @@ class HeadTitle extends Placeholder\Container\Standalone
      *
      * @param  Zend_Translator|\Zend\Translator\Adapter\Adapter $translate
      * @return \Zend\View\Helper\HeadTitle
+     * @throws Exception\InvalidArgumentException
      */
     public function setTranslator($translate)
     {
@@ -134,9 +140,9 @@ class HeadTitle extends Placeholder\Container\Standalone
         } elseif ($translate instanceof \Zend\Translator\Translator) {
             $this->_translator = $translate->getAdapter();
         } else {
-            $e = new \Zend\View\Exception("You must set an instance of Zend_Translator or Zend_Translator_Adapter");
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException(
+                "You must set an instance of Zend_Translator or Zend_Translator_Adapter"
+            );
         }
         return $this;
     }
@@ -208,11 +214,16 @@ class HeadTitle extends Placeholder\Container\Standalone
 
         $separator = $this->getSeparator();
         $output = '';
-        if(($prefix = $this->getPrefix())) {
+
+        $prefix = $this->getPrefix();
+        if($prefix) {
             $output  .= $prefix;
         }
+
         $output .= implode($separator, $items);
-        if(($postfix = $this->getPostfix())) {
+
+        $postfix = $this->getPostfix();
+        if($postfix) {
             $output .= $postfix;
         }
 

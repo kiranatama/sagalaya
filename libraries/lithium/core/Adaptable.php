@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -30,27 +30,36 @@ use lithium\core\ConfigException;
 class Adaptable extends \lithium\core\StaticObject {
 
 	/**
-	 * To be re-defined in sub-classes.
+	 * Must always be re-defined in sub-classes. Can provide initial
+	 * configurations, i.e. `'development'` or `'default'` along with
+	 * default options for each.
+	 *
+	 * Example:
+	 * {{{
+	 * array(
+	 *	'production' => array(),
+	 *	'development' => array(),
+	 *	'test' => array()
+	 * )
+	 * }}}
 	 *
 	 * @var object `Collection` of configurations, indexed by name.
 	 */
 	protected static $_configurations = array();
 
 	/**
-	 * To be re-defined in sub-classes.
-	 *
-	 * Holds the Libraries::locate() compatible path string where the strategy in question
-	 * may be found.
+	 * Must only be re-defined in sub-classes if the class is using strategies.
+	 * Holds the `Libraries::locate()` compatible path string where the strategy
+	 * in question may be found i.e. `'strategy.storage.cache'`.
 	 *
 	 * @var string Path string.
 	 */
 	protected static $_strategies = null;
 
 	/**
-	 * To be re-defined in sub-classes.
-	 *
-	 * Holds the `Libraries::locate()`-compatible path string where the adapter in question
-	 * may be found.
+	 * Must always be re-defined in sub-classes. Holds the
+	 * `Libraries::locate()` compatible path string where the adapter in
+	 * question may be found i.e. `'adapter.storage.cache'`.
 	 *
 	 * @var string Path string.
 	 */
@@ -114,11 +123,11 @@ class Adaptable extends \lithium\core\StaticObject {
 	}
 
 	/**
-	 * Obtain an `SplStack` of the strategies for the given `$name` configuration, using
+	 * Obtain an `SplDoublyLinkedList` of the strategies for the given `$name` configuration, using
 	 * the `$_strategies` path defined in `Adaptable` subclasses.
 	 *
 	 * @param string $name Class name of adapter to load.
-	 * @return object `SplStack` of strategies, or `null` if none are defined.
+	 * @return object `SplDoublyLinkedList` of strategies, or `null` if none are defined.
 	 */
 	public static function strategies($name) {
 		$config = static::_config($name);

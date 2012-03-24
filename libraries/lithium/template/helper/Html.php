@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -126,9 +126,9 @@ class Html extends \lithium\template\Helper {
 	 *
 	 * @param string $title The content to be wrapped by an `<a />` tag.
 	 * @param mixed $url Can be a string representing a URL relative to the base of your Lithium
-	 *              applcation, an external URL (starts with `'http://'` or `'https://'`), an anchor
-	 *              name starting with `'#'` (i.e. `'#top'`), or an array defining a set of request
-	 *              parameters that should be matched against a route in `Router`.
+	 *              application, an external URL (starts with `'http://'` or `'https://'`), an
+	 *              anchor name starting with `'#'` (i.e. `'#top'`), or an array defining a set
+	 *              of request parameters that should be matched against a route in `Router`.
 	 * @param array $options Array of HTML s and other options.
 	 * @return string Returns an `<a />` or `<link />` element.
 	 */
@@ -251,7 +251,7 @@ class Html extends \lithium\template\Helper {
 	 * @return string
 	 * @filter This method can be filtered.
 	 */
- 	public function image($path, array $options = array()) {
+	public function image($path, array $options = array()) {
 		$defaults = array('alt' => '');
 		$options += $defaults;
 		$path = is_array($path) ? $this->_context->url($path) : $path;

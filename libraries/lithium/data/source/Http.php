@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -28,7 +28,7 @@ class Http extends \lithium\data\Source {
 	 *
 	 * @var array
 	 */
-	protected $_autoConfig = array('classes' => 'merge');
+	protected $_autoConfig = array('classes' => 'merge', 'methods' => 'merge');
 
 	/**
 	 * Fully-namespaced class references
@@ -101,31 +101,53 @@ class Http extends \lithium\data\Source {
 	}
 
 	/**
-	 * Pass methods to service connection.
+	 * Pass methods to service connection. Path and method are determined from Http::$_method. If
+	 * not set, a GET request with the $method as the path will be used.
 	 *
+	 * @see lithium\data\source\Http::$_method
 	 * @param string $method
 	 * @param array $params
 	 * @return mixed
 	 * @filter
 	 */
 	public function __call($method, $params) {
-		if (isset($this->_config['methods'][$method])) {
-			$params += array(array(), array());
-			$string = $this->_config['methods'][$method];
+		$params += array(array(), array());
 
-			if (!isset($string['path'])) {
-				$string['path'] = $method;
-			}
-			$conn =& $this->connection;
-			$filter = function($self, $params) use (&$conn, $string) {
-				$data = in_array($string['method'], array('post', 'put'))
-					? (array) $params[0] : array();
-				$path = String::insert($string['path'], $data, array('clean' => true));
-				return $conn->{$string['method']}($path, $data, $params[1]);
-			};
-			return $this->_filter(__METHOD__, $params, $filter);
+		if (isset($this->_methods[$method])) {
+			$string = $this->_methods[$method];
+		} else {
+			$string = array('method' => 'GET');
 		}
-		return $this->connection->invokeMethod($method, $params);
+
+		if (!isset($string['path'])) {
+			$string['path'] = '/' . $method;
+		}
+
+		$conn =& $this->connection;
+		$filter = function($self, $params) use (&$conn, $string) {
+			list($query, $options) = $params;
+
+			if (is_object($query)) {
+				$options += array_filter($query->export($self), function($v) {
+					return $v !== null;
+				});
+				$data = $query->data();
+			} else {
+				$data = in_array($string['method'], array('post', 'put')) ?
+					(array) $query : array();
+			}
+
+			preg_match_all('/\{:(\w+)\}/', $string['path'], $matches);
+			$keys = array_flip($matches[1]);
+			$path = String::insert($string['path'], $options + $data, array('clean' => true));
+
+
+			$options += array('conditions' => null, 'limit' => null);
+			$data = array_diff_assoc($data, $keys);
+			$data += (array) $options['conditions'] + (array) $options['limit'];
+			return $conn->{$string['method']}($path, $data, $options);
+		};
+		return $this->_filter(__METHOD__, $params, $filter);
 	}
 
 	/**
@@ -182,28 +204,11 @@ class Http extends \lithium\data\Source {
 	 * @filter
 	 */
 	public function create($query, array $options = array()) {
+		$function = __FUNCTION__;
 		$params = compact('query', 'options');
-		$config = $this->_config;
-
-		if (!isset($this->_methods[__FUNCTION__])) {
-			return null;
-		}
-		$method = $this->_methods[__FUNCTION__];
-		$filter = function($self, $params) use ($config, $method) {
-			$query = $params['query'];
-			$options = $params['options'];
-			$data = array();
-
-			if ($query) {
-				$options += array_filter($query->export($self), function($v) {
-					return $v !== null;
-				});
-				$data = $query->data();
-			}
-			$path = String::insert($method['path'], $options, array('clean' => true));
-			return $self->connection->{$method['method']}($path, $data, $options);
-		};
-		return $this->_filter(__METHOD__, $params, $filter);
+		return $this->_filter(__METHOD__, $params, function($self, $params) use ($function) {
+			return $self->__call($function, array_values($params));
+		});
 	}
 
 	/**
@@ -215,30 +220,11 @@ class Http extends \lithium\data\Source {
 	 * @filter
 	 */
 	public function read($query, array $options = array()) {
+		$function = __FUNCTION__;
 		$params = compact('query', 'options');
-		$conn =& $this->connection;
-
-		if (!isset($this->_methods[__FUNCTION__])) {
-			return null;
-		}
-		$method = $this->_methods[__FUNCTION__];
-		$filter = function($self, $params) use (&$conn, $method) {
-			$query = $params['query'];
-			$options = $params['options'];
-			$data = array();
-			$defaults = array('conditions' => null, 'limit' => null);
-
-			if ($query) {
-				$options += array_filter($query->export($self), function($v) {
-					return $v !== null;
-				});
-				$options += $defaults;
-				$data = (array) $options['conditions'] + (array) $options['limit'];
-			}
-			$path = String::insert($method['path'], $options, array('clean' => true));
-			return $conn->{$method['method']}($path, $data, $options);
-		};
-		return $this->_filter(__METHOD__, $params, $filter);
+		return $this->_filter(__METHOD__, $params, function($self, $params) use ($function) {
+			return $self->__call($function, array_values($params));
+		});
 	}
 
 	/**
@@ -250,28 +236,11 @@ class Http extends \lithium\data\Source {
 	 * @filter
 	 */
 	public function update($query, array $options = array()) {
+		$function = __FUNCTION__;
 		$params = compact('query', 'options');
-		$conn =& $this->connection;
-
-		if (!isset($this->_methods[__FUNCTION__])) {
-			return null;
-		}
-		$method = $this->_methods[__FUNCTION__];
-		$filter = function($self, $params) use (&$conn, $method) {
-			$query = $params['query'];
-			$options = $params['options'];
-			$data = array();
-
-			if ($query) {
-				$options += array_filter($query->export($self), function($v) {
-					return $v !== null;
-				});
-				$data = $query->data();
-			}
-			$path = String::insert($method['path'], $options + $data, array('clean' => true));
-			return $conn->{$method['method']}($path, $data, $options);
-		};
-		return $this->_filter(__METHOD__, $params, $filter);
+		return $this->_filter(__METHOD__, $params, function($self, $params) use ($function) {
+			return $self->__call($function, array_values($params));
+		});
 	}
 
 	/**
@@ -283,26 +252,11 @@ class Http extends \lithium\data\Source {
 	 * @filter
 	 */
 	public function delete($query, array $options = array()) {
+		$function = __FUNCTION__;
 		$params = compact('query', 'options');
-		$conn =& $this->connection;
-
-		if (!isset($this->_methods[__FUNCTION__])) {
-			return null;
-		}
-		$method = $this->_methods[__FUNCTION__];
-		$filter = function($self, $params) use (&$conn, $method) {
-			$query = $params['query'];
-			$options = $params['options'];
-			$data = array();
-
-			if ($query) {
-				$options += $query->export($self);
-				$data = $query->data();
-			}
-			$path = String::insert($method['path'], $options + $data, array('clean' => true));
-			return $conn->{$method['method']}($path, array(), $options);
-		};
-		return $this->_filter(__METHOD__, $params, $filter);
+		return $this->_filter(__METHOD__, $params, function($self, $params) use ($function) {
+			return $self->__call($function, array_values($params));
+		});
 	}
 
 	/**

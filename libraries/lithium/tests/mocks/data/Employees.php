@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -12,7 +12,7 @@ class Employees extends \lithium\data\Model {
 
 	public $belongsTo = array('Companies');
 
-	protected $_meta = array('connection' => 'test');
+	protected $_meta = array('connection' => 'lithium_couch_test');
 
 	public function lastName($entity) {
 		$name = explode(' ', $entity->name);

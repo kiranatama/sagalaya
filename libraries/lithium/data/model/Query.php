@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -397,8 +397,7 @@ class Query extends \lithium\core\Object {
 	/**
 	 * Convert the query's properties to the data sources' syntax and return it as an array.
 	 *
-	 * @param \lithium\data\Source $dataSource Instance of the data source to use
-	 *                      for conversion.
+	 * @param object $dataSource Instance of `lithium\data\Source` to use for conversion.
 	 * @param array $options Options to use when exporting the data.
 	 * @return array Returns an array containing a data source-specific representation of a query.
 	 */

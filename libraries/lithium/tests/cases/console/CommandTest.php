@@ -2,13 +2,14 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
 namespace lithium\tests\cases\console;
 
 use lithium\console\Request;
+use lithium\console\Response;
 use lithium\tests\mocks\console\MockCommand;
 
 class CommandTest extends \lithium\test\Unit {
@@ -38,8 +39,7 @@ class CommandTest extends \lithium\test\Unit {
 		$response = $command('testRun');
 
 		$result = $response;
-		$expected = 'lithium\console\Response';
-		$this->assertTrue(is_a($result, $expected));
+		$this->assertTrue($result instanceof Response);
 
 		$expected = 'testRun';
 		$result = $response->testAction;

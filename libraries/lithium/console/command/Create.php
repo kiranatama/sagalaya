@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -240,6 +240,13 @@ class Create extends \lithium\console\Command {
 
 		if ((!is_dir($directory)) && !mkdir($directory, 0755, true)) {
 			return false;
+		}
+		if (file_exists($file)) {
+			$prompt = "{$file} already exists. Overwrite?";
+			$choices = array('y', 'n');
+			if ($this->in($prompt, compact('choices')) != 'y') {
+				return "{$params['class']} skipped.";
+			}
 		}
 		if (file_put_contents($file, "<?php\n\n{$result}\n\n?>")) {
 			return "{$params['class']} created in {$params['namespace']}.";

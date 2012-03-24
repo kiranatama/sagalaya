@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -15,6 +15,13 @@ class MockRequest extends \lithium\core\Object {
 	public $params = array();
 
 	public $argv = array();
+
+	public function __get($key) {
+		if (isset($this->params[$key])) {
+			return $this->params[$key];
+		}
+		return null;
+	}
 
 	public function env($key) {
 		if (isset($this->_config[$key])) {

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -55,7 +55,7 @@ class Form extends \lithium\template\Helper {
 		'legend'         => '<legend>{:content}</legend>',
 		'option-group'   => '<optgroup label="{:label}"{:options}>{:raw}</optgroup>',
 		'password'       => '<input type="password" name="{:name}"{:options} />',
-		'radio'          => '<input type="radio" name="{:name}" {:options} />',
+		'radio'          => '<input type="radio" name="{:name}"{:options} />',
 		'select'         => '<select name="{:name}"{:options}>{:raw}</select>',
 		'select-empty'   => '<option value=""{:options}>&nbsp;</option>',
 		'select-multi'   => '<select name="{:name}[]"{:options}>{:raw}</select>',
@@ -103,7 +103,7 @@ class Form extends \lithium\template\Helper {
 	 *
 	 * - schema(): Returns an array defining the objects fields and their data types.
 	 * - data(): Returns an associative array of the data that this object represents.
-	 * - errors(): Returns an associatie array of validation errors for the current data set, where
+	 * - errors(): Returns an associate array of validation errors for the current data set, where
 	 *             the keys match keys from `schema()`, and the values are either strings (in cases
 	 *             where a field only has one error) or an array (in case of multiple errors),
 	 *
@@ -183,7 +183,7 @@ class Form extends \lithium\template\Helper {
 	 * $this->form->config(array('label' => array('class' => 'foo')));
 	 * }}}
 	 *
-	 * Note that this can be overridden on a case-by-case basis, and when overridding, values are
+	 * Note that this can be overridden on a case-by-case basis, and when overriding, values are
 	 * not merged or combined. Therefore, if you wanted a particular `<label />` to have both `foo`
 	 * and `bar` as classes, you would have to specify `'class' => 'foo bar'`.
 	 *
@@ -398,30 +398,26 @@ class Form extends \lithium\template\Helper {
 		if (is_array($name)) {
 			return $this->_fields($name, $options);
 		}
+		list(, $options, $template) = $this->_defaults(__FUNCTION__, $name, $options);
 		$defaults = array(
 			'label' => null,
 			'type' => isset($options['list']) ? 'select' : 'text',
-			'template' => 'field',
+			'template' => $template,
 			'wrap' => array(),
 			'list' => null
 		);
-		$type = isset($options['type']) ? $options['type'] : $defaults['type'];
-
-		if ($this->_context->strings('field-' . $type)) {
-			$options['template'] = 'field-' . $type;
-		}
-		list(, $options, $template) = $this->_defaults(__FUNCTION__, $name, $options);
 		list($options, $field) = $this->_options($defaults, $options);
 
-		if ($options['template'] != $defaults['template']) {
-			$template = $options['template'];
-		}
-
+		$label = $input = null;
 		$wrap = $options['wrap'];
 		$type = $options['type'];
 		$list = $options['list'];
-		$label = $input = null;
+		$template = $options['template'];
+		$notText = $template == 'field' && $type != 'text';
 
+		if ($notText && $this->_context->strings('field-' . $type)) {
+			$template = 'field-' . $type;
+		}
 		if (($options['label'] === null || $options['label']) && $options['type'] != 'hidden') {
 			if (!$options['label']) {
 				$options['label'] = Inflector::humanize(preg_replace('/[\[\]\.]/', '_', $name));
@@ -578,7 +574,7 @@ class Form extends \lithium\template\Helper {
 	 * @param array $options Options to be used when generating the checkbox `<input />` element:
 	 *              - `'checked'` _boolean_: Whether or not the field should be checked by default.
 	 *              - `'value'` _mixed_: if specified, it will be used as the 'value' html
-	 *                attribute and no hidden input field will be added
+	 *                attribute and no hidden input field will be added.
 	 *              - Any other options specified are rendered as HTML attributes of the element.
 	 * @return string Returns a `<input />` tag with the given name and HTML attributes.
 	 */
@@ -601,6 +597,35 @@ class Form extends \lithium\template\Helper {
 		}
 		$options['value'] = $scope['value'];
 		return $out . $this->_render(__METHOD__, $template, compact('name', 'options'));
+	}
+
+	/**
+	 * Generates an HTML `<input type="radio" />` object.
+	 *
+	 * @param string $name The name of the field
+	 * @param array $options All options to be used when generating the radio `<input />` element:
+	 *              - `'checked'` _boolean_: Whether or not the field should be selected by default.
+	 *              - `'value'` _mixed_: if specified, it will be used as the 'value' html
+	 *                attribute. Defaults to `1`
+	 *              - Any other options specified are rendered as HTML attributes of the element.
+	 * @return string Returns a `<input />` tag with the given name and attributes
+	 */
+	public function radio($name, array $options = array()) {
+		$defaults = array('value' => '1');
+		$options += $defaults;
+		$default = $options['value'];
+
+		list($name, $options, $template) = $this->_defaults(__FUNCTION__, $name, $options);
+		list($scope, $options) = $this->_options($defaults, $options);
+
+		if (!isset($options['checked'])) {
+			if ($this->_binding && $bound = $this->_binding->data($name)) {
+				$options['checked'] = ($bound == $default);
+			}
+		}
+
+		$options['value'] = $scope['value'];
+		return $this->_render(__METHOD__, $template, compact('name', 'options'));
 	}
 
 	/**

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -1010,6 +1010,15 @@ class RequestTest extends \lithium\test\Unit {
 			'query' => array()
 		));
 		$expected = 'http://foo.com/';
+		$this->assertEqual($expected, $request->to('url'));
+
+		$request = new Request(array(
+			'url' => 'foo/bar',
+			'base' => null,
+			'env' => array('HTTP_HOST' => 'example.com', 'PHP_SELF' => '/index.php')
+		));
+
+		$expected = 'http://example.com/foo/bar';
 		$this->assertEqual($expected, $request->to('url'));
 	}
 

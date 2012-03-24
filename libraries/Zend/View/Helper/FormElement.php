@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -23,6 +23,8 @@
  * @namespace
  */
 namespace Zend\View\Helper;
+
+use Zend\View\Exception;
 
 /**
  * Base helper for form elements.  Extend this, don't use it on its own.
@@ -32,7 +34,7 @@ namespace Zend\View\Helper;
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class FormElement extends HtmlElement
@@ -57,6 +59,7 @@ abstract class FormElement extends HtmlElement
      *
      * @param  $translator|null \Zend\Translator\Translator
      * @return \Zend\View\Helper\FormElement
+     * @throws Exception\InvalidArgumentException
      */
     public function setTranslator($translator = null)
     {
@@ -67,11 +70,10 @@ abstract class FormElement extends HtmlElement
         } elseif ($translator instanceof \Zend\Translator\Translator) {
             $this->_translator = $translator->getAdapter();
         } else {
-            $e = new \Zend\View\Exception('Invalid translator specified');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException('Invalid translator specified');
         }
-         return $this;
+
+        return $this;
     }
 
     /**
@@ -188,9 +190,10 @@ abstract class FormElement extends HtmlElement
      */
     protected function _hidden($name, $value = null, $attribs = null)
     {
+        $escaper = $this->view->plugin('escape');
         return '<input type="hidden"'
-             . ' name="' . $this->view->vars()->escape($name) . '"'
-             . ' value="' . $this->view->vars()->escape($value) . '"'
+             . ' name="' . $escaper($name) . '"'
+             . ' value="' . $escaper($value) . '"'
              . $this->_htmlAttribs($attribs) . $this->getClosingBracket();
     }
 }

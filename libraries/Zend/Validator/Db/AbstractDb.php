@@ -14,7 +14,7 @@
  *
  * @category   Zend
  * @package    Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -37,7 +37,7 @@ use Traversable,
  *
  * @category   Zend
  * @package    Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractDb extends AbstractValidator
@@ -105,8 +105,10 @@ abstract class AbstractDb extends AbstractValidator
      *
      * @param array|Config $options Options to use for this validator
      */
-    public function __construct($options)
+    public function __construct($options = null)
     {
+        parent::__construct();
+    
         if ($options instanceof DBSelect) {
             $this->setSelect($options);
             return;

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -16,14 +16,12 @@ class MemcacheTest extends \lithium\test\Unit {
 	protected $_conn = null;
 
 	/**
-	 * Skip the test if Memcached extension is unavailable.
-	 *
-	 * @return void
+	 * Skip the test if the adapter is enabled. If it is not it means the
+	 * libmemcached extension is unavailable. Also checks for a running
+	 * Memcached server.
 	 */
 	public function skip() {
-		$extensionExists = extension_loaded('memcached');
-		$message = 'The libmemcached extension is not installed.';
-		$this->skipIf(!$extensionExists, $message);
+		$this->skipIf(!Memcache::enabled(), 'The `Memcache` adapter is not enabled.');
 
 		$conn = new Memcached();
 		$conn->addServer('127.0.0.1', 11211);
@@ -84,15 +82,15 @@ class MemcacheTest extends \lithium\test\Unit {
 	}
 
 	public function testWriteDefaultCacheExpiry() {
-		$Memcache = new Memcache(array('expiry' => '+5 seconds'));
+		$memcache = new Memcache(array('expiry' => '+5 seconds'));
 		$key = 'default_key';
 		$data = 'value';
 
-		$closure = $Memcache->write($key, $data);
+		$closure = $memcache->write($key, $data);
 		$this->assertTrue(is_callable($closure));
 
 		$params = compact('key', 'data');
-		$result = $closure($Memcache, $params);
+		$result = $closure($memcache, $params);
 		$expected = $data;
 		$this->assertEqual($expected, $result);
 

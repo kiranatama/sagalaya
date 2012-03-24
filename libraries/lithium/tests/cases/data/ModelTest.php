@@ -2,14 +2,13 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
 namespace lithium\tests\cases\data;
 
 use lithium\data\Model;
-use lithium\data\Entity;
 use lithium\data\model\Query;
 use lithium\data\Connections;
 use lithium\data\entity\Record;
@@ -86,6 +85,26 @@ class ModelTest extends \lithium\test\Unit {
 		$this->assertEqual('mock_posts', MockPost::meta('source'));
 
 		$this->assertEqual('mock-source', MockPost::meta('connection'));
+	}
+
+	public function testInstanceMethods() {
+	    $methods = MockPost::instanceMethods();
+	    $this->assertTrue(empty($methods));
+
+	    MockPost::instanceMethods(array(
+	       'first' => array('lithium\tests\mocks\data\source\MockMongoPost', 'testInstanceMethods'),
+	       'second' => function($entity) {}
+	    ));
+
+	    $methods = MockPost::instanceMethods();
+	    $this->assertEqual(2, count($methods));
+
+	    MockPost::instanceMethods(array(
+	       'third' => function($entity) {}
+	    ));
+
+	    $methods = MockPost::instanceMethods();
+	    $this->assertEqual(3, count($methods));
 	}
 
 	public function testMetaInformation() {
@@ -250,11 +269,11 @@ class ModelTest extends \lithium\test\Unit {
 		$this->assertEqual($expected, $result->text);
 	}
 
-    public function testSimpleFindList() {
+	public function testSimpleFindList() {
 		$result = MockComment::find('list');
 		$this->assertTrue(!empty($result));
 		$this->assertTrue(is_array($result));
-    }
+	}
 
 	public function testFilteredFind() {
 		MockComment::applyFilter('find', function($self, $params, $chain) {
@@ -387,6 +406,95 @@ class ModelTest extends \lithium\test\Unit {
 		$this->assertIdentical(array(), $post->errors());
 	}
 
+	public function testValidatesCustomEventFalse() {
+		$post = MockPostForValidates::create();
+		$events = 'custom_event';
+
+		$result = $post->validates(compact('events'));
+		$this->assertTrue($result === false);
+		$result = $post->errors();
+		$this->assertTrue(!empty($result));
+
+		$expected = array(
+			'title' => array('please enter a title'),
+			'email' => array(
+				'email is empty',
+				'email is not valid',
+				'email is not in 1st list'
+				)
+		);
+		$result = $post->errors();
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testValidatesCustomEventValid() {
+		$post = MockPostForValidates::create(array(
+			'title' => 'new post', 'email' => 'something@test.com'
+		));
+
+		$events = 'custom_event';
+
+		$result = $post->validates(compact('events'));
+		$this->assertTrue($result === true);
+		$result = $post->errors();
+		$this->assertTrue(empty($result));
+	}
+
+	public function testValidatesCustomEventsFalse() {
+		$post = MockPostForValidates::create();
+
+		$events = array('custom_event','another_custom_event');
+
+		$result = $post->validates(compact('events'));
+		$this->assertTrue($result === false);
+		$result = $post->errors();
+		$this->assertTrue(!empty($result));
+
+		$expected = array(
+			'title' => array('please enter a title'),
+			'email' => array(
+				'email is empty',
+				'email is not valid',
+				'email is not in 1st list',
+				'email is not in 2nd list'
+				)
+		);
+		$result = $post->errors();
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testValidatesCustomEventsFirstValid() {
+		$post = MockPostForValidates::create(array(
+			'title' => 'new post', 'email' => 'foo@bar.com'
+		));
+
+		$events = array('custom_event','another_custom_event');
+
+		$result = $post->validates(compact('events'));
+		$this->assertTrue($result === false);
+		$result = $post->errors();
+		$this->assertTrue(!empty($result));
+
+		$expected = array(
+			'email' => array('email is not in 2nd list')
+		);
+		$result = $post->errors();
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testValidatesCustomEventsValid() {
+		$post = MockPostForValidates::create(array(
+			'title' => 'new post', 'email' => 'something@test.com'
+		));
+
+		$events = array('custom_event','another_custom_event');
+
+		$result = $post->validates(compact('events'));
+		$this->assertTrue($result === true);
+		$result = $post->errors();
+		$this->assertTrue(empty($result));
+	}
+
 	public function testDefaultValuesFromSchema() {
 		$creator = MockCreator::create();
 		$expected = array(
@@ -426,20 +534,8 @@ class ModelTest extends \lithium\test\Unit {
 
 	public function testModelWithNoBackend() {
 		$this->assertEqual('mock-source', MockPost::meta('connection'));
-		MockPost::config(array('connection' => false));
-		$this->assertFalse(MockPost::meta('connection'));
-		$schema = MockPost::schema();
-
-		MockPost::overrideSchema($this->_altSchema);
-		$this->assertEqual($this->_altSchema, MockPost::schema());
-
-		$post = MockPost::create(array('title' => 'New post'));
-		$this->assertTrue($post instanceof Entity);
-		$this->assertEqual('New post', $post->title);
-		MockPost::overrideSchema($schema);
-
-		$this->expectException('/Connection name not defined/');
-		$post->save();
+		$this->expectException('/^The data connection `invalid` is not configured.$/');
+		MockPost::config(array('connection' => 'invalid'));
 	}
 
 	public function testSave() {
@@ -476,6 +572,44 @@ class ModelTest extends \lithium\test\Unit {
 		)));
 
 		$this->assertIdentical(false, $result);
+	}
+
+	public function testSaveFailedWithValidationByModelDefinition() {
+		$post = MockPostForValidates::create();
+
+		$result = $post->save();
+		$this->assertTrue($result === false);
+		$result = $post->errors();
+		$this->assertTrue(!empty($result));
+
+		$expected = array(
+			'title' => array('please enter a title'),
+			'email' => array('email is empty', 'email is not valid')
+		);
+		$result = $post->errors();
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testSaveFailedWithValidationByModelDefinitionAndTriggeredCustomEvents() {
+		$post = MockPostForValidates::create();
+		$events = array('custom_event','another_custom_event');
+
+		$result = $post->save(null,compact('events'));
+		$this->assertTrue($result === false);
+		$result = $post->errors();
+		$this->assertTrue(!empty($result));
+
+		$expected = array(
+			'title' => array('please enter a title'),
+			'email' => array(
+				'email is empty',
+				'email is not valid',
+				'email is not in 1st list',
+				'email is not in 2nd list'
+				)
+		);
+		$result = $post->errors();
+		$this->assertEqual($expected, $result);
 	}
 
 	public function testImplicitKeyFind() {

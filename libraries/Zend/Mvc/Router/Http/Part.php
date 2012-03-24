@@ -25,9 +25,8 @@
 namespace Zend\Mvc\Router\Http;
 
 use Traversable,
-    Zend\Stdlib\IteratorToArray,
+    Zend\Stdlib\ArrayUtils,
     Zend\Stdlib\RequestDescription as Request,
-    Zend\Mvc\Router\Route,
     Zend\Mvc\Router\RouteBroker,
     Zend\Mvc\Router\Exception,
     Zend\Mvc\Router\PriorityList;
@@ -41,11 +40,11 @@ use Traversable,
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @see        http://manuals.rubyonrails.com/read/chapter/65
  */
-class Part extends TreeRouteStack
+class Part extends TreeRouteStack implements Route
 {
     /**
      * Route to match.
-     * 
+     *
      * @var Route
      */
     protected $route;
@@ -56,17 +55,17 @@ class Part extends TreeRouteStack
      * @var boolean
      */
     protected $mayTerminate;
-    
+
     /**
      * Child routes.
-     * 
+     *
      * @var mixed
      */
     protected $childRoutes;
 
     /**
      * Create a new part route.
-     * 
+     *
      * @param  mixed       $route
      * @param  boolean     $mayTerminate
      * @param  RouteBroker $routeBroker
@@ -76,17 +75,21 @@ class Part extends TreeRouteStack
     public function __construct($route, $mayTerminate, RouteBroker $routeBroker, array $childRoutes = null)
     {
         $this->routeBroker = $routeBroker;
-        
+
         if (!$route instanceof Route) {
             $route = $this->routeFromArray($route);
         }
-        
+
+        if ($route instanceof self) {
+            throw new Exception\InvalidArgumentException('Base route may not be a part route');
+        }
+
         $this->route        = $route;
         $this->mayTerminate = $mayTerminate;
         $this->childRoutes  = $childRoutes;
         $this->routes       = new PriorityList();
     }
-    
+
     /**
      * factory(): defined by Route interface.
      *
@@ -96,19 +99,16 @@ class Part extends TreeRouteStack
      */
     public static function factory($options = array())
     {
-        if (!is_array($options) && !$options instanceof Traversable) {
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
+        } elseif (!is_array($options)) {
             throw new Exception\InvalidArgumentException(__METHOD__ . ' expects an array or Traversable set of options');
-        }
-
-        // Convert options to array if Traversable object not implementing ArrayAccess
-        if ($options instanceof Traversable && !$options instanceof ArrayAccess) {
-            $options = IteratorToArray::convert($options);
         }
 
         if (!isset($options['route'])) {
             throw new Exception\InvalidArgumentException('Missing "route" in options array');
         }
-        
+
         if (!isset($options['route_broker'])) {
             throw new Exception\InvalidArgumentException('Missing "route_broker" in options array');
         }
@@ -116,9 +116,12 @@ class Part extends TreeRouteStack
         if (!isset($options['may_terminate'])) {
             $options['may_terminate'] = false;
         }
-        
+
         if (!isset($options['child_routes']) || !$options['child_routes']) {
             $options['child_routes'] = null;
+        }
+        if ($options['child_routes'] instanceof Traversable) {
+            $options['child_routes'] = ArrayUtils::iteratorToArray($options['child_routes']);
         }
 
         return new static($options['route'], $options['may_terminate'], $options['route_broker'], $options['child_routes']);
@@ -133,6 +136,10 @@ class Part extends TreeRouteStack
      */
     public function match(Request $request, $pathOffset = null)
     {
+        if ($pathOffset === null) {
+            $pathOffset = 0;
+        }
+
         $match = $this->route->match($request, $pathOffset);
 
         if ($match !== null && method_exists($request, 'uri')) {
@@ -140,20 +147,20 @@ class Part extends TreeRouteStack
                 $this->addRoutes($this->childRoutes);
                 $this->childRoutes = null;
             }
-            
+
             $nextOffset = $pathOffset + $match->getLength();
-            
+
             $uri        = $request->uri();
             $pathLength = strlen($uri->getPath());
-            
+
             if ($this->mayTerminate && $nextOffset === $pathLength) {
                 return $match;
             }
-            
+
             foreach ($this->routes as $name => $route) {
                 if (($subMatch = $route->match($request, $nextOffset)) instanceof RouteMatch) {
                     if ($match->getLength() + $subMatch->getLength() + $pathOffset === $pathLength) {
-                        return $match->merge($subMatch);
+                        return $match->merge($subMatch)->setMatchedRouteName($name);
                     }
                 }
             }
@@ -176,19 +183,37 @@ class Part extends TreeRouteStack
             $this->addRoutes($this->childRoutes);
             $this->childRoutes = null;
         }
-        
-        $uri = $this->route->assemble($params, $options);
-        
+
+        $options['has_child'] = (isset($options['name']));
+
+        $path   = $this->route->assemble($params, $options);
+        $params = array_diff_key($params, array_flip($this->route->getAssembledParams()));
+
         if (!isset($options['name'])) {
             if (!$this->mayTerminate) {
                 throw new Exception\RuntimeException('Part route may not terminate');
             } else {
-                return $uri;
+                return $path;
             }
         }
-        
-        $uri .= parent::assemble($params, $options);
-        
-        return $uri;
+
+        unset($options['has_child']);
+        $options['only_return_path'] = true;
+        $path .= parent::assemble($params, $options);
+
+        return $path;
+    }
+
+    /**
+     * getAssembledParams(): defined by Route interface.
+     *
+     * @see    Route::getAssembledParams
+     * @return array
+     */
+    public function getAssembledParams()
+    {
+        // Part routes may not occur as base route of other part routes, so we
+        // don't have to return anything here.
+        return array();
     }
 }

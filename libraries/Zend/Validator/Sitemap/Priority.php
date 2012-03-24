@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_Validate
  * @subpackage Sitemap
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -33,7 +33,7 @@ namespace Zend\Validator\Sitemap;
  * @category   Zend
  * @package    Zend_Validate
  * @subpackage Sitemap
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Priority extends \Zend\Validator\AbstractValidator
@@ -66,14 +66,14 @@ class Priority extends \Zend\Validator\AbstractValidator
     public function isValid($value)
     {
         if (!is_numeric($value)) {
-            $this->_error(self::INVALID);
+            $this->error(self::INVALID);
             return false;
         }
 
-        $this->_setValue($value);
+        $this->setValue($value);
         $value = (float) $value;
         if ($value < 0 || $value > 1) {
-            $this->_error(self::NOT_VALID);
+            $this->error(self::NOT_VALID);
             return false;
         }
 

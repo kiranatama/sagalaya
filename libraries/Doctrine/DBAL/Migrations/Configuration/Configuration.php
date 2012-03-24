@@ -441,7 +441,7 @@ class Configuration
         $schema = $this->connection->getSchemaManager()->createSchema();
         if ( ! $schema->hasTable($this->migrationsTableName)) {
             $columns = array(
-                'version' => new Column('version', Type::getType('string'), array('length' => 14)),
+                'version' => new Column('version', Type::getType('string'), array('length' => 255)),
             );
             $table = new Table($this->migrationsTableName, $columns);
             $table->setPrimaryKey(array('version'));
@@ -465,9 +465,13 @@ class Configuration
     public function getMigrationsToExecute($direction, $to)
     {
         if ($direction === 'down') {
-            $allVersions = array_reverse(array_keys($this->migrations));
-            $classes = array_reverse(array_values($this->migrations));
-            $allVersions = array_combine($allVersions, $classes);
+            if (count($this->migrations)) {
+                $allVersions = array_reverse(array_keys($this->migrations));
+                $classes = array_reverse(array_values($this->migrations));
+                $allVersions = array_combine($allVersions, $classes);
+            } else {
+                $allVersions = array();
+            }
         } else {
             $allVersions = $this->migrations;
         }

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -82,7 +82,7 @@ class Message extends \lithium\net\Message {
 		if (strpos($this->host, '/') !== false) {
 			list($this->host, $this->path) = explode('/', $this->host, 2);
 		}
-		$this->path = str_replace('//', '/', "/{$this->path}/");
+		$this->path = str_replace('//', '/', "/{$this->path}");
 		$this->protocol = $this->protocol ?: "HTTP/{$this->version}";
 	}
 
@@ -120,6 +120,12 @@ class Message extends \lithium\net\Message {
 		$headers = array();
 
 		foreach ($this->headers as $key => $value) {
+			if (is_array($value)) {
+				foreach ($value as $val) {
+					$headers[] = "{$key}: {$val}";
+				}
+				continue;
+			}
 			$headers[] = "{$key}: {$value}";
 		}
 		return $headers;

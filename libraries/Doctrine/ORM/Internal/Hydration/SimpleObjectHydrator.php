@@ -92,6 +92,10 @@ class SimpleObjectHydrator extends AbstractHydrator
         if ($this->class->inheritanceType !== ClassMetadata::INHERITANCE_TYPE_NONE) {
             $discrColumnName = $this->_platform->getSQLResultCasing($this->class->discriminatorColumn['name']);
 
+            if ( ! isset($sqlResult[$discrColumnName])) {
+                throw HydrationException::missingDiscriminatorColumn($entityName, $discrColumnName, key($this->_rsm->aliasMap));
+            }
+
             if ($sqlResult[$discrColumnName] === '') {
                 throw HydrationException::emptyDiscriminatorValue(key($this->_rsm->aliasMap));
             }
@@ -129,17 +133,6 @@ class SimpleObjectHydrator extends AbstractHydrator
 
         $uow    = $this->_em->getUnitOfWork();
         $entity = $uow->createEntity($entityName, $data, $this->_hints);
-
-        //TODO: These should be invoked later, after hydration, because associations may not yet be loaded here.
-        if (isset($this->class->lifecycleCallbacks[Events::postLoad])) {
-            $this->class->invokeLifecycleCallbacks(Events::postLoad, $entity);
-        }
-
-        $evm = $this->_em->getEventManager();
-
-        if ($evm->hasListeners(Events::postLoad)) {
-            $evm->dispatchEvent(Events::postLoad, new LifecycleEventArgs($entity, $this->_em));
-        }
 
         $result[] = $entity;
     }

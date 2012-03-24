@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -98,12 +98,60 @@ class LibraryTest extends \lithium\test\Unit {
 	 * Tests the app extraction and replace functionality to ensure that all paths
 	 * are set correctly after the extraction. It re-uses the test extraction
 	 * generated in the last test (`LibraryTest::testExtract()`).
+	 *
+	 * Note that we can't properly test the case where the `LITHIUM_LIBRARY_PATH`
+	 * is in a different location because it's a constant and can't
+	 * be altered for testing.
 	 */
 	public function testExtractAndReplace() {
 		$filepath = $this->_testPath . '/library_test/config/bootstrap/libraries.php';
+		if (dirname(LITHIUM_APP_PATH) . '/libraries' !== LITHIUM_LIBRARY_PATH) {
+			$expected = 'define(\'LITHIUM_LIBRARY_PATH\', \'';
+			$expected .= realpath(LITHIUM_LIBRARY_PATH) . '\')';
+		} else {
+			$expected = 'define(\'LITHIUM_LIBRARY_PATH\', ';
+			$expected .= 'dirname(LITHIUM_APP_PATH) . \'/libraries\')';
+		}
+		$this->_assertFileContents(realpath($filepath), $expected);
+
+		$filepath = $this->_testPath . '/library_test/controllers/PagesController.php';
+		$expected = "namespace library_test\\";
+		$this->_assertFileContents($filepath, $expected);
+
+		$this->library->library = 'replace_test';
+		$this->library->lithiumLibraryPath = 'dirname(LITHIUM_APP_PATH)';
+		$result = $this->library->extract(
+			'test-app-replacements',
+			$this->_testPath . '/replace_test'
+		);
+		$this->assertTrue($result);
+
+		$path = '/lithium/console/command/create/template/test-app-replacements.phar.gz';
+		$expected = "replace_test created in {$this->_testPath} from ";
+		$expected .= realpath(LITHIUM_LIBRARY_PATH . $path) . "\n";
+		$result = $this->library->response->output;
+		$this->assertEqual($expected, $result);
+
+		$filepath = $this->_testPath . '/replace_test/config/bootstrap/libraries.php';
+		$expected = 'define(\'LITHIUM_LIBRARY_PATH\', dirname(LITHIUM_APP_PATH))';
+		$this->_assertFileContents($filepath, $expected);
+
+		$filepath = $this->_testPath . '/replace_test/controllers/PagesController.php';
+		$expected = "namespace replace_test\\";
+		$this->_assertFileContents($filepath, $expected);
+
+		$filepath = $this->_testPath . '/replace_test/.htaccess';
+		$expected = "just a test";
+		$this->_assertFileContents($filepath, $expected);
+
+		$filepath = $this->_testPath . '/replace_test/webroot/css/lithium.css';
+		$expected = "Carbon:";
+		$this->_assertFileContents($filepath, $expected);
+	}
+
+	protected function _assertFileContents($filepath, $expected) {
 		$content = file_get_contents($filepath);
 		$lines = explode("\n", $content);
-		$expected = 'define(\'LITHIUM_LIBRARY_PATH\', \'' . realpath(LITHIUM_LIBRARY_PATH) . '\')';
 		$this->assertTrue(strpos($content, $expected));
 	}
 
@@ -168,7 +216,7 @@ class LibraryTest extends \lithium\test\Unit {
 		$this->assertTrue($result);
 
 		$path = realpath($this->_testPath);
-		$expected = "new.phar.gz created in {$path} from {$path}/new\n";
+		$expected = "new.phar.gz created in {$path} from {$path}" . DIRECTORY_SEPARATOR . "new\n";
 		$result = $app->response->output;
 		$this->assertEqual($expected, $result);
 
@@ -176,7 +224,6 @@ class LibraryTest extends \lithium\test\Unit {
 		Phar::unlinkArchive($this->_testPath . '/new.phar.gz');
 
 		$this->_cleanUp('tests/new');
-		rmdir($this->_testPath . '/new');
 	}
 
 	public function testExtractWhenLibraryDoesNotExist() {
@@ -192,7 +239,7 @@ class LibraryTest extends \lithium\test\Unit {
 
 		$path = realpath($this->_testPath);
 		$tplPath = realpath(LITHIUM_LIBRARY_PATH . '/lithium/console/command/create/template');
-		$expected = "new created in {$path} from {$tplPath}/app.phar.gz\n";
+		$expected = "new created in {$path} from {$tplPath}" . DIRECTORY_SEPARATOR . "app.phar.gz\n";
 		$result = $app->response->output;
 		$this->assertEqual($expected, $result);
 
@@ -270,6 +317,9 @@ class LibraryTest extends \lithium\test\Unit {
 	}
 
 	public function testFormulateNoPath() {
+		$isWin = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+		$this->skipIf($isWin, 'Permissions cannot be modified on Windows.');
+
 		$path = $this->_testPath . '/library_test_no_plugin';
 		umask(0);
 		mkdir($path, 655);
@@ -389,10 +439,7 @@ class LibraryTest extends \lithium\test\Unit {
 
 	public function testNoInstalLab() {
 		$this->skipIf(!extension_loaded('zlib'), 'The zlib extension is not loaded.');
-		$this->skipIf(
-			ini_get('phar.readonly') == '1',
-			'Relies on ' . __CLASS__  . '::testPush()'
-		);
+		$this->skipIf(ini_get('phar.readonly') == '1', 'Relies on ' . __CLASS__  . '::testPush()');
 		$this->library->path = $this->_testPath;
 		$result = $this->library->install('li3_lab');
 
@@ -406,9 +453,8 @@ class LibraryTest extends \lithium\test\Unit {
 	}
 
 	public function testInstallDocs() {
-		$this->skipIf(strpos(shell_exec('git --version'), 'git version') === false,
-			'Git is not installed.'
-		);
+		$hasGit = strpos(shell_exec('git --version'), 'git version');
+		$this->skipIf($hasGit === false, 'Git is not installed.');
 
 		$message = "No internet connection established.";
 		$this->skipIf(!$this->_hasNetwork(), $message);
@@ -641,7 +687,7 @@ test;
 		$result = $this->library->push('library_test_plugin');
 		$this->assertFalse($result);
 
-		$expected = "/The forumla for library_test_plugin is not valid/";
+		$expected = "/The formula for library_test_plugin is not valid./";
 		$result = $this->library->response->error;
 		$this->assertPattern($expected, $result);
 

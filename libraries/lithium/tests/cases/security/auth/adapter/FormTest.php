@@ -88,11 +88,11 @@ class FormTest extends \lithium\test\Unit {
 		$request = (object) array('data' => array(
 			'username' => 'bob',
 			'date' => array(
-				'year' => '2011', 'month' => '06', 'day' => '29'
+				'year' => '2012', 'month' => '06', 'day' => '29'
 			)
 		));
 
-		$expected = array('username' => 'bob', 'date' => '2011-06-29');
+		$expected = array('username' => 'bob', 'date' => '2012-06-29');
 		$result = $subject->check($request);
 		$this->assertEqual($expected, $result);
 	}
@@ -183,7 +183,7 @@ class FormTest extends \lithium\test\Unit {
 		));
 
 		$result = $subject->check($request);
-		$this->assertEqual('Array', $result['username']);
+		$this->assertNull($result['username']);
 	}
 
 	/**

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -86,8 +86,7 @@ class Password {
 
 	/**
 	 * Compares a password and its hashed value using PHP's `crypt()`. Rather than a simple string
-	 * comparison, this method uses a constant-time algorithm to defend against
-	 * [timing attacks](http://codahale.com/a-lesson-in-timing-attacks/).
+	 * comparison, this method uses a constant-time algorithm to defend against timing attacks.
 	 *
 	 * @see lithium\security\Password::hash()
 	 * @see lithium\security\Password::salt()
@@ -96,16 +95,7 @@ class Password {
 	 * @return boolean Returns a boolean indicating whether the password is correct.
 	 */
 	public static function check($password, $hash) {
-		$password = crypt($password, $hash);
-		$result = true;
-
-		if (($length = strlen($password)) != strlen($hash)) {
-			return false;
-		}
-		for ($i = 0; $i < $length; $i++) {
-			$result = $result && ($password[$i] === $hash[$i]);
-		}
-		return $result;
+		return String::compare(crypt($password, $hash), $hash);
 	}
 
 	/**
@@ -173,9 +163,9 @@ class Password {
 	 *        Defaults to `10`. Can be `4` to `31`.
 	 * @return string The Blowfish salt.
 	 */
-	protected static function _genSaltBf($count = 10) {
+	protected static function _genSaltBf($count = null) {
 		$count = (integer) $count;
-		$count = ($count < 4 || $count > 31) ? 10 : $count;
+		$count = ($count < 4 || $count > 31) ? static::BF : $count;
 
 		$base64 = './ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 		$i = 0;
@@ -203,7 +193,12 @@ class Password {
 			$output .= $base64[$c2 & 0x3f];
 		} while (1);
 
-		return '$2a$' . chr(ord('0') + $count / 10) . chr(ord('0') + $count % 10) . '$' . $output;
+		$result = '$2a$';
+		$result .= chr(ord('0') + $count / static::BF);
+		$result .= chr(ord('0') + $count % static::BF);
+		$result .= '$' . $output;
+
+		return $result;
 	}
 
 	/**
@@ -214,9 +209,9 @@ class Password {
 	 *                ensure we don't use a weak DES key.
 	 * @return string The XDES salt.
 	 */
-	protected static function _genSaltXDES($count = 18) {
+	protected static function _genSaltXDES($count = null) {
 		$count = (integer) $count;
-		$count = ($count < 1 || $count > 24) ? 16 : $count;
+		$count = ($count < 1 || $count > 24) ? static::XDES : $count;
 
 		$count = (1 << $count) - 1;
 		$base64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';

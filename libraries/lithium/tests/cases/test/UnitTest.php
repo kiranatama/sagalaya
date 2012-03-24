@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -159,6 +159,23 @@ class UnitTest extends \lithium\test\Unit {
 		);
 		$result = $test->run();
 		$this->assertEqual($expected, $result[0]);
+	}
+
+	public function testFail() {
+		$this->fail('Test failed.');
+
+		$result = array_pop($this->_results);
+		$expected = 'fail';
+		$this->assertEqual($expected, $result['result']);
+
+		$expected = 'testFail';
+		$this->assertEqual($expected, $result['method']);
+
+		$expected = 'fail';
+		$this->assertEqual($expected, $result['assertion']);
+
+		$expected = 'Test failed.';
+		$this->assertEqual($expected, $result['message']);
 	}
 
 	public function testAssertNotEqual() {
@@ -344,6 +361,62 @@ class UnitTest extends \lithium\test\Unit {
 		$this->assertEqual($expected, $result['message']);
 	}
 
+	public function testAssertException() {
+		$closure = function() {
+			throw new Exception('Test exception message.');
+		};
+
+		$expected = 'Test exception message.';
+		$this->assertException($expected, $closure);
+
+		$expected = 'Exception';
+		$this->assertException($expected, $closure);
+
+		$expected = '/Test/';
+		$this->assertException($expected, $closure);
+	}
+
+	public function testAssertExceptionNotThrown() {
+		$closure = function() {};
+		$expected = 'Exception';
+		$this->assertException($expected, $closure);
+
+		$expected = 'fail';
+		$result = array_pop($this->_results);
+		$this->assertEqual($expected, $result['result']);
+
+		$expected = 'testAssertExceptionNotThrown';
+		$this->assertEqual($expected, $result['method']);
+
+		$expected = 'assertException';
+		$this->assertEqual($expected, $result['assertion']);
+
+		$expected = 'An exception "Exception" was expected but not thrown.';
+		$this->assertEqual($expected, $result['message']);
+	}
+
+	public function testAssertExceptionWrongException() {
+		$closure = function() {
+			throw new Exception('incorrect');
+		};
+
+		$expected = 'correct';
+		$this->assertException($expected, $closure);
+
+		$expected = 'fail';
+		$result = array_pop($this->_results);
+		$this->assertEqual($expected, $result['result']);
+
+		$expected = 'testAssertExceptionWrongException';
+		$this->assertEqual($expected, $result['method']);
+
+		$expected = 'assertException';
+		$this->assertEqual($expected, $result['assertion']);
+
+		$expected = 'Exception "correct" was expected. Exception "Exception" with message "incorrect" was thrown instead.';
+		$this->assertEqual($expected, $result['message']);
+	}
+
 	public function testIdenticalArrayFail() {
 		$expected = array('1', '2', '3');
 		$result = array(1, '2', '3');;
@@ -436,6 +509,22 @@ class UnitTest extends \lithium\test\Unit {
 		$this->_handleException(new Exception('test handle exception'));
 		$expected = 'test handle exception';
 		$this->assertTrue(empty($this->_expected));
+	}
+
+	public function testExpectExceptionNotThrown() {
+		$this->expectException('test');
+	}
+
+	public function testExpectExceptionPostNotThrown() {
+		$result = end($this->_results);
+		$expected = 'testExpectExceptionNotThrown';
+		$msg = 'expectException in a method with no exception should result in a failed test.';
+
+		$this->assertEqual($expected, $result['method'], $msg);
+		$this->assertEqual('fail', $result['result'], $msg);
+		$this->assertEqual('Expected exception matching `test` uncaught.', $result['message']);
+
+		unset($this->_results[key($this->_results)]);
 	}
 
 	public function testGetTest() {
@@ -554,7 +643,7 @@ class UnitTest extends \lithium\test\Unit {
 	 *
 	 */
 	public function testResults() {
-		$expected = 89;
+		$expected = 107;
 		$result = count($this->results());
 		$this->assertEqual($expected, $result);
 	}
@@ -569,13 +658,16 @@ class UnitTest extends \lithium\test\Unit {
 			'testCompareTypes', 'testAssertEqualNumeric',
 			'testAssertEqualNumericFail', 'testAssertEqualAssociativeArray',
 			'testAssertEqualThreeDFail', 'testAssertWithCustomMessage',
-			'testSubject', 'testRun', 'testAssertNotEqual', 'testAssertIdentical',
-			'testAssertIdenticalArray',
+			'testSubject', 'testRun', 'testFail', 'testAssertNotEqual',
+			'testAssertIdentical', 'testAssertIdenticalArray',
 			'testAssertNull', 'testAssertNoPattern', 'testAssertPattern', 'testAssertTags',
 			'testAssertTagsNoClosingTag', 'testAssertTagsMissingAttribute',
-			'testAssertTagsString', 'testAssertTagsFailTextEqual', 'testIdenticalArrayFail',
+			'testAssertTagsString', 'testAssertTagsFailTextEqual',
+			'testAssertException', 'testAssertExceptionNotThrown',
+			'testAssertExceptionWrongException', 'testIdenticalArrayFail',
 			'testCleanUp', 'testCleanUpWithFullPath', 'testCleanUpWithRelativePath',
 			'testSkipIf', 'testExpectException', 'testHandleException', 'testExpectExceptionRegex',
+			'testExpectExceptionNotThrown', 'testExpectExceptionPostNotThrown',
 			'testGetTest', 'testAssertCookie', 'testAssertCookieWithHeaders',
 			'testCompareWithEmptyResult',
 			'testExceptionCatching', 'testErrorHandling', 'testAssertObjects',
