@@ -4,8 +4,7 @@ use \lithium\core\ConfigException;
 
 $libraries = array('Doctrine\Common', 'Doctrine\DBAL',
 		'Doctrine\ORM', 'Doctrine\DBAL\Migrations',
-		'Symfony\Component\Yaml', 'Symfony\Component\Console',
-		'Zend\Code', 'Zend\Acl', 'Zend\File');
+		'Symfony\Component\Yaml', 'Symfony\Component\Console', 'Zend');
 
 foreach ($libraries as $name) {
 	if (!Libraries::get($name)) {

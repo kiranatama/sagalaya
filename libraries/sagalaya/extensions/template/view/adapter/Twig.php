@@ -84,11 +84,14 @@ class Twig extends \lithium\template\view\Renderer {
 	 * @param array $options
 	 * @return string
 	 */
-	public function render($paths, $data = array(), array $options = array()) {
+	public function render($paths, $data = array(), array $options = array()) {		
 		$this->_context = $options['context'] + $this->_context;
-
+		
 		$directories = array_map(function ($item) {
-			return dirname($item);
+			if (file_exists(dirname($item))) {
+				return dirname($item);
+			}
+			return LITHIUM_APP_PATH . dirname($item);
 		}, $paths);
 		$directories[] = LITHIUM_APP_PATH . '/views';
 
@@ -99,7 +102,7 @@ class Twig extends \lithium\template\view\Renderer {
 
 		//Because $this is not available in the Twig template view is used as a substitute.
 		return $template->render((array) $data + array('this' => $this));
-	}
+	}	
 
 }
 

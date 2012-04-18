@@ -5,7 +5,7 @@ namespace sagalaya\extensions\data;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
- * 
+ * Build doctrine object model from array or post data
  * @author Mukhamad Ikhsan
  *
  */
@@ -58,6 +58,11 @@ class ModelBuilder {
 		
 	}
 	
+	/**
+	 * 
+	 * @param unknown_type $object
+	 * @param unknown_type $data
+	 */
 	public static function update($object, $data = array()) {
 		
 		static::init($object);
@@ -94,7 +99,7 @@ class ModelBuilder {
 		
 		if (is_array($value)) {
 			$instance = new $targetEntity($value);
-		} else if (is_int($value)) {
+		} else if (is_int($value) || is_string($value)) {
 			$instance = $targetEntity::get($value);
 		} else if (is_object($value)) {
 			$instance = $value;
@@ -119,12 +124,13 @@ class ModelBuilder {
 	 * @param unknown_type $value
 	 */
 	public static function add($object, $field, $value) {		
-		$targetEntity = static::$namespace . '\\' . ModelAnnotation::get($object, $field, 'targetEntity');		
+		$targetEntity = static::$namespace . '\\' . ModelAnnotation::get($object, $field, 'targetEntity');			
 		foreach ($value as $index => $item) {
+						
 			if (is_array($item)) {
-				$instance = $targetEntity::getRepository()->findOneBy($item);
-			} else if (is_int($item)) {
-				$instance = $targetEntity::get($item);
+				$instance = $targetEntity::findOneBy($item);
+			} else if (is_int($item) || is_string($item)) {
+				$instance = $targetEntity::get($item);				
 			} else if (is_object($item)) {
 				$instance = $item;
 			}
@@ -134,7 +140,12 @@ class ModelBuilder {
 			}
 			
 			if (isset($instance)) {
-				$object->$field->add($instance);
+				$addFunction = 'add' . ucfirst($field);
+				if (method_exists($object, $addFunction)) {
+					$object->$addFunction($instance);
+				} else {				
+					$object->$field->add($instance);
+				}
 			}
 		}
 	}

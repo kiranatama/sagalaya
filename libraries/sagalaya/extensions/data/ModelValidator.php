@@ -68,20 +68,35 @@ class ModelValidator {
 					}
 				}
 			}
-						
+												
 			$errors = Validator::check(static::convertToArray($object), $validations);
 			
 			/** Unique checking */
 			foreach ($unique as $key => $value) {
-				$result = $classname::getRepository()->findOneBy(array($value[0] => $object->$value[0]));
-				if (!empty($result) && !(isset($object->id) && $object->id == $result->id)) {
-					$errors[$value[0]][] = $value["message"];
+				$result = $classname::findOneBy(array($value[0] => $object->$value[0]));								
+				if (!empty($result)) {
+					
+					// same unique value but different id
+					if (isset($object->id) && $object->id != $result->id) {						
+						$errors[$value[0]][] = $value["message"];
+					}
+					
+					// new instance trying to be same unique value
+					if (!$object->id) {								
+						$errors[$value[0]][] = $value["message"];
+					}
 				}
 			}
 			
 			/** EqualWith checking */
-			foreach ($equalWith as $key => $value) {
-				if (isset($object->$value['with']) && $object->$value[0] != $object->$value['with']) {
+			foreach ($equalWith as $key => $value) {					
+				
+				// get exception for existing object password
+				if ($object->id && $value['with'] == 'password') {					
+					break;
+				}
+										
+				if (strcmp($object->$value[0], $object->$value['with']) != 0) {							
 					$errors[$value[0]][] = $value["message"];
 				}
 			}
@@ -93,7 +108,7 @@ class ModelValidator {
 					$errors[$value[0]][] = $value['message'];
 				}
 			}
-						
+									
 			$reflection = new \ReflectionClass($object);
 			$properties = $reflection->getProperties(\ReflectionProperty::IS_PROTECTED);
 			try {

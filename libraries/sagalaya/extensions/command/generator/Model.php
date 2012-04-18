@@ -14,9 +14,9 @@ class Model extends Generator {
 	public function build($model) {
 		
 		$class = new ClassGenerator($model->config->name);
-		$class->setExtendedClass('\sagalaya\extensions\data\Model');
+		$class->setExtendedClass('\sagalaya\extensions\data\Model');		
 		$class->setNamespaceName($this->namespace);
-
+		
 		if (isset($model->config->resource)) {
 			$this->interfaces[] = '\\Zend\\Acl\\Resource';
 			$resourceId = new MethodGenerator('getResourceId');
@@ -99,26 +99,34 @@ class Model extends Generator {
 					
 					if ($relation == "OneToMany" || $relation == "ManyToMany") {
 							
-						$functionName = "add" . ucfirst("$field->name");
+						$methodName = "add" . ucfirst("$field->name");
 						$parameter = lcfirst("$field->targetEntity");
 								
-						$function = new MethodGenerator($functionName);
-						$function->setParameter($parameter);
+						$method = new MethodGenerator($methodName);
+						$method->setParameter($parameter);
 						
 						$content = "\$this->{$field->name}->add(\${$parameter});";
 						
 						if (isset($field->mappedBy)) {
 							$content .= "\n";
-							$content .= "\${$parameter}->{$field->mappedBy}->add(\$this);";
+							if ($relation == "OneToMany") {
+								$content .= "\${$parameter}->{$field->mappedBy} = \$this;";
+							} else {
+								$content .= "\${$parameter}->{$field->mappedBy}->add(\$this);";
+							}							
 						}
 						
 						if (isset($field->inversedBy)) {
 							$content .= "\n";
-							$content .= "\${$parameter}->{$field->inversedBy}->add(\$this);";
+							if ($relation == "OneToMany") {
+								$content .= "\${$parameter}->{$field->inversedBy} = \$this;";
+							} else {
+								$content .= "\${$parameter}->{$field->inversedBy}->add(\$this);";
+							}
 						}
 						
-						$function->setBody($content);
-						$class->setMethod($function);
+						$method->setBody($content);
+						$class->setMethod($method);
 					}
 					
 					$cascades = null;
@@ -132,9 +140,14 @@ class Model extends Generator {
 					$docblock = "@{$field->relation}(targetEntity=\"{$field->targetEntity}\"{$mappedBy}{$inversedBy}{$cascades})";
 					break;
 				default :
+					if ("{$type}" == "datetime") {
+						$setter = new MethodGenerator("set" . ucfirst("{$field->name}"));
+						$setter->setParameter("date");
+						$setter->setBody("\$this->{$field->name} = new \DateTime(\$date);");
+						$class->setMethod($setter);
+					}
 					$docblock = "@Column(type=\"{$type}\"{$attributes})";
-			}
-
+			}			
 			$property->setDocblock($docblock);
 			$class->setProperty($property);
 		}

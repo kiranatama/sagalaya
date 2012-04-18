@@ -23,29 +23,28 @@ use \Twig_TemplateInterface;
  */
 abstract class Template extends \Twig_Template {
 
-    /**
-     * Override the getAttribute to handle lazy loaded li3 helpers
-     */
-    protected function getAttribute($object, $item, array $arguments = array(), 
-                                    $type = Twig_TemplateInterface::ANY_CALL, 
-                                    $noStrictCheck = false, $line = -1) {
-        $result = parent::getAttribute($object, $item, $arguments, $type, $noStrictCheck, $line);
-        if ($result === null) {
-            // Fetch the helper object and return it
-            try {                       	
-                if (preg_match('|Model|', get_parent_class($object)) || 
-                        preg_match('|Model|', get_parent_class(get_parent_class($object)))) {                  	                                                         
-                    return $object->$item;
-                } else {                                                   	                	
-                    $result = (is_object($object)) ? $object->helper($item) : null;
-                }                
-            }
-            catch (\Exception $e) {
-                $result = null;
-            }
-        }
-        return $result;
-    }
+	/**
+	 * Override the getAttribute to handle lazy loaded li3 helpers
+	 */
+	protected function getAttribute($object, $item, array $arguments = array(),
+			$type = Twig_TemplateInterface::ANY_CALL,
+			$noStrictCheck = false, $line = -1) {
+		$result = parent::getAttribute($object, $item, $arguments, $type, $noStrictCheck, $line);
+		if ($result === null) {
+			try {
+				if (is_a($object, 'sagalaya\extensions\data\Model')) {
+					return $object->$item;
+				} else {
+					$result = (is_object($object) &&
+							method_exists($object, 'helper')) ? $object->helper($item) : null;
+				}
+			}
+			catch (\Exception $e) {
+				$result = null;
+			}
+		}
+		return $result;
+	}
 }
 
 ?>
