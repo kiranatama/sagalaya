@@ -29,7 +29,7 @@ ErrorHandler::apply('lithium\action\Dispatcher::run', array(), function($info, $
     
     Media::render($response, compact('info', 'params', 'stack', 'exception_class'), array(
         'controller' => 'errors',
-        'template' => ($info['exception']->getCode() == 404)?"404":"development",
+        'template' => ($info['exception']->getCode() == 404) ? "404" : "development",
         'layout' => 'error',
         'request' => $params['request']
     ));

@@ -18,7 +18,6 @@
  */
 
 use lithium\core\Libraries;
-use lithium\net\http\Router;
 use lithium\core\Environment;
 use lithium\action\Dispatcher;
 use lithium\security\Auth;
@@ -65,7 +64,7 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		$arguments = array();
 		foreach ($request->args as $value) {
 			$param = explode(":", $value);
-			$arguments[$param[0]] = (isset($param[1]))?$param[1]:null;			
+			$arguments[$param[0]] = (isset($param[1])) ? $param[1] : null;			
 		}
 		$request->args = $arguments;
 	}	

@@ -15,3 +15,5 @@ class Model extends Unit {
 		$this->assertEqual('ikhsan.only@gmail.com', $user->__get('email'));
 	}
 }
+
+?>

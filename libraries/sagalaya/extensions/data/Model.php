@@ -341,7 +341,7 @@ abstract class Model {
 	 * 		'leftJoin' => array(
 	 * 			array('field' => 'group', 
 	 * 					'where' => array(
-	 * 				array('name' => array('eq' => 'administrator'))
+	 * 						array('name' => array('eq' => 'administrator'))
 	 * 			))
 	 * 		),
 	 * 
@@ -367,7 +367,7 @@ abstract class Model {
 				return $qb->getQuery()->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_SINGLE_SCALAR);
 			case Model::Model_Simple_Object :
 				return $qb->getQuery()->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_SIMPLEOBJECT);
-		}
+		}				
 			
 		throw new \Exception("Wrong provided type of returning query for Model::findAll(). \n
 				Must one of these (OBJECT, ARRAY, SCALAR, SINGLESCALAR, SIMPLE)");
@@ -501,6 +501,11 @@ abstract class Model {
 	 * @return array
 	 */
 	public function toArray($joins = array()) {
+		
+		if (empty($this->id)) {
+			return ModelValidator::convertToArray($this);
+		}
+		
 		foreach ($joins as $key => $join) {
 			$joins[$key] = array('field' => $join);
 		}
