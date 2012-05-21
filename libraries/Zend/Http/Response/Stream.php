@@ -19,9 +19,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Http\Response;
 
 use Zend\Http\Response;
@@ -31,7 +28,6 @@ use Zend\Http\Response;
  * includes easy access to all the response's different elemts, as well as some
  * convenience methods for parsing and validating HTTP responses.
  *
- * @uses       \Zend\Http\Response
  * @package    Zend_Http
  * @subpackage Response
  * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
@@ -76,7 +72,7 @@ class Stream extends Response
      * Set the response stream
      *
      * @param resourse $stream
-     * @return \Zend\Http\Response\Stream
+     * @return Stream
      */
     public function setStream($stream)
     {
@@ -89,7 +85,8 @@ class Stream extends Response
      *
      * @return boolean
      */
-    public function getCleanup() {
+    public function getCleanup()
+    {
         return $this->_cleanup;
     }
 
@@ -98,7 +95,8 @@ class Stream extends Response
      *
      * @param $cleanup Set cleanup trigger
      */
-    public function setCleanup($cleanup = true) {
+    public function setCleanup($cleanup = true)
+    {
         $this->_cleanup = $cleanup;
     }
 
@@ -107,7 +105,8 @@ class Stream extends Response
      *
      * @return string
      */
-    public function getStreamName() {
+    public function getStreamName()
+    {
         return $this->stream_name;
     }
 
@@ -115,9 +114,10 @@ class Stream extends Response
      * Set file name associated with the stream
      *
      * @param string $stream_name Name to set
-     * @return \Zend\Http\Response\Stream
+     * @return Stream
      */
-    public function setStreamName($stream_name) {
+    public function setStreamName($stream_name)
+    {
         $this->stream_name = $stream_name;
         return $this;
     }
@@ -155,7 +155,7 @@ class Stream extends Response
      */
     public function getBody()
     {
-        if($this->stream != null) {
+        if ($this->stream != null) {
             $this->readStream();
         }
         return parent::getBody();
@@ -171,7 +171,7 @@ class Stream extends Response
      */
     public function getRawBody()
     {
-        if($this->stream) {
+        if ($this->stream) {
             $this->readStream();
         }
         return $this->body;
@@ -186,7 +186,7 @@ class Stream extends Response
      */
     protected function readStream()
     {
-        if(!is_resource($this->stream)) {
+        if (!is_resource($this->stream)) {
             return '';
         }
 
@@ -197,11 +197,11 @@ class Stream extends Response
 
     public function __destruct()
     {
-        if(is_resource($this->stream)) {
+        if (is_resource($this->stream)) {
             fclose($this->stream);
             $this->stream = null;
         }
-        if($this->_cleanup) {
+        if ($this->_cleanup) {
             @unlink($this->stream_name);
         }
     }

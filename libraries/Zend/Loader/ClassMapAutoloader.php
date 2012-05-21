@@ -19,7 +19,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/** @namespace */
 namespace Zend\Loader;
 
 // Grab SplAutoloader interface
@@ -54,8 +53,7 @@ class ClassMapAutoloader implements SplAutoloader
      *
      * Create a new instance, and optionally configure the autoloader.
      * 
-     * @param  null|array|Traversable $options 
-     * @return void
+     * @param  null|array|\Traversable $options
      */
     public function __construct($options = null)
     {

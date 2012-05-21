@@ -18,12 +18,9 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Session\Configuration;
 
-use Zend\Session\Configuration as Configurable,
+use Zend\Session\Configuration\ConfigurationInterface as Configurable,
     Zend\Session\Exception,
     Zend\Validator\Hostname as HostnameValidator,
     Zend\Filter\Word\CamelCaseToUnderscore as CamelCaseToUnderscoreFilter;
@@ -100,11 +97,11 @@ class StandardConfiguration implements Configurable
      * Does nothing in this implementation; others might use it to set things 
      * such as INI settings.
      * 
-     * @param  string $name 
-     * @param  mixed $value 
-     * @return Zend\Session\Configuration\StandardConfiguration
+     * @param  string $storageName 
+     * @param  mixed $storageValue 
+     * @return StandardConfiguration
      */
-    public function setStorageOption($name, $value)
+    public function setStorageOption($storageName, $storageValue)
     {
     }
 
@@ -113,10 +110,10 @@ class StandardConfiguration implements Configurable
      *
      * Used to retrieve default values from a backend configuration store.
      * 
-     * @param  string $name 
+     * @param  string $storageOption
      * @return mixed
      */
-    public function getStorageOption($name)
+    public function getStorageOption($storageOption)
     {
         return null;
     }
@@ -124,17 +121,17 @@ class StandardConfiguration implements Configurable
     /**
      * Set session.save_path
      * 
-     * @param  string $path 
+     * @param  string $savePath 
      * @return StandardConfiguration
-     * @throws SessionException on invalid path
+     * @throws Exception\InvalidArgumentException on invalid path
      */
-    public function setSavePath($path)
+    public function setSavePath($savePath)
     {
-        if (!is_dir($path)) {
+        if (!is_dir($savePath)) {
             throw new Exception\InvalidArgumentException('Invalid save_path provided');
         }
-        $this->savePath = $path;
-        $this->setStorageOption('save_path', $path);
+        $this->savePath = $savePath;
+        $this->setStorageOption('save_path', $savePath);
         return $this;
     }
 
@@ -156,7 +153,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  string $name 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setName($name)
     {
@@ -186,7 +183,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  int $gcProbability 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setGcProbability($gcProbability)
     {
@@ -207,7 +204,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  int $gcDivisor 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setGcDivisor($gcDivisor)
     {
@@ -228,7 +225,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  int $gcMaxlifetime 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setGcMaxlifetime($gcMaxlifetime)
     {
@@ -251,7 +248,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  int $cookieLifetime 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setCookieLifetime($cookieLifetime)
     {
@@ -285,7 +282,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  string $cookiePath 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setCookiePath($cookiePath)
     {
@@ -319,7 +316,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  string $cookieDomain 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setCookieDomain($cookieDomain)
     {
@@ -409,12 +406,12 @@ class StandardConfiguration implements Configurable
     /**
      * Set session.use_cookies
      * 
-     * @param  bool $flag 
+     * @param  bool $useCookies
      * @return StandardConfiguration
      */
-    public function setUseCookies($flag)
+    public function setUseCookies($useCookies)
     {
-        $this->useCookies = (bool) $flag;
+        $this->useCookies = (bool) $useCookies;
         $this->setStorageOption('use_cookies', $this->useCookies);
         return $this;
     }
@@ -435,17 +432,17 @@ class StandardConfiguration implements Configurable
     /**
      * Set session.entropy_file
      * 
-     * @param  string $path 
+     * @param  string $entropyFile
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
-    public function setEntropyFile($path)
+    public function setEntropyFile($entropyFile)
     {
-        if (!file_exists($path) || is_dir($path) || !is_readable($path)) {
+        if (is_dir($entropyFile) || !is_readable($entropyFile)) {
             throw new Exception\InvalidArgumentException('Invalid entropy_file provided');
         }
-        $this->setOption('entropy_file', $path);
-        $this->setStorageOption('entropy_file', $path);
+        $this->setOption('entropy_file', $entropyFile);
+        $this->setStorageOption('entropy_file', $entropyFile);
         return $this;
     }
 
@@ -454,7 +451,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  int $entropyLength 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setEntropyLength($entropyLength)
     {
@@ -475,7 +472,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  int $cacheExpire 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setCacheExpire($cacheExpire)
     {
@@ -498,7 +495,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  int $hashBitsPerCharacter 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setHashBitsPerCharacter($hashBitsPerCharacter)
     {
@@ -516,7 +513,7 @@ class StandardConfiguration implements Configurable
      * 
      * @param  int $rememberMeSeconds 
      * @return StandardConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setRememberMeSeconds($rememberMeSeconds)
     {
@@ -663,7 +660,7 @@ class StandardConfiguration implements Configurable
      * @param  string $method 
      * @param  array $args 
      * @return mixed
-     * @throws BadMethodCallException on non-getter/setter method
+     * @throws Exception\BadMethodCallException on non-getter/setter method
      */
     public function __call($method, $args)
     {

@@ -18,12 +18,9 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Date;
 
-use Zend\Cache\Storage\Adapter as CacheAdapter;
+use Zend\Cache\Storage\Adapter\AdapterInterface as CacheAdapter;
 
 /**
  * @category   Zend

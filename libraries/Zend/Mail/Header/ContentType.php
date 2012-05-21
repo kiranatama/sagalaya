@@ -21,8 +21,6 @@
 
 namespace Zend\Mail\Header;
 
-use Zend\Mail\Header;
-
 /**
  * @category   Zend
  * @package    Zend_Mail
@@ -30,7 +28,7 @@ use Zend\Mail\Header;
  * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class ContentType implements Header
+class ContentType implements HeaderInterface
 {
     /**
      * Header encoding
@@ -51,14 +49,15 @@ class ContentType implements Header
 
     /**
      * Factory: create Content-Type header object from string
-     * 
-     * @param  string $headerLine 
+     *
+     * @param  string $headerLine
+     * @throws Exception\InvalidArgumentException
      * @return ContentType
      */
     public static function fromString($headerLine)
     {
         $headerLine = iconv_mime_decode($headerLine, ICONV_MIME_DECODE_CONTINUE_ON_ERROR);
-        list($name, $value) = preg_split('#: #', $headerLine, 2);
+        list($name, $value) = explode(': ', $headerLine, 2);
 
         // check to ensure proper header type for this factory
         if (strtolower($name) !== 'content-type') {
@@ -74,7 +73,7 @@ class ContentType implements Header
 
         if (count($values)) {
             foreach ($values as $keyValuePair) {
-                list($key, $value) = preg_split('/=/', $keyValuePair);
+                list($key, $value) = explode('=', $keyValuePair);
                 $value = trim($value, "\"\' \t\n\r\0\x0B");
                 $header->addParameter($key, $value);
             }
@@ -147,8 +146,9 @@ class ContentType implements Header
 
     /**
      * Set the content type
-     * 
-     * @param  string $type 
+     *
+     * @param  string $type
+     * @throws Exception\InvalidArgumentException
      * @return ContentType
      */
     public function setType($type)
@@ -167,7 +167,7 @@ class ContentType implements Header
     /**
      * Retrieve the content type
      * 
-     * @return void
+     * @return string
      */
     public function getType()
     {

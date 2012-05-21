@@ -19,16 +19,12 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Barcode\Renderer;
 
 use Traversable,
     Zend\Barcode\Barcode,
     Zend\Barcode\Exception as BarcodeException,
     Zend\Barcode\Object,
-    Zend\Barcode\Renderer,
     Zend\Stdlib\ArrayUtils;
 
 /**
@@ -39,7 +35,7 @@ use Traversable,
  * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-abstract class AbstractRenderer implements Renderer
+abstract class AbstractRenderer implements RendererInterface
 {
     /**
      * Namespace of the renderer for autoloading
@@ -91,7 +87,7 @@ abstract class AbstractRenderer implements Renderer
 
     /**
      * Barcode object
-     * @var Object
+     * @var Object\ObjectInterface
      */
     protected $barcode;
 
@@ -318,12 +314,12 @@ abstract class AbstractRenderer implements Renderer
 
     /**
      * Set the barcode object
-     * @param  Object $barcode
+     * @param  Object\ObjectInterface $barcode
      * @return AbstractRenderer
      */
     public function setBarcode($barcode)
     {
-        if (!$barcode instanceof Object) {
+        if (!$barcode instanceof Object\ObjectInterface) {
             throw new Exception\InvalidArgumentException(
                 'Invalid barcode object provided to setBarcode()'
             );
@@ -334,7 +330,7 @@ abstract class AbstractRenderer implements Renderer
 
     /**
      * Retrieve the barcode object
-     * @return Object
+     * @return Object\ObjectInterface
      */
     public function getBarcode()
     {
@@ -420,7 +416,7 @@ abstract class AbstractRenderer implements Renderer
             $this->checkParams();
             $this->initRenderer();
             $this->drawInstructionList();
-        } catch (BarcodeException $e) {
+        } catch (BarcodeException\ExceptionInterface $e) {
             if ($this->automaticRenderError && !($e instanceof BarcodeException\RendererCreationException)) {
                 $barcode = Barcode::makeBarcode(
                     'error',

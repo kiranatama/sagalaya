@@ -19,9 +19,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Wildfire\Protocol;
 use Zend\Wildfire\Plugin,
     Zend\Wildfire\Protocol\Exception,
@@ -30,10 +27,6 @@ use Zend\Wildfire\Plugin,
 /**
  * Encodes messages into the Wildfire JSON Stream Communication Protocol.
  *
- * @uses       \Zend\Json\Json
- * @uses       \Zend\Wildfire\Channel
- * @uses       \Zend\Wildfire\Exception
- * @uses       \Zend\Wildfire\Plugin
  * @category   Zend
  * @package    Zend_Wildfire
  * @subpackage Protocol

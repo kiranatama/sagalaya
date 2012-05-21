@@ -18,12 +18,9 @@
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Locale;
 
-use Zend\Cache\Storage\Adapter as CacheAdapter,
+use Zend\Cache\Storage\Adapter\AdapterInterface as CacheAdapter,
     Zend\Registry;
 
 /**
@@ -1001,10 +998,10 @@ class Locale
     /**
      * Clears all set cache data
      *
-     * @param string $tag Tag to clear when the default tag name is not used
+     * @param string $tag Tag to clear when the default tag name is not used (Optional)
      * @return void
      */
-    public static function clearCache($tag)
+    public static function clearCache($tag = null)
     {
         Data\Cldr::clearCache($tag);
     }

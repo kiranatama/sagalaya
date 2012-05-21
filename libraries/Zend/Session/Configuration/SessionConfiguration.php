@@ -18,12 +18,9 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Session\Configuration;
 
-use Zend\Validator\Hostname\Hostname as HostnameValidator,
+use Zend\Validator\Hostname as HostnameValidator,
     Zend\Session\Exception;
 
 /**
@@ -89,14 +86,14 @@ class SessionConfiguration extends StandardConfiguration
      * Does nothing in this implementation; others might use it to set things 
      * such as INI settings.
      * 
-     * @param  string $name 
-     * @param  mixed $value 
-     * @return Zend\Session\Configuration\StandardConfiguration
+     * @param  string $storageName 
+     * @param  mixed $storageValue 
+     * @return SessionConfiguration
      */
-    public function setStorageOption($name, $value)
+    public function setStorageOption($storageName, $storageValue)
     {
         $key = false;
-        switch ($name) {
+        switch ($storageName) {
             case 'remember_me_seconds':
                 // do nothing; not an INI option
                 return;
@@ -104,11 +101,12 @@ class SessionConfiguration extends StandardConfiguration
                 $key = 'url_rewriter.tags';
                 break;
             default:
-                $key = 'session.' . $name;
+                $key = 'session.' . $storageName;
                 break;
         }
 
-        ini_set($key, $value);
+        ini_set($key, $storageValue);
+        return $this;
     }
 
     /**
@@ -116,14 +114,14 @@ class SessionConfiguration extends StandardConfiguration
      *
      * Used to retrieve default values from a backend configuration store.
      * 
-     * @param  string $name 
+     * @param  string $storageOption
      * @return mixed
      */
-    public function getStorageOption($name)
+    public function getStorageOption($storageOption)
     {
         $key       = false;
         $transform = false;
-        switch ($name) {
+        switch ($storageOption) {
             case 'remember_me_seconds':
                 // No remote storage option; just return the current value
                 return $this->rememberMeSeconds;
@@ -139,7 +137,7 @@ class SessionConfiguration extends StandardConfiguration
                     return (bool) $value;
                 };
             default:
-                $key = 'session.' . $name;
+                $key = 'session.' . $storageOption;
                 break;
         }
 
@@ -168,7 +166,7 @@ class SessionConfiguration extends StandardConfiguration
      * 
      * @param  string $phpSaveHandler 
      * @return SessionConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setPhpSaveHandler($phpSaveHandler)
     {
@@ -189,7 +187,7 @@ class SessionConfiguration extends StandardConfiguration
      * 
      * @param  string $serializeHandler 
      * @return SessionConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setSerializeHandler($serializeHandler)
     {
@@ -208,6 +206,13 @@ class SessionConfiguration extends StandardConfiguration
 
     // session.cache_limiter
 
+    /**
+     * Set cache limiter
+     *
+     * @param $cacheLimiter
+     * @return SessionConfiguration
+     * @throws Exception\InvalidArgumentException
+     */
     public function setCacheLimiter($cacheLimiter)
     {
         $cacheLimiter = (string) $cacheLimiter;
@@ -242,7 +247,7 @@ class SessionConfiguration extends StandardConfiguration
      * 
      * @param  string|int $hashFunction 
      * @return SessionConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setHashFunction($hashFunction)
     {
@@ -262,7 +267,7 @@ class SessionConfiguration extends StandardConfiguration
      * 
      * @param  int $hashBitsPerCharacter 
      * @return SessionConfiguration
-     * @throws SessionException
+     * @throws Exception\InvalidArgumentException
      */
     public function setHashBitsPerCharacter($hashBitsPerCharacter)
     {

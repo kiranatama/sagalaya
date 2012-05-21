@@ -20,15 +20,12 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Mail\Protocol;
 
 use Zend\Mime\Mime;
 
 /**
- * Smtp implementation of Zend\Mail\Protocol\AbstractProtocol
+ * SMTP implementation of Zend\Mail\Protocol\AbstractProtocol
  *
  * Minimum implementation according to RFC2821: EHLO, MAIL FROM, RCPT TO, DATA, RSET, NOOP, QUIT
  *
@@ -67,7 +64,7 @@ class Smtp extends AbstractProtocol
     /**
      * Indicates the HELO command has been issues
      *
-     * @var unknown_type
+     * @var boolean
      */
     protected $_helo = false;
 
@@ -75,7 +72,7 @@ class Smtp extends AbstractProtocol
     /**
      * Indicates an smtp AUTH has been issued and authenticated
      *
-     * @var unknown_type
+     * @var boolean
      */
     protected $_auth = false;
 
@@ -83,7 +80,7 @@ class Smtp extends AbstractProtocol
     /**
      * Indicates a MAIL command has been issued
      *
-     * @var unknown_type
+     * @var boolean
      */
     protected $_mail = false;
 
@@ -91,7 +88,7 @@ class Smtp extends AbstractProtocol
     /**
      * Indicates one or more RCTP commands have been issued
      *
-     * @var unknown_type
+     * @var boolean
      */
     protected $_rcpt = false;
 
@@ -99,7 +96,7 @@ class Smtp extends AbstractProtocol
     /**
      * Indicates that DATA has been issued and sent
      *
-     * @var unknown_type
+     * @var boolean
      */
     protected $_data = null;
 
@@ -114,7 +111,6 @@ class Smtp extends AbstractProtocol
      * @param  string|array $host 
      * @param  null|integer $port
      * @param  null|array   $config
-     * @return void
      * @throws Exception\InvalidArgumentException
      */
     public function __construct($host = '127.0.0.1', $port = null, array $config = null)
@@ -195,7 +191,6 @@ class Smtp extends AbstractProtocol
      *
      * @param  string $host The client hostname or IP address (default: 127.0.0.1)
      * @throws Exception\RuntimeException
-     * @return void
      */
     public function helo($host = '127.0.0.1')
     {
@@ -232,8 +227,7 @@ class Smtp extends AbstractProtocol
      * Send EHLO or HELO depending on capabilities of smtp host
      *
      * @param  string $host The client hostname or IP address (default: 127.0.0.1)
-     * @throws Exception
-     * @return void
+     * @throws \Exception|Exception\ExceptionInterface
      */
     protected function _ehlo($host)
     {
@@ -241,7 +235,7 @@ class Smtp extends AbstractProtocol
         try {
             $this->_send('EHLO ' . $host);
             $this->_expect(250, 300); // Timeout set for 5 minutes as per RFC 2821 4.5.3.2
-        } catch (Exception $e) {
+        } catch (Exception\ExceptionInterface $e) {
             $this->_send('HELO ' . $host);
             $this->_expect(250, 300); // Timeout set for 5 minutes as per RFC 2821 4.5.3.2
         } catch (\Exception $e) {
@@ -255,7 +249,6 @@ class Smtp extends AbstractProtocol
      *
      * @param  string $from Sender mailbox
      * @throws Exception\RuntimeException
-     * @return void
      */
     public function mail($from)
     {
@@ -278,7 +271,6 @@ class Smtp extends AbstractProtocol
      *
      * @param  string $to Receiver(s) mailbox
      * @throws Exception\RuntimeException
-     * @return void
      */
     public function rcpt($to)
     {
@@ -298,7 +290,6 @@ class Smtp extends AbstractProtocol
      *
      * @param  string $data
      * @throws Exception\RuntimeException
-     * @return void
      */
     public function data($data)
     {
@@ -329,7 +320,6 @@ class Smtp extends AbstractProtocol
      *
      * Can be used to restore a clean smtp communication state when a transaction has been cancelled or commencing a new transaction.
      *
-     * @return void
      */
     public function rset()
     {
@@ -348,7 +338,6 @@ class Smtp extends AbstractProtocol
      *
      * Not used by Zend_Mail, could be used to keep a connection alive or check if it is still open.
      *
-     * @return void
      */
     public function noop()
     {
@@ -363,7 +352,6 @@ class Smtp extends AbstractProtocol
      * Not used by Zend_Mail.
      *
      * @param  string $user User Name or eMail to verify
-     * @return void
      */
     public function vrfy($user)
     {
@@ -375,7 +363,6 @@ class Smtp extends AbstractProtocol
     /**
      * Issues the QUIT command and clears the current session
      *
-     * @return void
      */
     public function quit()
     {
@@ -393,7 +380,6 @@ class Smtp extends AbstractProtocol
      * This default method is implemented by AUTH adapters to properly authenticate to a remote host.
      *
      * @throws Exception\RuntimeException
-     * @return void
      */
     public function auth()
     {
@@ -406,7 +392,6 @@ class Smtp extends AbstractProtocol
     /**
      * Closes connection
      *
-     * @return void
      */
     public function disconnect()
     {
@@ -417,7 +402,6 @@ class Smtp extends AbstractProtocol
     /**
      * Start mail session
      *
-     * @return void
      */
     protected function _startSession()
     {
@@ -428,7 +412,6 @@ class Smtp extends AbstractProtocol
     /**
      * Stop mail session
      *
-     * @return void
      */
     protected function _stopSession()
     {

@@ -19,20 +19,15 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\View\Helper;
 
-use Zend\View\Exception;
+use Zend\View\Exception,
+    Zend\Registry,
+    ArrayObject;
 
 /**
  * Helper for setting and retrieving the doctype
  *
- * @uses       ArrayObject
- * @uses       \Zend\Registry
- * @uses       \Zend\View\Exception
- * @uses       \Zend\View\Helper\AbstractHelper
  * @package    Zend_View
  * @subpackage Helper
  * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
@@ -44,6 +39,7 @@ class Doctype extends AbstractHelper
      * DocType constants
      */
     const XHTML11             = 'XHTML11';
+    const XHTML1_RDFA1        = 'XHTML_RDFA1';
     const XHTML1_STRICT       = 'XHTML1_STRICT';
     const XHTML1_TRANSITIONAL = 'XHTML1_TRANSITIONAL';
     const XHTML1_FRAMESET     = 'XHTML1_FRAMESET';
@@ -65,7 +61,7 @@ class Doctype extends AbstractHelper
 
     /**
      * Registry containing current doctype and mappings
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     protected $_registry;
 
@@ -79,15 +75,14 @@ class Doctype extends AbstractHelper
      * Constructor
      *
      * Map constants to doctype strings, and set default doctype
-     *
-     * @return void
      */
     public function __construct()
     {
-        if (!\Zend\Registry::isRegistered($this->_regKey)) {
-            $this->_registry = new \ArrayObject(array(
+        if (!Registry::isRegistered($this->_regKey)) {
+            $this->_registry = new ArrayObject(array(
                 'doctypes' => array(
                     self::XHTML11             => '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">',
+                    self::XHTML1_RDFA1        => '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">',
                     self::XHTML1_STRICT       => '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
                     self::XHTML1_TRANSITIONAL => '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
                     self::XHTML1_FRAMESET     => '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">',
@@ -99,10 +94,11 @@ class Doctype extends AbstractHelper
                     self::HTML5               => '<!DOCTYPE html>',
                 )
             ));
-            \Zend\Registry::set($this->_regKey, $this->_registry);
+
+            Registry::set($this->_regKey, $this->_registry);
             $this->setDoctype($this->_defaultDoctype);
         } else {
-            $this->_registry = \Zend\Registry::get($this->_regKey);
+            $this->_registry = Registry::get($this->_regKey);
         }
     }
 
@@ -110,7 +106,7 @@ class Doctype extends AbstractHelper
      * Set or retrieve doctype
      *
      * @param  string $doctype
-     * @return \Zend\View\Helper\Doctype
+     * @return Doctype Provides a fluent interface
      * @throws Exception\DomainException
      */
     public function __invoke($doctype = null)
@@ -118,6 +114,7 @@ class Doctype extends AbstractHelper
         if (null !== $doctype) {
             switch ($doctype) {
                 case self::XHTML11:
+                case self::XHTML1_RDFA1:
                 case self::XHTML1_STRICT:
                 case self::XHTML1_TRANSITIONAL:
                 case self::XHTML1_FRAMESET:
@@ -151,7 +148,7 @@ class Doctype extends AbstractHelper
      * Set doctype
      *
      * @param  string $doctype
-     * @return \Zend\View\Helper\Doctype
+     * @return Doctype
      */
     public function setDoctype($doctype)
     {
@@ -188,15 +185,26 @@ class Doctype extends AbstractHelper
     {
         return (stristr($this->getDoctype(), 'xhtml') ? true : false);
     }
-	
-	/**
-	 * Is doctype HTML5? (HeadMeta uses this for validation)
-	 *
-	 * @return booleean
-	 */
-	public function isHtml5() {
-		return (stristr($this->__invoke(), '<!DOCTYPE html>') ? true : false);
-	}
+
+    /**
+     * Is doctype HTML5? (HeadMeta uses this for validation)
+     *
+     * @return boolean
+     */
+    public function isHtml5()
+    {
+        return (stristr($this->__invoke(), '<!DOCTYPE html>') ? true : false);
+    }
+
+    /**
+     * Is doctype RDFa?
+     *
+     * @return boolean
+     */
+    public function isRdfa()
+    {
+        return (stristr($this->getDoctype(), 'rdfa') ? true : false);
+    }
 
     /**
      * String representation of doctype

@@ -26,14 +26,13 @@ use ArrayObject,
     stdClass,
     Traversable,
     Zend\Cache\Exception,
-    Zend\Cache\Storage\Adapter,
     Zend\Cache\Storage\Capabilities,
     Zend\Cache\Storage\Event,
     Zend\Cache\Storage\ExceptionEvent,
-    Zend\Cache\Storage\Plugin,
     Zend\Cache\Storage\PostEvent,
-    Zend\EventManager\EventCollection,
-    Zend\EventManager\EventManager;
+    Zend\Cache\Storage\Plugin,
+    Zend\EventManager\EventManager,
+    Zend\EventManager\EventsCapableInterface;
 
 /**
  * @category   Zend
@@ -42,14 +41,20 @@ use ArrayObject,
  * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-abstract class AbstractAdapter implements Adapter
+abstract class AbstractAdapter implements AdapterInterface, EventsCapableInterface
 {
     /**
      * The used EventManager if any
      *
-     * @var null|EventManager
+     * @var null|EventCollection
      */
     protected $events = null;
+
+    /**
+     * Event handles of this adapter
+     * @var array
+     */
+    protected $eventHandles = array();
 
     /**
      * The plugin registry
@@ -104,7 +109,7 @@ abstract class AbstractAdapter implements Adapter
      * Constructor
      *
      * @param  null|array|Traversable|AdapterOptions $options
-     * @throws Exception
+     * @throws Exception\ExceptionInterface
      * @return void
      */
     public function __construct($options = null)
@@ -128,6 +133,13 @@ abstract class AbstractAdapter implements Adapter
         foreach ($this->getPlugins() as $plugin) {
             $this->removePlugin($plugin);
         }
+
+        if ($this->eventHandles) {
+            $events = $this->events();
+            foreach ($this->eventHandles as $handle) {
+                $events->detach($handle);
+            }
+        }
     }
 
     /* configuration */
@@ -141,11 +153,20 @@ abstract class AbstractAdapter implements Adapter
      */
     public function setOptions($options)
     {
-        if (!$options instanceof AdapterOptions) {
-            $options = new AdapterOptions($options);
-        }
+        if ($this->options !== $options) {
+            if (!$options instanceof AdapterOptions) {
+                $options = new AdapterOptions($options);
+            }
 
-        $this->options = $options;
+            if ($this->options) {
+                $this->options->setAdapter(null);
+            }
+            $options->setAdapter($this);
+            $this->options = $options;
+
+            $event = new Event('option', $this, new ArrayObject($options->toArray()));
+            $this->events()->trigger($event);
+        }
         return $this;
     }
 
@@ -200,29 +221,14 @@ abstract class AbstractAdapter implements Adapter
     /* Event/Plugin handling */
 
     /**
-     * Set event manager instance
-     *
-     * @param  EventCollection $events
-     * @return AbstractAdapter
-     */
-    public function setEventManager(EventCollection $events)
-    {
-        $this->events = $events;
-        return $this;
-    }
-
-    /**
      * Get the event manager
      *
-     * @return EventManager
+     * @return EventCollection
      */
     public function events()
     {
         if ($this->events === null) {
-            $this->setEventManager(new EventManager(array(
-                __CLASS__,
-                get_called_class(),
-            )));
+            $this->events = new EventManager(array(__CLASS__, get_called_class()));
         }
         return $this->events;
     }
@@ -242,12 +248,12 @@ abstract class AbstractAdapter implements Adapter
     /**
      * Triggers the PostEvent and return the result value.
      *
-     * @param  string $eventName
+     * @param  string      $eventName
      * @param  ArrayObject $args
-     * @param  mixed $result
+     * @param  mixed       $result
      * @return mixed
      */
-    protected function triggerPost($eventName, ArrayObject $args, &$result)
+    protected function triggerPost($eventName, ArrayObject $args, & $result)
     {
         $postEvent = new PostEvent($eventName . '.post', $this, $args, $result);
         $eventRs   = $this->events()->trigger($postEvent);
@@ -264,15 +270,16 @@ abstract class AbstractAdapter implements Adapter
      * If the ExceptionEvent has the flag "throwException" enabled throw the
      * exception after trigger else return the result.
      *
-     * @param  string $eventName
+     * @param  string      $eventName
      * @param  ArrayObject $args
-     * @param  \Exception $exception
-     * @throws Exception
+     * @param  mixed       $result
+     * @param  \Exception  $exception
+     * @throws Exception\ExceptionInterface
      * @return mixed
      */
-    protected function triggerException($eventName, ArrayObject $args, \Exception $exception)
+    protected function triggerException($eventName, ArrayObject $args, & $result, \Exception $exception)
     {
-        $exceptionEvent = new ExceptionEvent($eventName . '.exception', $this, $args, $exception);
+        $exceptionEvent = new ExceptionEvent($eventName . '.exception', $this, $args, $result, $exception);
         $eventRs        = $this->events()->trigger($exceptionEvent);
 
         if ($exceptionEvent->getThrowException()) {
@@ -289,10 +296,10 @@ abstract class AbstractAdapter implements Adapter
     /**
      * Check if a plugin is registered
      *
-     * @param  Plugin $plugin
+     * @param  Plugin\PluginInterface $plugin
      * @return boolean
      */
-    public function hasPlugin(Plugin $plugin)
+    public function hasPlugin(Plugin\PluginInterface $plugin)
     {
         $registry = $this->getPluginRegistry();
         return $registry->contains($plugin);
@@ -301,11 +308,12 @@ abstract class AbstractAdapter implements Adapter
     /**
      * Register a plugin
      *
-     * @param  Plugin $plugin
+     * @param  Plugin\PluginInterface $plugin
+     * @param  int                    $priority
      * @return AbstractAdapter Fluent interface
      * @throws Exception\LogicException
      */
-    public function addPlugin(Plugin $plugin)
+    public function addPlugin(Plugin\PluginInterface $plugin, $priority = 1)
     {
         $registry = $this->getPluginRegistry();
         if ($registry->contains($plugin)) {
@@ -315,7 +323,7 @@ abstract class AbstractAdapter implements Adapter
             ));
         }
 
-        $plugin->attach($this->events());
+        $plugin->attach($this->events(), $priority);
         $registry->attach($plugin);
 
         return $this;
@@ -324,11 +332,11 @@ abstract class AbstractAdapter implements Adapter
     /**
      * Unregister an already registered plugin
      *
-     * @param  Plugin $plugin
+     * @param  Plugin\PluginInterface $plugin
      * @return AbstractAdapter Fluent interface
      * @throws Exception\LogicException
      */
-    public function removePlugin(Plugin $plugin)
+    public function removePlugin(Plugin\PluginInterface $plugin)
     {
         $registry = $this->getPluginRegistry();
         if ($registry->contains($plugin)) {
@@ -351,40 +359,163 @@ abstract class AbstractAdapter implements Adapter
     /* reading */
 
     /**
-     * Get items
+     * Get an item.
      *
-     * @param  array $keys
-     * @param  array $options
-     * @return array
+     * Options:
+     *  - ttl <int> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  string  $key
+     * @param  array   $options
+     * @param  boolean $success
+     * @param  mixed   $casToken
+     * @return mixed Data on success, null on failure
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers getItem.pre(PreEvent)
+     * @triggers getItem.post(PostEvent)
+     * @triggers getItem.exception(ExceptionEvent)
      */
-    public function getItems(array $keys, array $options = array())
+    public function getItem($key, array $options = array(), & $success = null, & $casToken = null)
     {
-        $baseOptions = $this->getOptions();
-        if (!$baseOptions->getReadable()) {
-            return array();
+        if (!$this->getOptions()->getReadable()) {
+            $success = false;
+            return null;
         }
 
-        $ret = array();
-        foreach ($keys as $key) {
-            try {
-                $value = $this->getItem($key, $options);
-                if ($value !== false) {
-                    $ret[$key] = $value;
-                }
-            } catch (Exception\ItemNotFoundException $e) {
-                // ignore missing items
+        $this->normalizeKey($key);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'key'      => & $key,
+            'options'  => & $options,
+            'success'  => & $success,
+            'casToken' => & $casToken,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
             }
-        }
 
-        return $ret;
+            $result = $this->internalGetItem($args['key'], $args['options'], $args['success'], $args['casToken']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
     }
 
     /**
-     * Checks if adapter has an item
+     * Internal method to get an item.
+     *
+     * Options:
+     *  - ttl <int>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  string  $normalizedKey
+     * @param  array   $normalizedOptions
+     * @param  boolean $success
+     * @param  mixed   $casToken
+     * @return mixed Data on success, null on failure
+     * @throws Exception\ExceptionInterface
+     */
+    abstract protected function internalGetItem(& $normalizedKey, array & $normalizedOptions, & $success = null, & $casToken = null);
+
+    /**
+     * Get multiple items.
+     *
+     * Options:
+     *  - ttl <int> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  array $keys
+     * @param  array $options
+     * @return array Associative array of keys and values
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers getItems.pre(PreEvent)
+     * @triggers getItems.post(PostEvent)
+     * @triggers getItems.exception(ExceptionEvent)
+     */
+    public function getItems(array $keys, array $options = array())
+    {
+        if (!$this->getOptions()->getReadable()) {
+            return array();
+        }
+
+        $this->normalizeKeys($keys);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'keys'     => & $keys,
+            'options'  => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalGetItems($args['keys'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array();
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to get multiple items.
+     *
+     * Options:
+     *  - ttl <int>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  array $normalizedKeys
+     * @param  array $normalizedOptions
+     * @return array Associative array of keys and values
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalGetItems(array & $normalizedKeys, array & $normalizedOptions)
+    {
+        $success = null;
+        $result  = array();
+        foreach ($normalizedKeys as $normalizedKey) {
+            $value = $this->internalGetItem($normalizedKey, $normalizedOptions, $success);
+            if ($success) {
+                $result[$normalizedKey] = $value;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Test if an item exists.
+     *
+     * Options:
+     *  - ttl <int> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
      *
      * @param  string $key
-     * @param  array $options
-     * @return bool
+     * @param  array  $options
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers hasItem.pre(PreEvent)
+     * @triggers hasItem.post(PostEvent)
+     * @triggers hasItem.exception(ExceptionEvent)
      */
     public function hasItem($key, array $options = array())
     {
@@ -392,21 +523,65 @@ abstract class AbstractAdapter implements Adapter
             return false;
         }
 
-        try {
-            $ret = ($this->getItem($key, $options) !== false);
-        } catch (Exception\ItemNotFoundException $e) {
-            $ret = false;
-        }
+        $this->normalizeKey($key);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'options' => & $options,
+        ));
 
-        return $ret;
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalHasItem($args['key'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
     }
 
     /**
-     * Checks if adapter has items
+     * Internal method to test if an item exists.
+     *
+     * Options:
+     *  - ttl <int>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  string $normalizedKey
+     * @param  array  $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalHasItem(& $normalizedKey, array & $normalizedOptions)
+    {
+        $success = null;
+        $this->internalGetItem($normalizedKey, $normalizedOptions, $success);
+        return $success;
+    }
+
+    /**
+     * Test multiple items.
+     *
+     * Options:
+     *  - ttl <int> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
      *
      * @param  array $keys
      * @param  array $options
-     * @return array
+     * @return array Array of found keys
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers hasItems.pre(PreEvent)
+     * @triggers hasItems.post(PostEvent)
+     * @triggers hasItems.exception(ExceptionEvent)
      */
     public function hasItems(array $keys, array $options = array())
     {
@@ -414,22 +589,137 @@ abstract class AbstractAdapter implements Adapter
             return array();
         }
 
-        $ret = array();
-        foreach ($keys as $key) {
-            if ($this->hasItem($key, $options)) {
-                $ret[] = $key;
-            }
-        }
+        $this->normalizeKeys($keys);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'keys'     => & $keys,
+            'options'  => & $options,
+        ));
 
-        return $ret;
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalHasItems($args['keys'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array();
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
     }
 
     /**
-     * Get Metadatas
+     * Internal method to test multiple items.
+     *
+     * Options:
+     *  - ttl <int>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
      *
      * @param  array $keys
      * @param  array $options
-     * @return array
+     * @return array Array of found keys
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalHasItems(array & $normalizedKeys, array & $normalizedOptions)
+    {
+        $result = array();
+        foreach ($normalizedKeys as $normalizedKey) {
+            if ($this->internalHasItem($normalizedKey, $normalizedOptions)) {
+                $result[] = $normalizedKey;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Get metadata of an item.
+     *
+     * Options:
+     *  - ttl <int> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  string $key
+     * @param  array  $options
+     * @return array|boolean Metadata on success, false on failure
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers getMetadata.pre(PreEvent)
+     * @triggers getMetadata.post(PostEvent)
+     * @triggers getMetadata.exception(ExceptionEvent)
+     */
+    public function getMetadata($key, array $options = array())
+    {
+        if (!$this->getOptions()->getReadable()) {
+            return false;
+        }
+
+        $this->normalizeKey($key);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalGetMetadata($args['key'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to get metadata of an item.
+     *
+     * Options:
+     *  - ttl <int>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  string $normalizedKey
+     * @param  array  $normalizedOptions
+     * @return array|boolean Metadata on success, false on failure
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalGetMetadata(& $normalizedKey, array & $normalizedOptions)
+    {
+        if (!$this->internalHasItem($normalizedKey, $normalizedOptions)) {
+            return false;
+        }
+
+        return array();
+    }
+
+    /**
+     * Get multiple metadata
+     *
+     * Options:
+     *  - ttl <int> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  array $keys
+     * @param  array $options
+     * @return array Associative array of keys and metadata
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers getMetadatas.pre(PreEvent)
+     * @triggers getMetadatas.post(PostEvent)
+     * @triggers getMetadatas.exception(ExceptionEvent)
      */
     public function getMetadatas(array $keys, array $options = array())
     {
@@ -437,304 +727,1147 @@ abstract class AbstractAdapter implements Adapter
             return array();
         }
 
-        $ret = array();
-        foreach ($keys as $key) {
-            try {
-                $meta = $this->getMetadata($key, $options);
-                if ($meta !== false) {
-                    $ret[$key] = $meta;
-                }
-            } catch (Exception\ItemNotFoundException $e) {
-                // ignore missing items
+        $this->normalizeKeys($keys);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'keys'    => & $keys,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalGetMetadatas($args['keys'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array();
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to get multiple metadata
+     *
+     * Options:
+     *  - ttl <int>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  array $normalizedKeys
+     * @param  array $normalizedOptions
+     * @return array Associative array of keys and metadata
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalGetMetadatas(array & $normalizedKeys, array & $normalizedOptions)
+    {
+        $result = array();
+        foreach ($normalizedKeys as $normalizedKey) {
+            $metadata = $this->internalGetMetadata($normalizedKey, $normalizedOptions);
+            if ($metadata !== false) {
+                $result[$normalizedKey] = $metadata;
             }
         }
-
-        return $ret;
+        return $result;
     }
 
     /* writing */
 
     /**
-     * Set items
+     * Store an item.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - An array of tags
+     *
+     * @param  string $key
+     * @param  mixed  $value
+     * @param  array  $options
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers setItem.pre(PreEvent)
+     * @triggers setItem.post(PostEvent)
+     * @triggers setItem.exception(ExceptionEvent)
+     */
+    public function setItem($key, $value, array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return false;
+        }
+
+        $this->normalizeOptions($options);
+        $this->normalizeKey($key);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'value'   => & $value,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalSetItem($args['key'], $args['value'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to store an item.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - An array of tags
+     *
+     * @param  string $normalizedKey
+     * @param  mixed  $value
+     * @param  array  $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     */
+    abstract protected function internalSetItem(& $normalizedKey, & $value, array & $normalizedOptions);
+
+    /**
+     * Store multiple items.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - An array of tags
      *
      * @param  array $keyValuePairs
      * @param  array $options
-     * @return bool
+     * @return array Array of not stored keys
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers setItems.pre(PreEvent)
+     * @triggers setItems.post(PostEvent)
+     * @triggers setItems.exception(ExceptionEvent)
      */
     public function setItems(array $keyValuePairs, array $options = array())
     {
         if (!$this->getOptions()->getWritable()) {
-            return false;
+            return array_keys($keyValuePairs);
         }
 
-        $ret = true;
-        foreach ($keyValuePairs as $key => $value) {
-            $ret = $this->setItem($key, $value, $options) && $ret;
-        }
+        $this->normalizeKeyValuePairs($keyValuePairs);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'keyValuePairs' => & $keyValuePairs,
+            'options'       => & $options,
+        ));
 
-        return $ret;
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalSetItems($args['keyValuePairs'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array_keys($keyValuePairs);
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
     }
 
     /**
-     * Add an item
+     * Internal method to store multiple items.
      *
-     * @param  string|int $key
-     * @param  mixed $value
-     * @param  array $options
-     * @return bool
-     * @throws Exception\RuntimeException
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - An array of tags
+     *
+     * @param  array $normalizedKeyValuePairs
+     * @param  array $normalizedOptions
+     * @return array Array of not stored keys
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalSetItems(array & $normalizedKeyValuePairs, array & $normalizedOptions)
+    {
+        $failedKeys = array();
+        foreach ($normalizedKeyValuePairs as $normalizedKey => $value) {
+            if (!$this->internalSetItem($normalizedKey, $value, $normalizedOptions)) {
+                $failedKeys[] = $normalizedKey;
+            }
+        }
+        return $failedKeys;
+    }
+
+    /**
+     * Add an item.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - An array of tags
+     *
+     * @param  string $key
+     * @param  mixed  $value
+     * @param  array  $options
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers addItem.pre(PreEvent)
+     * @triggers addItem.post(PostEvent)
+     * @triggers addItem.exception(ExceptionEvent)
      */
     public function addItem($key, $value, array $options = array())
     {
-        if ($this->hasItem($key, $options)) {
-            throw new Exception\RuntimeException("Key '{$key}' already exists");
+        if (!$this->getOptions()->getWritable()) {
+            return false;
         }
-        return $this->setItem($key, $value, $options);
+
+        $this->normalizeOptions($options);
+        $this->normalizeKey($key);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'value'   => & $value,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalAddItem($args['key'], $args['value'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
     }
 
     /**
-     * Add items
+     * Internal method to add an item.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - An array of tags
+     *
+     * @param  string $normalizedKey
+     * @param  mixed  $value
+     * @param  array  $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalAddItem(& $normalizedKey, & $value, array & $normalizedOptions)
+    {
+        if ($this->internalHasItem($normalizedKey, $normalizedOptions)) {
+            return false;
+        }
+        return $this->internalSetItem($normalizedKey, $value, $normalizedOptions);
+    }
+
+    /**
+     * Add multiple items.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - An array of tags
      *
      * @param  array $keyValuePairs
      * @param  array $options
-     * @return bool
+     * @return array Array of not stored keys
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers addItems.pre(PreEvent)
+     * @triggers addItems.post(PostEvent)
+     * @triggers addItems.exception(ExceptionEvent)
      */
     public function addItems(array $keyValuePairs, array $options = array())
     {
         if (!$this->getOptions()->getWritable()) {
-            return false;
+            return array_keys($keyValuePairs);
         }
 
-        $ret = true;
-        foreach ($keyValuePairs as $key => $value) {
-            $ret = $this->addItem($key, $value, $options) && $ret;
-        }
+        $this->normalizeKeyValuePairs($keyValuePairs);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'keyValuePairs' => & $keyValuePairs,
+            'options'       => & $options,
+        ));
 
-        return $ret;
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalAddItems($args['keyValuePairs'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array_keys($keyValuePairs);
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
     }
 
     /**
-     * Replace an item
+     * Internal method to add multiple items.
      *
-     * @param  string|int $key
-     * @param  mixed $value
-     * @param  array $options
-     * @return bool
-     * @throws Exception\ItemNotFoundException
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - An array of tags
+     *
+     * @param  array $normalizedKeyValuePairs
+     * @param  array $normalizedOptions
+     * @return array Array of not stored keys
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalAddItems(array & $normalizedKeyValuePairs, array & $normalizedOptions)
+    {
+        $result = array();
+        foreach ($normalizedKeyValuePairs as $normalizedKey => $value) {
+            if (!$this->internalAddItem($normalizedKey, $value, $normalizedOptions)) {
+                $result[] = $normalizedKey;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Replace an existing item.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - An array of tags
+     *
+     * @param  string $key
+     * @param  mixed  $value
+     * @param  array  $options
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers replaceItem.pre(PreEvent)
+     * @triggers replaceItem.post(PostEvent)
+     * @triggers replaceItem.exception(ExceptionEvent)
      */
     public function replaceItem($key, $value, array $options = array())
-    {
-        if (!$this->hasItem($key, $options)) {
-            throw new Exception\ItemNotFoundException("Key '{$key}' doen't exists");
-        }
-        return $this->setItem($key, $value, $options);
-    }
-
-    /**
-     * Replace items
-     *
-     * @param  array $keyValuePairs
-     * @param  array $options
-     * @return bool
-     */
-    public function replaceItems(array $keyValuePairs, array $options = array())
     {
         if (!$this->getOptions()->getWritable()) {
             return false;
         }
 
-        $ret = true;
-        foreach ($keyValuePairs as $key => $value) {
-            $ret = $this->replaceItem($key, $value, $options) && $ret;
-        }
+        $this->normalizeOptions($options);
+        $this->normalizeKey($key);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'value'   => & $value,
+            'options' => & $options,
+        ));
 
-        return $ret;
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalReplaceItem($args['key'], $args['value'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
     }
 
     /**
-     * Check and set item
+     * Internal method to replace an existing item.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - An array of tags
+     *
+     * @param  string $normalizedKey
+     * @param  mixed  $value
+     * @param  array  $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalReplaceItem(& $normalizedKey, & $value, array & $normalizedOptions)
+    {
+        if (!$this->internalhasItem($normalizedKey, $normalizedOptions)) {
+            return false;
+        }
+
+        return $this->internalSetItem($normalizedKey, $value, $normalizedOptions);
+    }
+
+    /**
+     * Replace multiple existing items.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - An array of tags
+     *
+     * @param  array $keyValuePairs
+     * @param  array $options
+     * @return array Array of not stored keys
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers replaceItems.pre(PreEvent)
+     * @triggers replaceItems.post(PostEvent)
+     * @triggers replaceItems.exception(ExceptionEvent)
+     */
+    public function replaceItems(array $keyValuePairs, array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return array_keys($keyValuePairs);
+        }
+
+        $this->normalizeKeyValuePairs($keyValuePairs);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'keyValuePairs' => & $keyValuePairs,
+            'options'       => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalReplaceItems($args['keyValuePairs'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array_keys($keyValuePairs);
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to replace multiple existing items.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - An array of tags
+     *
+     * @param  array $normalizedKeyValuePairs
+     * @param  array $normalizedOptions
+     * @return array Array of not stored keys
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalReplaceItems(array & $normalizedKeyValuePairs, array & $normalizedOptions)
+    {
+        $result = array();
+        foreach ($normalizedKeyValuePairs as $normalizedKey => $value) {
+            if (!$this->internalReplaceItem($normalizedKey, $value, $normalizedOptions)) {
+                $result[] = $normalizedKey;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Set an item only if token matches
+     *
+     * It uses the token received from getItem() to check if the item has
+     * changed before overwriting it.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - An array of tags
      *
      * @param  mixed  $token
      * @param  string $key
      * @param  mixed  $value
      * @param  array  $options
-     * @return bool
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    getItem()
+     * @see    setItem()
      */
     public function checkAndSetItem($token, $key, $value, array $options = array())
     {
-        $oldValue = $this->getItem($key, $options);
-        if ($oldValue != $token) {
-            return false;
-        }
-
-        return $this->setItem($key, $value, $options);
-    }
-
-    /**
-     * Touch an item
-     *
-     * @param  string|int $key
-     * @param  array $options
-     * @return bool
-     */
-    public function touchItem($key, array $options = array())
-    {
-        $classOptions = $this->getOptions();
-        if (!$classOptions->getWritable() || !$classOptions->getReadable()) {
-           return false;
-       }
-
-        // do not test validity on reading
-        $optsNoValidate = array('ttl' => 0) + $options;
-
-        $value = $this->getItem($key, $optsNoValidate);
-        if ($value === false) {
-            // add an empty item
-            return $this->addItem($key, '', $options);
-        } else {
-            // rewrite item to update mtime/ttl
-            if (!isset($options['tags'])) {
-                $info = $this->getMetadata($key, $optsNoValidate);
-                if (isset($info['tags'])) {
-                    $options['tags'] = & $info['tags'];
-                }
-            }
-
-            // rewrite item
-            return $this->replaceItem($key, $value, $options);
-        }
-    }
-
-    /**
-     * Touch items
-     *
-     * @param  array $keys
-     * @param  array $options
-     * @return bool
-     */
-    public function touchItems(array $keys, array $options = array())
-    {
-        // Don't check readable because not all adapters needs to read the item before
         if (!$this->getOptions()->getWritable()) {
             return false;
         }
 
-        $ret = true;
-        foreach ($keys as $key) {
-            $ret = $this->touchItem($key, $options) && $ret;
+        $this->normalizeOptions($options);
+        $this->normalizeKey($key);
+        $args = new ArrayObject(array(
+            'token'   => & $token,
+            'key'     => & $key,
+            'value'   => & $value,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalCheckAndSetItem($args['token'], $args['key'], $args['value'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
         }
-        return $ret;
     }
 
     /**
-     * Remove items
+     * Internal method to set an item only if token matches
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - An array of tags
+     *
+     * @param  mixed  $token
+     * @param  string $normalizedKey
+     * @param  mixed  $value
+     * @param  array  $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    getItem()
+     * @see    setItem()
+     */
+    protected function internalCheckAndSetItem(& $token, & $normalizedKey, & $value, array & $normalizedOptions)
+    {
+        $oldValue = $this->internalGetItem($normalizedKey, $normalizedOptions);
+        if ($oldValue !== $token) {
+            return false;
+        }
+
+        return $this->internalSetItem($normalizedKey, $value, $normalizedOptions);
+    }
+
+    /**
+     * Reset lifetime of an item
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  string $key
+     * @param  array  $options
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers touchItem.pre(PreEvent)
+     * @triggers touchItem.post(PostEvent)
+     * @triggers touchItem.exception(ExceptionEvent)
+     */
+    public function touchItem($key, array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return false;
+        }
+
+        $this->normalizeOptions($options);
+        $this->normalizeKey($key);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalTouchItem($args['key'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to reset lifetime of an item
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  string $normalizedKey
+     * @param  array  $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalTouchItem(& $normalizedKey, array & $normalizedOptions)
+    {
+        $success = null;
+        $value   = $this->internalGetItem($normalizedKey, $normalizedOptions, $success);
+        if (!$success) {
+            return false;
+        }
+
+        // rewrite item to update mtime/ttl
+        if (!isset($normalizedOptions['tags'])) {
+            $info = $this->internalGetMetadata($normalizedKey, $normalizedOptions);
+            if (isset($info['tags'])) {
+                $normalizedOptions['tags'] = & $info['tags'];
+            }
+        }
+
+        return $this->internalReplaceItem($normalizedKey, $value, $normalizedOptions);
+    }
+
+    /**
+     * Reset lifetime of multiple items.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
      *
      * @param  array $keys
      * @param  array $options
-     * @return bool
+     * @return array Array of not updated keys
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers touchItems.pre(PreEvent)
+     * @triggers touchItems.post(PostEvent)
+     * @triggers touchItems.exception(ExceptionEvent)
+     */
+    public function touchItems(array $keys, array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return $keys;
+        }
+
+        $this->normalizeKeys($keys);
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'keys'    => & $keys,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalTouchItems($args['keys'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            return $this->triggerException(__FUNCTION__, $args, $keys, $e);
+        }
+    }
+
+    /**
+     * Internal method to reset lifetime of multiple items.
+     *
+     * Options:
+     *  - ttl <float
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to us
+     *
+     * @param  array $normalizedKeys
+     * @param  array $normalizedOptions
+     * @return array Array of not updated keys
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalTouchItems(array & $normalizedKeys, array & $normalizedOptions)
+    {
+        $result = array();
+        foreach ($normalizedKeys as $normalizedKey) {
+            if (!$this->internalTouchItem($normalizedKey, $normalizedOptions)) {
+                $result[] = $normalizedKey;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Remove an item.
+     *
+     * Options:
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  string $key
+     * @param  array  $options
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers removeItem.pre(PreEvent)
+     * @triggers removeItem.post(PostEvent)
+     * @triggers removeItem.exception(ExceptionEvent)
+     */
+    public function removeItem($key, array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return false;
+        }
+
+        $this->normalizeOptions($options);
+        $this->normalizeKey($key);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalRemoveItem($args['key'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to remove an item.
+     *
+     * Options:
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  string $normalizedKey
+     * @param  array  $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     */
+    abstract protected function internalRemoveItem(& $normalizedKey, array & $normalizedOptions);
+
+    /**
+     * Remove multiple items.
+     *
+     * Options:
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  array $keys
+     * @param  array $options
+     * @return array Array of not removed keys
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers removeItems.pre(PreEvent)
+     * @triggers removeItems.post(PostEvent)
+     * @triggers removeItems.exception(ExceptionEvent)
      */
     public function removeItems(array $keys, array $options = array())
     {
         if (!$this->getOptions()->getWritable()) {
-            return false;
+            return $keys;
         }
 
-        $ret = true;
-        foreach ($keys as $key) {
-            $ret = $this->removeItem($key, $options) && $ret;
-        }
+        $this->normalizeOptions($options);
+        $this->normalizeKeys($keys);
+        $args = new ArrayObject(array(
+            'keys'    => & $keys,
+            'options' => & $options,
+        ));
 
-        return $ret;
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalRemoveItems($args['keys'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            return $this->triggerException(__FUNCTION__, $args, $keys, $e);
+        }
     }
 
     /**
-     * Increment an item
+     * Internal method to remove multiple items.
      *
-     * @param  string|int $key
-     * @param  int|float $value
+     * Options:
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  array $keys
      * @param  array $options
-     * @return bool|int
+     * @return array Array of not removed keys
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalRemoveItems(array & $normalizedKeys, array & $normalizedOptions)
+    {
+        $result = array();
+        foreach ($normalizedKeys as $normalizedKey) {
+            if (!$this->internalRemoveItem($normalizedKey, $normalizedOptions)) {
+                $result[] = $normalizedKey;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Increment an item.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  string $key
+     * @param  int    $value
+     * @param  array  $options
+     * @return int|boolean The new value on success, false on failure
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers incrementItem.pre(PreEvent)
+     * @triggers incrementItem.post(PostEvent)
+     * @triggers incrementItem.exception(ExceptionEvent)
      */
     public function incrementItem($key, $value, array $options = array())
     {
-        $classOptions = $this->getOptions();
-        if (!$classOptions->getWritable() || !$classOptions->getReadable()) {
+        if (!$this->getOptions()->getWritable()) {
             return false;
         }
 
-        $value = (int) $value;
-        $get   = (int) $this->getItem($key, $options);
-        $this->setItem($key, $get + $value, $options);
-        return $get + $value;
+        $this->normalizeOptions($options);
+        $this->normalizeKey($key);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'value'   => & $value,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalIncrementItem($args['key'], $args['value'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
     }
 
     /**
-     * Increment items
+     * Internal method to increment an item.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  string $normalizedKey
+     * @param  int    $value
+     * @param  array  $normalizedOptions
+     * @return int|boolean The new value on success, false on failure
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalIncrementItem(& $normalizedKey, & $value, array & $normalizedOptions)
+    {
+        $success  = null;
+        $value    = (int) $value;
+        $get      = (int) $this->internalGetItem($normalizedKey, $normalizedOptions, $success);
+        $newValue = $get + $value;
+
+        if ($success) {
+            $this->internalReplaceItem($normalizedKey, $newValue, $normalizedOptions);
+        } else {
+            $this->internalAddItem($normalizedKey, $newValue, $normalizedOptions);
+        }
+
+        return $newValue;
+    }
+
+    /**
+     * Increment multiple items.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
      *
      * @param  array $keyValuePairs
      * @param  array $options
-     * @return bool
+     * @return array Associative array of keys and new values
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers incrementItems.pre(PreEvent)
+     * @triggers incrementItems.post(PostEvent)
+     * @triggers incrementItems.exception(ExceptionEvent)
      */
     public function incrementItems(array $keyValuePairs, array $options = array())
     {
-        // Don't check readable because not all adapters needs read the value before
         if (!$this->getOptions()->getWritable()) {
-            return false;
+            return array();
         }
 
-        $ret = true;
-        foreach ($keyValuePairs as $key => $value) {
-            $ret = $this->incrementItem($key, $value, $options) && $ret;
+        $this->normalizeOptions($options);
+        $this->normalizeKeyValuePairs($keyValuePairs);
+        $args = new ArrayObject(array(
+            'keyValuePairs' => & $keyValuePairs,
+            'options'       => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalIncrementItems($args['keyValuePairs'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array();
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
         }
-        return $ret;
     }
 
     /**
-     * Decrement an item
+     * Internal method to increment multiple items.
      *
-     * @param  string|int $key
-     * @param  int|float $value
-     * @param  array $options
-     * @return bool|int
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  array $normalizedKeyValuePairs
+     * @param  array $normalizedOptions
+     * @return array Associative array of keys and new values
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalIncrementItems(array & $normalizedKeyValuePairs, array & $normalizedOptions)
+    {
+        $result = array();
+        foreach ($normalizedKeyValuePairs as $normalizedKey => $value) {
+            $newValue = $this->internalIncrementItem($normalizedKey, $value, $normalizedOptions);
+            if ($newValue !== false) {
+                $result[$normalizedKey] = $newValue;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Decrement an item.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  string $key
+     * @param  int    $value
+     * @param  array  $options
+     * @return int|boolean The new value on success, false on failure
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers decrementItem.pre(PreEvent)
+     * @triggers decrementItem.post(PostEvent)
+     * @triggers decrementItem.exception(ExceptionEvent)
      */
     public function decrementItem($key, $value, array $options = array())
     {
-        $classOptions = $this->getOptions();
-        if (!$classOptions->getWritable() || !$classOptions->getReadable()) {
-            return false;
-        }
-
-        $value = (int) $value;
-        $get   = (int) $this->getItem($key, $options);
-        $this->setItem($key, $get - $value, $options);
-        return $get - $value;
-    }
-
-    /**
-     * Decrement items
-     *
-     * @param  array $keyValuePairs
-     * @param  array $options
-     * @return bool
-     */
-    public function decrementItems(array $keyValuePairs, array $options = array())
-    {
-        // Don't check readable because not all adapters needs read the value before
         if (!$this->getOptions()->getWritable()) {
             return false;
         }
 
-        $ret = true;
-        foreach ($keyValuePairs as $key => $value) {
-            $ret = $this->decrementItem($key, $value, $options) && $ret;
+        $this->normalizeOptions($options);
+        $this->normalizeKey($key);
+        $args = new ArrayObject(array(
+            'key'     => & $key,
+            'value'   => & $value,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalDecrementItem($args['key'], $args['value'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
         }
-        return $ret;
+    }
+
+    /**
+     * Internal method to decrement an item.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  string $normalizedKey
+     * @param  int    $value
+     * @param  array  $normalizedOptions
+     * @return int|boolean The new value on success, false on failure
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalDecrementItem(& $normalizedKey, & $value, array & $normalizedOptions)
+    {
+        $success  = null;
+        $value    = (int) $value;
+        $get      = (int) $this->internalGetItem($normalizedKey, $normalizedOptions, $success);
+        $newValue = $get - $value;
+
+        if ($success) {
+            $this->internalReplaceItem($normalizedKey, $newValue, $normalizedOptions);
+        } else {
+            $this->internalAddItem($normalizedKey, $newValue, $normalizedOptions);
+        }
+
+        return $newValue;
+    }
+
+    /**
+     * Decrement multiple items.
+     *
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *
+     * @param  array $keyValuePairs
+     * @param  array $options
+     * @return array Associative array of keys and new values
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers incrementItems.pre(PreEvent)
+     * @triggers incrementItems.post(PostEvent)
+     * @triggers incrementItems.exception(ExceptionEvent)
+     */
+    public function decrementItems(array $keyValuePairs, array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return array();
+        }
+
+        $this->normalizeOptions($options);
+        $this->normalizeKeyValuePairs($keyValuePairs);
+        $args = new ArrayObject(array(
+            'keyValuePairs' => & $keyValuePairs,
+            'options'       => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalDecrementItems($args['keyValuePairs'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array();
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to decrement multiple items.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  array $normalizedKeyValuePairs
+     * @param  array $normalizedOptions
+     * @return array Associative array of keys and new values
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalDecrementItems(array & $normalizedKeyValuePairs, array & $normalizedOptions)
+    {
+        $result = array();
+        foreach ($normalizedKeyValuePairs as $normalizedKey => $value) {
+            $newValue = $this->decrementItem($normalizedKey, $value, $normalizedOptions);
+            if ($newValue !== false) {
+                $result[$normalizedKey] = $newValue;
+            }
+        }
+        return $result;
     }
 
     /* non-blocking */
 
     /**
-     * Get delayed
+     * Request multiple items.
      *
      * Options:
      *  - ttl <float> optional
@@ -751,15 +1884,17 @@ abstract class AbstractAdapter implements Adapter
      *
      * @param  array $keys
      * @param  array $options
-     * @return bool
-     * @throws Exception\InvalidArgumentException|Exception\RuntimeException
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    fetch()
+     * @see    fetchAll()
+     *
+     * @triggers getDelayed.pre(PreEvent)
+     * @triggers getDelayed.post(PostEvent)
+     * @triggers getDelayed.exception(ExceptionEvent)
      */
     public function getDelayed(array $keys, array $options = array())
     {
-        if ($this->stmtActive) {
-            throw new Exception\RuntimeException('Statement already in use');
-        }
-
         if (!$this->getOptions()->getReadable()) {
             return false;
         } elseif (!$keys) {
@@ -767,17 +1902,61 @@ abstract class AbstractAdapter implements Adapter
             return true;
         }
 
+        $this->normalizeKeys($keys);
         $this->normalizeOptions($options);
-        if (!isset($options['select'])) {
-            $options['select'] = array('key', 'value');
+        $args = new ArrayObject(array(
+            'keys'     => & $keys,
+            'options'  => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalGetDelayed($args['keys'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to request multiple items.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-live
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - select <array>
+     *    - An array of the information the returned item contains
+     *  - callback <callback> optional
+     *    - An result callback will be invoked for each item in the result set.
+     *    - The first argument will be the item array.
+     *    - The callback does not have to return anything.
+     *
+     * @param  array $normalizedKeys
+     * @param  array $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    fetch()
+     * @see    fetchAll()
+     */
+    protected function internalGetDelayed(array & $normalizedKeys, array & $normalizedOptions)
+    {
+        if ($this->stmtActive) {
+            throw new Exception\RuntimeException('Statement already in use');
         }
 
-        $this->stmtOptions = array_merge($this->getOptions()->toArray(), $options);
-        $this->stmtKeys    = $keys;
+        $this->stmtOptions = array_merge($this->getOptions()->toArray(), $normalizedOptions);
+        $this->stmtKeys    = & $normalizedKeys;
         $this->stmtActive  = true;
 
-        if (isset($options['callback'])) {
-            $callback = $options['callback'];
+        if (isset($normalizedOptions['callback'])) {
+            $callback = $normalizedOptions['callback'];
             if (!is_callable($callback, false)) {
                 throw new Exception\InvalidArgumentException('Invalid callback');
             }
@@ -790,30 +1969,125 @@ abstract class AbstractAdapter implements Adapter
         return true;
     }
 
+    /* find */
+
     /**
-     * Find
+     * Find items.
      *
-     * @param  int $mode
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-live (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - Tags to search for used with matching modes of
+     *      Adapter::MATCH_TAGS_*
+     *
+     * @param  int   $mode Matching mode (Value of Adapter::MATCH_*)
      * @param  array $options
-     * @throws Exception\UnsupportedMethodCallException
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    fetch()
+     * @see    fetchAll()
+     *
+     * @triggers find.pre(PreEvent)
+     * @triggers find.post(PostEvent)
+     * @triggers find.exception(ExceptionEvent)
      */
     public function find($mode = self::MATCH_ACTIVE, array $options = array())
+    {
+        if (!$this->getOptions()->getReadable()) {
+            return false;
+        }
+
+        $this->normalizeOptions($options);
+        $this->normalizeMatchingMode($mode, self::MATCH_ACTIVE, $options);
+        $args = new ArrayObject(array(
+            'mode'    => & $mode,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalFind($args['mode'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * internal method to find items.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-live
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - Tags to search for used with matching modes of
+     *      Adapter::MATCH_TAGS_*
+     *
+     * @param  int   $normalizedMode Matching mode (Value of Adapter::MATCH_*)
+     * @param  array $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    fetch()
+     * @see    fetchAll()
+     */
+    protected function internalFind(& $normalizedMode, array & $normalizedOptions)
     {
         throw new Exception\UnsupportedMethodCallException('find isn\'t supported by this adapter');
     }
 
     /**
-     * Fetch
+     * Fetches the next item from result set
      *
-     * @return array|bool
+     * @return array|boolean The next item or false
+     * @throws Exception\ExceptionInterface
+     * @see    fetchAll()
+     *
+     * @triggers fetch.pre(PreEvent)
+     * @triggers fetch.post(PostEvent)
+     * @triggers fetch.exception(ExceptionEvent)
      */
     public function fetch()
+    {
+        $args = new ArrayObject();
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalFetch();
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to fetch the next item from result set
+     *
+     * @return array|boolean The next item or false
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalFetch()
     {
         if (!$this->stmtActive) {
             return false;
         }
 
         $options = $this->stmtOptions;
+        $success = null;
 
         do {
             $key = array_shift($this->stmtKeys);
@@ -827,8 +2101,8 @@ abstract class AbstractAdapter implements Adapter
                 if ($select == 'key') {
                     $item['key'] = $key;
                 } elseif ($select == 'value') {
-                    $value = $this->getItem($key, $options);
-                    if ($value === false) {
+                    $value = $this->internalGetItem($key, $options, $success);
+                    if (!$success) {
                         $exist = false;
                         break;
                     }
@@ -836,7 +2110,7 @@ abstract class AbstractAdapter implements Adapter
                     $item['value'] = $value;
                 } else {
                     if ($info === null) {
-                        $info = $this->getMetadata($key, $options);
+                        $info = $this->internalGetMetadata($key, $options);
                         if ($info === false) {
                             $exist = false;
                             break;
@@ -848,9 +2122,7 @@ abstract class AbstractAdapter implements Adapter
             }
 
             // goto next if not exists
-            if ($exist === false
-                || ($exist === null && !$this->hasItem($key, $options))
-            ) {
+            if ($exist === false || ($exist === null && !$this->internalHasItem($key, $options))) {
                 continue;
             }
 
@@ -866,14 +2138,45 @@ abstract class AbstractAdapter implements Adapter
     }
 
     /**
-     * Fetch all
+     * Returns all items of result set.
      *
-     * @return array
+     * @return array The result set as array containing all items
+     * @throws Exception\ExceptionInterface
+     * @see    fetch()
+     *
+     * @triggers fetchAll.pre(PreEvent)
+     * @triggers fetchAll.post(PostEvent)
+     * @triggers fetchAll.exception(ExceptionEvent)
      */
     public function fetchAll()
     {
+        $args = new ArrayObject();
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalFetchAll();
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = array();
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to return all items of result set.
+     *
+     * @return array The result set as array containing all items
+     * @throws Exception\ExceptionInterface
+     * @see    fetch()
+     */
+    protected function internalFetchAll()
+    {
         $rs = array();
-        while (($item = $this->fetch()) !== false) {
+        while (($item = $this->internalFetch()) !== false) {
             $rs[] = $item;
         }
         return $rs;
@@ -882,13 +2185,67 @@ abstract class AbstractAdapter implements Adapter
     /* cleaning */
 
     /**
-     * Clear
+     * Clear items off all namespaces.
      *
-     * @param  int $mode
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - tags <array> optional
+     *    - Tags to search for used with matching modes of Adapter::MATCH_TAGS_*
+     *
+     * @param  int   $mode Matching mode (Value of Adapter::MATCH_*)
      * @param  array $options
-     * @throws Exception\RuntimeException
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    clearByNamespace()
+     *
+     * @triggers clear.pre(PreEvent)
+     * @triggers clear.post(PostEvent)
+     * @triggers clear.exception(ExceptionEvent)
      */
     public function clear($mode = self::MATCH_EXPIRED, array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return false;
+        }
+
+        $this->normalizeOptions($options);
+        $this->normalizeMatchingMode($mode, self::MATCH_EXPIRED, $options);
+        $args = new ArrayObject(array(
+            'mode'    => & $mode,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalClear($args['mode'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to clear items off all namespaces.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - tags <array>
+     *    - Tags to search for used with matching modes of Adapter::MATCH_TAGS_*
+     *
+     * @param  int   $normalizedMode Matching mode (Value of Adapter::MATCH_*)
+     * @param  array $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    clearByNamespace()
+     */
+    protected function internalClear(& $normalizedMode, array & $normalizedOptions)
     {
         throw new Exception\RuntimeException(
             "This adapter doesn't support to clear items off all namespaces"
@@ -896,13 +2253,71 @@ abstract class AbstractAdapter implements Adapter
     }
 
     /**
-     * Clear by namespace
+     * Clear items by namespace.
      *
-     * @param  int $mode
+     * Options:
+     *  - ttl <float> optional
+     *    - The time-to-life (Default: ttl of object)
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
+     *  - tags <array> optional
+     *    - Tags to search for used with matching modes of Adapter::MATCH_TAGS_*
+     *
+     * @param  int   $mode Matching mode (Value of Adapter::MATCH_*)
      * @param  array $options
-     * @throws Exception\RuntimeException
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    clear()
+     *
+     * @triggers clearByNamespace.pre(PreEvent)
+     * @triggers clearByNamespace.post(PostEvent)
+     * @triggers clearByNamespace.exception(ExceptionEvent)
      */
     public function clearByNamespace($mode = self::MATCH_EXPIRED, array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return false;
+        }
+
+        $this->normalizeOptions($options);
+        $this->normalizeMatchingMode($mode, self::MATCH_EXPIRED, $options);
+        $args = new ArrayObject(array(
+            'mode'    => & $mode,
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalClearByNamespace($args['mode'], $args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Clear items by namespace.
+     *
+     * Options:
+     *  - ttl <float>
+     *    - The time-to-life
+     *  - namespace <string>
+     *    - The namespace to use
+     *  - tags <array>
+     *    - Tags to search for used with matching modes of Adapter::MATCH_TAGS_*
+     *
+     * @param  int   $normalizedMode Matching mode (Value of Adapter::MATCH_*)
+     * @param  array $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     * @see    clear()
+     */
+    protected function internalClearByNamespace(& $normalizedMode, array & $normalizedOptions)
     {
         throw new Exception\RuntimeException(
             "This adapter doesn't support to clear items by namespace"
@@ -910,12 +2325,56 @@ abstract class AbstractAdapter implements Adapter
     }
 
     /**
-     * Optimize
+     * Optimize adapter storage.
+     *
+     * Options:
+     *  - namespace <string> optional
+     *    - The namespace to use (Default: namespace of object)
      *
      * @param  array $options
-     * @return bool
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers optimize.pre(PreEvent)
+     * @triggers optimize.post(PostEvent)
+     * @triggers optimize.exception(ExceptionEvent)
      */
     public function optimize(array $options = array())
+    {
+        if (!$this->getOptions()->getWritable()) {
+            return false;
+        }
+
+        $args = new ArrayObject(array(
+            'options' => & $options
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalOptimize($args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to optimize adapter storage.
+     *
+     * Options:
+     *  - namespace <string>
+     *    - The namespace to use
+     *
+     * @param  array $normalizedOptions
+     * @return boolean
+     * @throws Exception\ExceptionInterface
+     */
+    protected function internalOptimize(array & $normalizedOptions)
     {
         return true;
     }
@@ -926,15 +2385,82 @@ abstract class AbstractAdapter implements Adapter
      * Get capabilities of this adapter
      *
      * @return Capabilities
+     * @triggers getCapabilities.pre(PreEvent)
+     * @triggers getCapabilities.post(PostEvent)
+     * @triggers getCapabilities.exception(ExceptionEvent)
      */
     public function getCapabilities()
     {
+        $args = new ArrayObject();
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalGetCapabilities();
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to get capabilities of this adapter
+     *
+     * @return Capabilities
+     */
+    protected function internalGetCapabilities()
+    {
         if ($this->capabilities === null) {
             $this->capabilityMarker = new stdClass();
-            $this->capabilities     = new Capabilities($this->capabilityMarker);
+            $this->capabilities     = new Capabilities($this, $this->capabilityMarker);
         }
         return $this->capabilities;
     }
+
+    /**
+     * Get storage capacity.
+     *
+     * @param  array $options
+     * @return array|boolean Associative array of capacity, false on failure
+     * @throws Exception\ExceptionInterface
+     *
+     * @triggers getCapacity.pre(PreEvent)
+     * @triggers getCapacity.post(PostEvent)
+     * @triggers getCapacity.exception(ExceptionEvent)
+     */
+    public function getCapacity(array $options = array())
+    {
+        $this->normalizeOptions($options);
+        $args = new ArrayObject(array(
+            'options' => & $options,
+        ));
+
+        try {
+            $eventRs = $this->triggerPre(__FUNCTION__, $args);
+            if ($eventRs->stopped()) {
+                return $eventRs->last();
+            }
+
+            $result = $this->internalGetCapacity($args['options']);
+            return $this->triggerPost(__FUNCTION__, $args, $result);
+        } catch (\Exception $e) {
+            $result = false;
+            return $this->triggerException(__FUNCTION__, $args, $result, $e);
+        }
+    }
+
+    /**
+     * Internal method to get storage capacity.
+     *
+     * @param  array $normalizedOptions
+     * @return array|boolean Associative array of capacity, false on failure
+     * @throws Exception\ExceptionInterface
+     */
+    abstract protected function internalGetCapacity(array & $normalizedOptions);
 
     /* internal */
 
@@ -942,6 +2468,7 @@ abstract class AbstractAdapter implements Adapter
      * Validates and normalizes the $options argument
      *
      * @param array $options
+     * @return void
      */
     protected function normalizeOptions(array &$options)
     {
@@ -959,13 +2486,6 @@ abstract class AbstractAdapter implements Adapter
             $this->normalizeNamespace($options['namespace']);
         } else {
             $options['namespace'] = $baseOptions->getNamespace();
-        }
-
-        // ignore_missing_items
-        if (isset($options['ignore_missing_items'])) {
-            $options['ignore_missing_items'] = (bool) $options['ignore_missing_items'];
-        } else {
-            $options['ignore_missing_items'] = $baseOptions->getIgnoreMissingItems();
         }
 
         // tags
@@ -987,6 +2507,7 @@ abstract class AbstractAdapter implements Adapter
      * Validates and normalize a TTL.
      *
      * @param  int|float $ttl
+     * @return void
      * @throws Exception\InvalidArgumentException
      */
     protected function normalizeTtl(&$ttl)
@@ -1009,17 +2530,16 @@ abstract class AbstractAdapter implements Adapter
      * Validates and normalize a namespace.
      *
      * @param  string $namespace
+     * @return void
      * @throws Exception\InvalidArgumentException
      */
     protected function normalizeNamespace(&$namespace)
     {
         $namespace = (string) $namespace;
-
-        if ($namespace === '') {
-            throw new Exception\InvalidArgumentException('Empty namespaces are not allowed');
-        } elseif (($p = $this->getOptions()->getNamespacePattern()) && !preg_match($p, $namespace)) {
+        $pattern   = $this->getOptions()->getNamespacePattern();
+        if ($pattern && !preg_match($pattern, $namespace)) {
             throw new Exception\InvalidArgumentException(
-                "The namespace '{$namespace}' doesn't match against pattern '{$p}'"
+                "The namespace '{$namespace}' doesn't match against pattern '{$pattern}'"
             );
         }
     }
@@ -1028,6 +2548,7 @@ abstract class AbstractAdapter implements Adapter
      * Validates and normalize tags array
      *
      * @param  array $tags
+     * @return void
      * @throws Exception\InvalidArgumentException
      */
     protected function normalizeTags(&$tags)
@@ -1050,6 +2571,7 @@ abstract class AbstractAdapter implements Adapter
      * Validates and normalize select array
      *
      * @param string[]|string
+     * @return void
      */
     protected function normalizeSelect(&$select)
     {
@@ -1066,6 +2588,7 @@ abstract class AbstractAdapter implements Adapter
      * @todo  normalize matching mode with given tags
      * @param int $mode    Matching mode to normalize
      * @param int $default Default matching mode
+     * @return void
      */
     protected function normalizeMatchingMode(&$mode, $default, array &$normalizedOptions)
     {
@@ -1081,18 +2604,58 @@ abstract class AbstractAdapter implements Adapter
      * Validates and normalizes a key
      *
      * @param  string $key
-     * @return string
+     * @return void
      * @throws Exception\InvalidArgumentException On an invalid key
      */
     protected function normalizeKey(&$key)
     {
         $key = (string) $key;
 
-        if (($p = $this->getOptions()->getKeyPattern()) && !preg_match($p, $key)) {
+        if ($key === '') {
+            throw new Exception\InvalidArgumentException(
+                "An empty key isn't allowed"
+            );
+        } elseif (($p = $this->getOptions()->getKeyPattern()) && !preg_match($p, $key)) {
             throw new Exception\InvalidArgumentException(
                 "The key '{$key}' doesn't match agains pattern '{$p}'"
             );
         }
+    }
+
+    /**
+     * Validates and normalizes multiple keys
+     *
+     * @param  array $keys
+     * @return void
+     * @throws Exception\InvalidArgumentException On an invalid key
+     */
+    protected function normalizeKeys(array &$keys)
+    {
+        if (!$keys) {
+            throw new Exception\InvalidArgumentException(
+                "An empty list of keys isn't allowed"
+            );
+        }
+
+        array_walk($keys, array($this, 'normalizeKey'));
+        $keys = array_values(array_unique($keys));
+    }
+
+    /**
+     * Validates and normalizes an array of key-value paírs
+     *
+     * @param  array $keyValuePairs
+     * @return void
+     * @throws Exception\InvalidArgumentException On an invalid key
+     */
+    protected function normalizeKeyValuePairs(array & $keyValuePairs)
+    {
+        $normalizedKeyValuePairs = array();
+        foreach ($keyValuePairs as $key => $value) {
+            $this->normalizeKey($key);
+            $normalizedKeyValuePairs[$key] = $value;
+        }
+        $keyValuePairs = $normalizedKeyValuePairs;
     }
 
     /**
@@ -1107,4 +2670,5 @@ abstract class AbstractAdapter implements Adapter
         }
         return $this->pluginRegistry;
     }
+
 }

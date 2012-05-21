@@ -21,8 +21,6 @@
 
 namespace Zend\Mail\Header;
 
-use Zend\Mail\Header;
-
 /**
  * @category   Zend
  * @package    Zend_Mail
@@ -30,7 +28,7 @@ use Zend\Mail\Header;
  * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Subject implements Header, UnstructuredHeader
+class Subject implements HeaderInterface, UnstructuredInterface
 {
     /**
      * @var string
@@ -46,14 +44,15 @@ class Subject implements Header, UnstructuredHeader
 
     /**
      * Factory from header line
-     * 
-     * @param  string $headerLine 
+     *
+     * @param  string $headerLine
+     * @throws Exception\InvalidArgumentException
      * @return Subject
      */
     public static function fromString($headerLine)
     {
         $headerLine = iconv_mime_decode($headerLine, ICONV_MIME_DECODE_CONTINUE_ON_ERROR);
-        list($name, $value) = preg_split('#: #', $headerLine, 2);
+        list($name, $value) = explode(': ', $headerLine, 2);
 
         // check to ensure proper header type for this factory
         if (strtolower($name) !== 'subject') {

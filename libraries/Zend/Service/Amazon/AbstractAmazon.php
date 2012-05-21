@@ -19,17 +19,12 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Amazon;
 
 /**
  * Abstract Amazon class that handles the credentials for any of the Web Services that
  * Amazon offers
  *
- * @uses       Zend\Service\AbstractService
- * @uses       \Zend\Service\Amazon\Exception
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Amazon

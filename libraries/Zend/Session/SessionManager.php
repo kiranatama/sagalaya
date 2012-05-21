@@ -18,16 +18,14 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Session;
 
-use Zend\Validator\Alnum as AlnumValidator,
-    Zend\EventManager\EventCollection;
+use Zend\EventManager\EventManagerInterface,
+    Zend\Session\SaveHandler\SaveHandlerInterface,
+    Zend\Validator\Alnum as AlnumValidator;
 
 /**
- * Session Manager implementation utilizing ext/session
+ * Session ManagerInterface implementation utilizing ext/session
  *
  * @category   Zend
  * @package    Zend_Session
@@ -53,7 +51,7 @@ class SessionManager extends AbstractManager
     protected $name;
 
     /**
-     * @var EventCollection Validation chain to determine if session is valid
+     * @var EventManagerInterface Validation chain to determine if session is valid
      */
     protected $validatorChain;
 
@@ -84,7 +82,7 @@ class SessionManager extends AbstractManager
      * @param bool $preserveStorage        If set to true, current session storage will not be overwritten by the 
      *                                     contents of $_SESSION.
      * @return void
-     * @throws Exception
+     * @throws Exception\RuntimeException
      */
     public function start($preserveStorage = false)
     {
@@ -93,7 +91,7 @@ class SessionManager extends AbstractManager
         }
 
         $saveHandler = $this->getSaveHandler();
-        if ($saveHandler instanceof SaveHandler) {
+        if ($saveHandler instanceof SaveHandlerInterface) {
             // register the session handler with ext/session
             $this->registerSaveHandler($saveHandler);
         }
@@ -109,7 +107,7 @@ class SessionManager extends AbstractManager
         if ($storage instanceof Storage\SessionStorage
             && $_SESSION !== $storage
         ) {
-            if (!$preserveStorage){
+            if (!$preserveStorage) {
                 $storage->fromArray($_SESSION);
             }
             $_SESSION = $storage;
@@ -198,7 +196,7 @@ class SessionManager extends AbstractManager
      * 
      * @param  string $name 
      * @return SessionManager
-     * @throws Exception
+     * @throws Exception\InvalidArgumentException
      */
     public function setName($name)
     {
@@ -303,10 +301,10 @@ class SessionManager extends AbstractManager
      *
      * In most cases, you should use an instance of {@link ValidatorChain}.
      * 
-     * @param  EventCollection $chain 
+     * @param  EventManagerInterface $chain
      * @return SessionManager
      */
-    public function setValidatorChain(EventCollection $chain)
+    public function setValidatorChain(EventManagerInterface $chain)
     {
         $this->validatorChain = $chain;
         return $this;
@@ -404,10 +402,10 @@ class SessionManager extends AbstractManager
      * Since ext/session is coupled to this particular session manager
      * register the save handler with ext/session.
      *
-     * @param SaveHandler $saveHandler
+     * @param SaveHandler\SaveHandlerInterface $saveHandler
      * @return bool
      */
-    protected function registerSaveHandler(SaveHandler $saveHandler)
+    protected function registerSaveHandler(SaveHandler\SaveHandlerInterface $saveHandler)
     {
         return session_set_save_handler(
             array($saveHandler, 'open'),

@@ -19,9 +19,6 @@
  * @version    $Id$
  */
 
-/**
- * @namespace
- */
 namespace Zend\Loader;
 
 use ArrayIterator,
@@ -143,6 +140,15 @@ class PluginClassLoader implements PluginClassLocator
         }
 
         foreach ($map as $name => $class) {
+            if ((is_int($name) || is_numeric($name)) 
+                && (is_object($class) || class_exists($class))
+                && is_subclass_of($class, 'Traversable')
+            ) {
+                $subMap = new $class();
+                $this->registerPlugins($subMap);
+                continue;
+            }
+
             $this->registerPlugin($name, $class);
         }
 

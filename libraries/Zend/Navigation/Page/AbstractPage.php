@@ -22,7 +22,7 @@
 namespace Zend\Navigation\Page;
 
 use Traversable,
-    Zend\Acl\Resource as AclResource,
+    Zend\Acl\Resource\ResourceInterface as AclResource,
     Zend\Navigation\Container,
     Zend\Navigation\Exception,
     Zend\Stdlib\ArrayUtils;
@@ -168,7 +168,7 @@ abstract class AbstractPage extends Container
      * If 'type' is not given, the type of page to construct will be determined
      * by the following rules:
      * - If $options contains either of the keys 'action', 'controller',
-     *   'module', or 'route', a Zend_Navigation_Page_Mvc page will be created.
+     *   or 'route', a Zend_Navigation_Page_Mvc page will be created.
      * - If $options contains the key 'uri', a Zend_Navigation_Page_Uri page
      *   will be created.
      *
@@ -233,7 +233,6 @@ abstract class AbstractPage extends Container
 
         $hasUri = isset($options['uri']);
         $hasMvc = isset($options['action']) || isset($options['controller'])
-                || isset($options['module'])
                 || isset($options['route']);
 
         if ($hasMvc) {
@@ -887,8 +886,7 @@ abstract class AbstractPage extends Container
 
         $method = 'set' . self::normalizePropertyName($property);
 
-        if ($method != 'setOptions' && $method != 'setConfig'
-            && method_exists($this, $method)
+        if ($method != 'setOptions' && method_exists($this, $method)
         ) {
             $this->$method($value);
         } else {

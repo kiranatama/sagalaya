@@ -38,8 +38,8 @@ class ZendServerDisk extends AbstractZendServer
     /**
      * Constructor
      *
-     * @param  null|array|Traversable|AdapterOptions $options
-     * @throws Exception
+     * @param  null|array|\Traversable|AdapterOptions $options
+     * @throws Exception\ExceptionInterface
      * @return void
      */
     public function __construct($options = array())
@@ -54,32 +54,15 @@ class ZendServerDisk extends AbstractZendServer
     }
 
     /**
-     * Get storage capacity.
+     * Internal method to get storage capacity.
      *
-     * @param  array $options
-     * @return array|boolean Capacity as array or false on failure
-     *
-     * @triggers getCapacity.pre(PreEvent)
-     * @triggers getCapacity.post(PostEvent)
-     * @triggers getCapacity.exception(ExceptionEvent)
+     * @param  array $normalizedOptions
+     * @return array|boolean Associative array of capacity, false on failure
+     * @throws Exception\ExceptionInterface
      */
-    public function getCapacity(array $options = array())
+    protected function internalGetCapacity(array & $normalizedOptions)
     {
-        $args = new ArrayObject(array(
-            'options' => & $options,
-        ));
-
-        try {
-            $eventRs = $this->triggerPre(__FUNCTION__, $args);
-            if ($eventRs->stopped()) {
-                return $eventRs->last();
-            }
-
-            $result = Utils::getDiskCapacity(ini_get('zend_datacache.disk.save_path'));
-            return $this->triggerPost(__FUNCTION__, $args, $result);
-        } catch (\Exception $e) {
-            return $this->triggerException(__FUNCTION__, $args, $e);
-        }
+        return Utils::getDiskCapacity(ini_get('zend_datacache.disk.save_path'));
     }
 
     /**

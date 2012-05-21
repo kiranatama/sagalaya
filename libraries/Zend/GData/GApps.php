@@ -19,9 +19,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData;
 
 /**
@@ -810,9 +807,9 @@ class GApps extends GData
                      // Autoloading disabled on next line for compatibility
                      // with magic factories. See ZF-6660.
                      if (class_exists($name . '\\' . $class)) {
-                        $foundClassName = $name . '\\' . $class;
+                         $foundClassName = $name . '\\' . $class;
+                         break;
                      }
-                     break;
                  } catch (\Exception $e) {
                      // package wasn't here- continue searching
                  }

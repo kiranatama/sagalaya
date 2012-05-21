@@ -1,32 +1,18 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Db
- * @subpackage TableGateway
- * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Db
  */
 
 namespace Zend\Db\TableGateway;
 
 use Zend\Db\Adapter\Adapter,
     Zend\Db\ResultSet\ResultSet,
-    Zend\Db\Sql\Insert,
-    Zend\Db\Sql\Update,
-    Zend\Db\Sql\Delete,
-    Zend\Db\Sql\Select;
+    Zend\Db\Sql;
 
 /**
  * @category   Zend
@@ -36,9 +22,8 @@ use Zend\Db\Adapter\Adapter,
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  *
  * @property Adapter $adapter
- * @property int $lastInsertId
+ * @property int $lastInsertValue
  * @property string $tableName
- * @property Select $selectWhere
  */
 class TableGateway implements TableGatewayInterface
 {
@@ -51,12 +36,7 @@ class TableGateway implements TableGatewayInterface
     /**
      * @var string
      */
-    protected $tableName = null;
-
-    /**
-     * @var null|string
-     */
-    protected $databaseSchema = null;
+    protected $table = null;
 
     /**
      * @var ResultSet
@@ -64,164 +44,57 @@ class TableGateway implements TableGatewayInterface
     protected $selectResultPrototype = null;
 
     /**
-     * @var Select
+     * @var Sql\Sql
      */
-    protected $sqlSelect = null;
-
-    /**
-     * @var Insert
-     */
-    protected $sqlInsert = null;
-
-    /**
-     * @var Update
-     */
-    protected $sqlUpdate = null;
-
-    /**
-     * @var Delete
-     */
-    protected $sqlDelete = null;
+    protected $sql = null;
 
     /**
      *
      * @var integer
      */
-    protected $lastInsertId = null;
+    protected $lastInsertValue = null;
 
     /**
      * Constructor
      * 
-     * @param string $tableName
+     * @param string $table
      * @param Adapter $adapter
-     * @param string $databaseSchema
-     * @param ResultSet $selectResultPrototype 
+     * @param ResultSet $selectResultPrototype
+     * @param Sql\Sql $selectResultPrototype
      */
-    public function __construct($tableName, Adapter $adapter, $databaseSchema = null, ResultSet $selectResultPrototype = null)
+    public function __construct($table, Adapter $adapter, ResultSet $selectResultPrototype = null, Sql\Sql $sql = null)
     {
-        if (!is_string($tableName)) {
-            throw new \InvalidArgumentException('Table name must be a string');
+        if (!(is_string($table) || $table instanceof Sql\TableIdentifier)) {
+            throw new \InvalidArgumentException('Table name must be a string or an instance of Zend\Db\Sql\TableIdentifier');
         }
-        $this->tableName = $tableName;
+        $this->table = $table;
         $this->adapter = $adapter;
 
-        // perhaps this might be useful, but not right now, the primary injection is ctor injection
-        // $this->setTableName($tableName);
-        // $this->setAdapter($adapter);
-
-        if (is_string($databaseSchema)) {
-            $this->databaseSchema = $databaseSchema;
-        }
         $this->setSelectResultPrototype(($selectResultPrototype) ?: new ResultSet);
-        $this->initializeSqlObjects();
+        $this->sql = ($sql) ?: new Sql\Sql($this->adapter, $this->table);
+        if ($this->sql->getTable() != $this->table) {
+            throw new Exception\InvalidArgumentException('The table inside the provided Sql object must match the table of this TableGateway');
+        }
     }
+
     /**
      * Get table name
      * 
      * @return string 
      */
-    public function getTableName()
+    public function getTable()
     {
-        return $this->tableName;
+        return $this->table;
     }
+
     /**
      * Get adapter
      * 
-     * @return type 
+     * @return Adapter
      */
     public function getAdapter()
     {
         return $this->adapter;
-    }
-
-    /**
-     * Get database schema
-     * 
-     * @return null|string
-     */
-    public function getDatabaseSchema()
-    {
-        return $this->databaseSchema;
-    }
-
-    /**
-     * Set sql delete
-     * 
-     * @param Delete $sqlDelete
-     */
-    public function setSqlDelete(Delete $sqlDelete)
-    {
-        $this->sqlDelete = $sqlDelete;
-    }
-
-    /**
-     * Get sql delete
-     * 
-     * @return Delete
-     */
-    public function getSqlDelete()
-    {
-        return $this->sqlDelete;
-    }
-
-    /**
-     * Set sql insert
-     * 
-     * @param Insert $sqlInsert
-     */
-    public function setSqlInsert(Insert $sqlInsert)
-    {
-        $this->sqlInsert = $sqlInsert;
-    }
-
-    /**
-     * Get sql insert
-     * 
-     * @return Insert
-     */
-    public function getSqlInsert()
-    {
-        return $this->sqlInsert;
-    }
-
-    /**
-     * Set sql select
-     * 
-     * @param Select $sqlSelect
-     */
-    public function setSqlSelect(Select $sqlSelect)
-    {
-        $this->sqlSelect = $sqlSelect;
-    }
-
-    /**
-     * Get sql select
-     * 
-     * @return Select
-     */
-    public function getSqlSelect()
-    {
-        return $this->sqlSelect;
-    }
-
-    /**
-     * Set sql update
-     * 
-     * @param Update $sqlUpdate
-     */
-    public function setSqlUpdate(Update $sqlUpdate)
-    {
-        $this->sqlUpdate = $sqlUpdate;
-    }
-
-    /**
-     * Get sql update
-     * 
-     * @return Update
-     */
-    public function getSqlUpdate()
-    {
-        return $this->sqlUpdate;
     }
 
     /**
@@ -237,153 +110,159 @@ class TableGateway implements TableGatewayInterface
     /**
      * Get select result prototype
      * 
-     * @return type 
+     * @return ResultSet
      */
     public function getSelectResultPrototype()
     {
         return $this->selectResultPrototype;
     }
+
+    /**
+     * @return \Zend\Db\Sql\Sql
+     */
+    public function getSql()
+    {
+        return $this->sql;
+    }
+
     /**
      * Select
      * 
-     * @param Closure $where
-     * @return type 
+     * @param string|array|\Closure $where
+     * @return ResultSet
      */
     public function select($where = null)
     {
-        $select = clone $this->sqlSelect;
-        $select->from($this->tableName, $this->databaseSchema);
+        $select = $this->sql->select();
+
         if ($where instanceof \Closure) {
             $where($select);
         } elseif ($where !== null) {
             $select->where($where);
         }
 
-        $statement = $this->adapter->createStatement();
-        $select->prepareStatement($this->adapter, $statement);
+        return $this->selectWith($select);
+    }
+
+    /**
+     * @param Sql\Select $select
+     * @return null|ResultSet
+     * @throws \RuntimeException
+     */
+    public function selectWith(Sql\Select $select)
+    {
+        $selectState = $select->getRawState();
+        if ($selectState['table'] != $this->table) {
+            throw new \RuntimeException('The table name of the provided select object must match that of the table');
+        }
+
+        $statement = $this->sql->prepareStatementForSqlObject($select);
 
         $result = $statement->execute();
         $resultSet = clone $this->selectResultPrototype;
         $resultSet->setDataSource($result);
         return $resultSet;
     }
+
     /**
      * Insert
      * 
-     * @param  type $set
-     * @return type 
+     * @param  array $set
+     * @return int
      */
     public function insert($set)
     {
-        $insert = clone $this->sqlInsert;
-        $insert->into($this->tableName, $this->databaseSchema);
+        $insert = $this->sql->insert();
         $insert->values($set);
 
-        $statement = $this->adapter->createStatement();
-        $insert->prepareStatement($this->adapter, $statement);
+        $statement = $this->sql->prepareStatementForSqlObject($insert);
 
         $result = $statement->execute();
-        $this->lastInsertId = $this->adapter->getDriver()->getConnection()->getLastGeneratedId();
+        $this->lastInsertValue = $this->adapter->getDriver()->getConnection()->getLastGeneratedValue();
         return $result->getAffectedRows();
     }
+
     /**
      * Update
      * 
-     * @param  type $set
-     * @param  string $where
-     * @return type 
+     * @param  array $set
+     * @param  string|array|closure $where
+     * @return int
      */
     public function update($set, $where = null)
     {
-        $update = clone $this->sqlUpdate;
-        $update->table($this->tableName, $this->databaseSchema);
+        $sql = $this->sql;
+        $update = $sql->update();
         $update->set($set);
         $update->where($where);
 
-        $statement = $this->adapter->createStatement();
-        $update->prepareStatement($this->adapter, $statement);
+        $statement = $this->sql->prepareStatementForSqlObject($update);
 
         $result = $statement->execute();
         return $result->getAffectedRows();
     }
+
     /**
      * Delete
      * 
      * @param  Closure $where
-     * @return type 
+     * @return int
      */
     public function delete($where)
     {
-        $delete = clone $this->sqlDelete;
-        $delete->from($this->tableName, $this->databaseSchema);
+        $delete = $this->sql->delete();
         if ($where instanceof \Closure) {
             $where($delete);
         } else {
             $delete->where($where);
         }
 
-        $statement = $this->adapter->createStatement();
-        $delete->prepareStatement($this->adapter, $statement);
+        $statement = $this->sql->prepareStatementForSqlObject($delete);
 
         $result = $statement->execute();
         return $result->getAffectedRows();
     }
+
     /**
-     * Get last insert id
+     * Get last insert value
      * 
      * @return integer 
      */
-    public function getLastInsertId()
+    public function getLastInsertValue()
     {
-        return $this->lastInsertId;
+        return $this->lastInsertValue;
     }
+
     /**
      * __get
      * 
      * @param  string $name
-     * @return type 
+     * @return mixed
      */
     public function __get($name)
     {
         switch (strtolower($name)) {
-            case 'lastinsertid':
-                return $this->lastInsertId;
+            case 'lastinsertvalue':
+                return $this->lastInsertValue;
             case 'adapter':
                 return $this->adapter;
-            case 'tablename':
-                return $this->tableName;
+            case 'table':
+                return $this->table;
         }
         throw new \Exception('Invalid magic property on adapter');
     }
-    /**
-     * Initialize sql objects
-     */
-    protected function initializeSqlObjects()
-    {
-        if (!$this->sqlSelect) {
-            $this->sqlSelect = new Select();
-        }
-        if (!$this->sqlInsert) {
-            $this->sqlInsert = new Insert();
-        }
-        if (!$this->sqlUpdate) {
-            $this->sqlUpdate = new Update();
-        }
-        if (!$this->sqlDelete) {
-            $this->sqlDelete = new Delete();
-        }
-    }
+
     /**
      * __clone
      * 
      */
     public function __clone()
     {
-        $this->selectResultPrototype = clone $this->selectResultPrototype;
-        $this->sqlSelect = clone $this->sqlSelect;
-        $this->sqlInsert = clone $this->sqlInsert;
-        $this->sqlUpdate = clone $this->sqlUpdate;
-        $this->sqlDelete = clone $this->sqlDelete;
+        $this->selectResultPrototype = (isset($this->selectResultPrototype)) ? clone $this->selectResultPrototype : null;
+        $this->sql = clone $this->sql;
+        if (is_object($this->table)) {
+            $this->table = clone $this->table;
+        }
     }
 
 }

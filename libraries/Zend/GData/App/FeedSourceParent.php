@@ -19,20 +19,11 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\App;
 
 /**
  * Atom feed class
  *
- * @uses       \Zend\GData\App\Entry
- * @uses       \Zend\GData\App\Extension\Generator
- * @uses       \Zend\GData\App\Extension\Icon
- * @uses       \Zend\GData\App\Extension\Logo
- * @uses       \Zend\GData\App\Extension\Subtitle
- * @uses       \Zend\GData\App\FeedSourceParent
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage App

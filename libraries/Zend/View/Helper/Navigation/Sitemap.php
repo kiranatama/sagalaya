@@ -19,9 +19,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\View\Helper\Navigation;
 
 use DOMDocument,
@@ -254,7 +251,7 @@ class Sitemap extends AbstractHelper
     protected function xmlEscape($string)
     {
         $enc = 'UTF-8';
-        if ($this->view instanceof View\Renderer
+        if ($this->view instanceof View\Renderer\RendererInterface
             && method_exists($this->view, 'getEncoding')
         ) {
             $enc = $this->view->getEncoding();
@@ -440,7 +437,7 @@ class Sitemap extends AbstractHelper
     /**
      * Renders helper
      *
-     * Implements {@link Helper::render()}.
+     * Implements {@link HelperInterface::render()}.
      *
      * @param  Container $container [optional] container to render. Default is 
      *                              to render the container registered in the 

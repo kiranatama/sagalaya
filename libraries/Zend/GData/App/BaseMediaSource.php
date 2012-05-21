@@ -19,17 +19,11 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\App;
 
 /**
  * Concrete class to use a file handle as an attachment within a MediaEntry.
  *
- * @uses       ReflectionClass
- * @uses       \Zend\GData\App\InvalidArgumentException
- * @uses       \Zend\GData\App\MediaSource
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage App

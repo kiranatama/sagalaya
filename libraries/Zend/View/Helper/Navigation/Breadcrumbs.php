@@ -19,9 +19,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\View\Helper\Navigation;
 
 use Zend\Navigation\Container,
@@ -298,7 +295,7 @@ class Breadcrumbs extends AbstractHelper
     /**
      * Renders helper
      *
-     * Implements {@link Helper::render()}.
+     * Implements {@link HelperInterface::render()}.
      *
      * @param  Container $container [optional] container to render. Default is
      *                              to render the container registered in the helper.

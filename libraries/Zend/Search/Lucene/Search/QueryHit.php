@@ -19,16 +19,11 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Search\Lucene\Search;
 use Zend\Search\Lucene;
 use Zend\Search\Lucene\Document;
 
 /**
- * @uses       \Zend\Search\Lucene\SearchIndex
- * @uses       \Zend\Search\Lucene\Document
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
@@ -39,7 +34,7 @@ class QueryHit
 {
     /**
      * Object handle of the index
-     * @var \Zend\Search\Lucene\SearchIndex
+     * @var \Zend\Search\Lucene\SearchIndexInterface
      */
     protected $_index = null;
 
@@ -66,10 +61,10 @@ class QueryHit
      * Constructor - pass object handle of Zend_Search_Lucene_Interface index that produced
      * the hit so the document can be retrieved easily from the hit.
      *
-     * @param \Zend\Search\Lucene\SearchIndex $index
+     * @param \Zend\Search\Lucene\SearchIndexInterface $index
      */
 
-    public function __construct(Lucene\SearchIndex $index)
+    public function __construct(Lucene\SearchIndexInterface $index)
     {
         $this->_index = $index;
     }
@@ -117,7 +112,7 @@ class QueryHit
     /**
      * Return the index object for this hit
      *
-     * @return \Zend\Search\Lucene\SearchIndex
+     * @return \Zend\Search\Lucene\SearchIndexInterface
      */
     public function getIndex()
     {

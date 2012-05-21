@@ -19,9 +19,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\App;
 
 use Zend\GData\App,
@@ -30,17 +27,6 @@ use Zend\GData\App,
 /**
  * Abstract class for common functionality in entries and feeds
  *
- * @uses       \Zend\GData\App\Extension\Author
- * @uses       \Zend\GData\App\Extension\Category
- * @uses       \Zend\GData\App\Extension\Contributor
- * @uses       \Zend\GData\App\Extension\Element
- * @uses       \Zend\GData\App\Extension\Id
- * @uses       \Zend\GData\App\Extension\Link
- * @uses       \Zend\GData\App\Extension\Rights
- * @uses       \Zend\GData\App\Extension\Title
- * @uses       \Zend\GData\App\Extension\Updated
- * @uses       \Zend\GData\App\InvalidArgumentException
- * @uses       \Zend\Version
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage App

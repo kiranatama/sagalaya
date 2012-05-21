@@ -18,9 +18,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\EventManager;
 
 use Zend\Stdlib\CallbackHandler,
@@ -41,17 +38,17 @@ use Zend\Stdlib\CallbackHandler,
 class GlobalEventManager
 {
     /**
-     * @var EventCollection
+     * @var EventManagerInterface
      */
     protected static $events;
 
     /**
      * Set the event collection on which this will operate
      * 
-     * @param  null|EventCollection $events 
+     * @param  null|EventManagerInterface $events
      * @return void
      */
-    public static function setEventCollection(EventCollection $events = null)
+    public static function setEventCollection(EventManagerInterface $events = null)
     {
         static::$events = $events;
     }
@@ -83,7 +80,7 @@ class GlobalEventManager
     }
 
     /**
-     * Trigger listeenrs until return value of one causes a callback to evaluate 
+     * Trigger listeners until return value of one causes a callback to evaluate 
      * to true.
      * 
      * @param  string $event 

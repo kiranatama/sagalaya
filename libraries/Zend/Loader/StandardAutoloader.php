@@ -19,7 +19,6 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/** @namespace */
 namespace Zend\Loader;
 
 // Grab SplAutoloader interface
@@ -91,7 +90,7 @@ class StandardAutoloader implements SplAutoloader
      * )
      * </code>
      *
-     * @param  array|Traversable $options
+     * @param  array|\Traversable $options
      * @return StandardAutoloader
      */
     public function setOptions($options)
