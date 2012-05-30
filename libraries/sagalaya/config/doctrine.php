@@ -11,7 +11,7 @@ $libraries = array_merge($libraries, array(
 		'Symfony\Component\Yaml', 'Symfony\Component\Console'));
 
 // Adding Zend libraries, sagalaya dependent only
-$libraries = array_merge($libraries, array('Zend\Code'));
+$libraries = array_merge($libraries, array('Zend\Code', 'Zend\Acl'));
 
 foreach ($libraries as $name) {
 	if (!Libraries::get($name)) {
