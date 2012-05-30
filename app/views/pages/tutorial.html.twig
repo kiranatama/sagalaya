@@ -10,7 +10,7 @@
 		purpose just to make you has overview what this framework can do.</p>
 	<p>Before we start to coding, we need to include li3 command to PATH,
 		because it will frequently use when we code</p>
-	<pre class="brush: bash">$> export PATH=$PATH:/to/project/libraries/lithium/bin</pre>
+	<pre class="brush: bash">$> export PATH=$PATH:/to/project/libraries/lithium/console</pre>
 		
 	<div class="tabs">	
 		
@@ -71,7 +71,7 @@
 					<p>When build an application, we frequently doing some repetitive task, like create model, controller, view, test.</p>
 					<p>So to make faster creating starting code, sagalaya provide generator. Generator will read xml files from <code>app/config/design</code> folder.
 					Every xml file will parsed by generator to create model, controller, view, model test, controller test, and repository.</p>
-					<p>You can see a sample xml file {{ this.html.link('here', '/files/samples/user.xml') }}. To generate all you just need to call generator in console at project folder.</p>
+					<p>You can see a sample xml file <strong>{{ this.html.link('HERE', '/files/samples/user.xml') }}</strong>. To generate all you just need to call generator in console at project folder.</p>
 					<pre class="brush: bash">$> li3 generator</pre>
 					 
 					<!-- Generate Database Scheme -->
