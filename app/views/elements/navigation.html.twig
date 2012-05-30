@@ -8,9 +8,9 @@
           </a>
           <a class="brand" href="#">Sagalaya</a>
           <div class="nav-collapse">
-            <ul class="nav">
-              <li class="active">{{ this.html.link('Homepage','/') }}</li>
-              <li>{{ this.html.link('Tutorial',{'controller':'pages','action':'tutorial'}) }}</li>                       
+            <ul class="nav">								            	
+              <li {{ (this.request.url == '/') ? ' class="active"' : "" }}>{{ this.html.link('Homepage','/') }}</li>
+              <li {{ (this.request.url == 'pages/tutorial') ? 'class="active"' : "" }}>{{ this.html.link('Tutorial',{'controller':'pages','action':'tutorial'}) }}</li>                       
             </ul>
           </div><!--/.nav-collapse -->
         </div>
