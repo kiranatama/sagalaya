@@ -2,6 +2,15 @@
 
 namespace sagalaya\extensions\security;
 
+/**
+ * Authenticate using remote function
+ * @author Mukhamad Ikhsan
+ * `options` 	: 
+ * 		`auth`		:
+ * 		`adapter`	:
+ * 		`api` 		: Used classname
+ * 		`function`	: called function on the classname 
+ */
 class Remote extends \lithium\security\Auth {
 
 	public static function check($name, $credentials = null, array $options = array()) {

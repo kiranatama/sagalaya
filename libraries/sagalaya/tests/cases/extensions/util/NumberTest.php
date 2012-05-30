@@ -44,4 +44,30 @@ class NumberTest extends Unit {
 		$this->assertEqual('21800793.0785011112-', $number->div(192.219) . "-");
 	}
 	
+	public function testComparison() {
+		$number = new Number('129382992839288');
+		$small = new Number('1002939');		
+		
+		$this->assertTrue($number->gt('10299299'));
+		$this->assertFalse($number->lt('10029201'));
+		$this->assertTrue($number->gt($small));
+		$this->assertFalse($number->lt($small));
+	}
+	
+	public function testBasicScenario() {
+		$credit = new Number('-10000300002');
+		$debit = new Number('22220000000');
+		$sum = $credit->add($debit);
+		
+		$this->assertTrue($sum->lt($debit));
+		$this->assertTrue($sum->eq($credit));
+		$this->assertTrue($sum->sub($debit)->eq($credit->sub($debit)));
+		
+		$this->assertFalse($sum->eq($debit));
+		$this->assertTrue($sum->eq($credit));
+		
+		$sum->add('100290');		
+		$this->assertTrue($sum->neq($credit));
+	}
+	
 }

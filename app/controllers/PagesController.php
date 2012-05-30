@@ -23,12 +23,14 @@ namespace app\controllers;
  * For example, browsing to `/pages/about/company` will render
  * `/views/pages/about/company.html.php`.
  */
+use lithium\analysis\Logger;
+
 class PagesController extends \lithium\action\Controller {
 	
 	public $publicActions = array('view');
 
-	public function view() {			
-		$path = func_get_args() ?: array('home');
+	public function view() {					
+		$path = func_get_args() ?: array('home');		
 		return $this->render(array('template' => join('/', $path)));
 	}
 }
