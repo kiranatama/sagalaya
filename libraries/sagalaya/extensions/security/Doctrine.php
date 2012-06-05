@@ -53,13 +53,7 @@ class Doctrine extends \lithium\security\Auth {
 		});
 	}
 	
-	/**
-	 * 
-	 * @param string $name
-	 * @param array $data
-	 * @param array $options
-	 * @return Ambigous <\lithium\core\mixed, \lithium\util\collection\Returns>|unknown|boolean
-	 */
+
 	public static function set($name, $data, array $options = array()) {
 		$params = compact('name', 'data', 'options');
 	

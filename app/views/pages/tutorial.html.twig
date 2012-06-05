@@ -15,11 +15,12 @@
 	<div class="tabs">	
 		
 		<ul class="nav nav-tabs">
-			<li class="active"><a data-toggle="tab" href="#working-with-database">Working with Database</a></li>
+			<li class="active"><a data-toggle="tab" href="#working-with-database">Model</a></li>
 			<li><a href="#model-use-case" data-toggle="tab">Model Use Case</a></li>
-			<li><a href="#working-with-controller" data-toggle="tab">Working with Controller</a></li>
-			<li><a href="#working-with-view" data-toggle="tab">Working with View</a></li>
+			<li><a href="#working-with-controller" data-toggle="tab">Controller</a></li>
+			<li><a href="#working-with-view" data-toggle="tab">View</a></li>
 			<li><a href="#testing" data-toggle="tab">Testing</a></li>
+			<li><a href="#best-practice" data-toggle="tab">Best Practice</a></li>
 		</ul>
 		
 		<div class="tab-content">
@@ -29,7 +30,7 @@
 					<ul>
 						<li><a href="#configuration">Configuration</a></li>
 						<li><a href="#initialization">Building Model</a></li>
-						<li><a href="#generator">Using XML Generator</a></li>
+						<li><a href="#generator">Using Code Generator</a></li>
 						<li><a href="#database-scheme">Generate Database Scheme</a></li>
 						<li><a href="#migrations">Generate Migrations</a></li>
 					</ul>
@@ -67,7 +68,7 @@
 					</pre>
 					
 					<!-- Using Generator -->
-					<h3 id="generator">Using XML Generator</h3>
+					<h3 id="generator">Using Code Generator</h3>
 					<p>When build an application, we frequently doing some repetitive task, like create model, controller, view, test.</p>
 					<p>So to make faster creating starting code, sagalaya provide generator. Generator will read xml files from <code>app/config/design</code> folder.
 					Every xml file will parsed by generator to create model, controller, view, model test, controller test, and repository.</p>
@@ -414,6 +415,7 @@
 												
 							<!-- Default Routing -->
 							<h3 id="default-routing">Default Routing</h3>
+							<p>Routing rules is placed at <code>app/config/routes.php</code></p>
 							
 							<!-- Action Configuration -->
 							<h3 id="action-configuration">Action Configuration</h3>
@@ -467,6 +469,29 @@
 						<!-- View Helper -->
 						<h3 id="code-quality">Code Quality Assurance</h3>												
 					</div>							
+			</div>
+			
+			<div class="tab-pane" id="best-practice">
+				<div class="span2">
+						<h6>Chapter Index</h6>
+						<ul>
+							<li><a href="#add-business-layer">MVC + Business Layer</a></li>
+							<li><a href="#domain-repository">Domain Repository</a></li>
+							<li><a href="#thin-controller">Thin Controller</a></li>
+						</ul>				
+				</div>
+				
+				<div class="span8">
+					<!-- MVC + Business Layer -->
+					<h3 id="add-business-layer">MVC + Business Layer</h3>
+					
+					<!-- Domain Repository -->
+					<h3 id="domain-repository">Domain Repository</h3>
+					
+					<!-- Thin Controller -->
+					<h3 id="think-controller">Thin Controller</h3>
+					
+				</div>
 			</div>
 		</div>
 										 

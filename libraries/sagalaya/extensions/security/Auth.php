@@ -1,16 +1,24 @@
-<?php
+<?php 
 
 namespace sagalaya\extensions\security;
 
 /**
+ * Lithium Auth class not provide abstraction for implementation adapter class,
+ * check, set, and clear function that is should be abstraction as interface 
+ * but implemented as rigid convention  
  * 
  * @author Mukhamad Ikhsan
- *
+ * 
  */
 class Auth {
 	
 	public static $auth = null;
 	
+	/**
+	 * first called when application startup on bootstrap,
+	 * initialize what adapter used for authentication
+	 * @param array $options
+	 */
 	public static function config($options) {		
 		Auth::$auth = new $options['default']['auth']();
 		call_user_func(array(Auth::$auth, 'config'), $options);		
@@ -29,3 +37,5 @@ class Auth {
 	}
 	 
 }
+
+?>
