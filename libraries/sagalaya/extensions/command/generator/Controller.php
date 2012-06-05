@@ -2,6 +2,8 @@
 
 namespace sagalaya\extensions\command\generator;
 
+use Zend\Code\Generator\DocblockGenerator;
+
 use Zend\Code\Generator\ClassGenerator;
 use Zend\Code\Generator\PropertyGenerator;
 use Zend\Code\Generator\MethodGenerator;
@@ -22,6 +24,8 @@ class Controller extends Generator {
 		}
 
 		$publicActions = new PropertyGenerator('publicActions', array(), PropertyGenerator::FLAG_PUBLIC);
+		$docBlock = new DocblockGenerator('Array of function excluded from auth (has public access)');
+		$publicActions->setDocBlock($docBlock);
 		$class->setProperty($publicActions);
 
 		$messageMethod = new MethodGenerator('_message');
