@@ -33,7 +33,7 @@ use Zend\Stdlib\Exception;
 class ClassMethods implements HydratorInterface
 {
     /**
-     * CameCase usage to extract attribute with getter/setter method name
+     * CamelCase usage to extract attribute with getter/setter method name
      * @var boolean
      */
     protected $useCamelCase;
@@ -98,7 +98,7 @@ class ClassMethods implements HydratorInterface
      * 
      * @param  array $data 
      * @param  object $object 
-     * @return void
+     * @return object
      * @throws Exception\BadMethodCallException for a non-object $object
      */
     public function hydrate(array $data, $object)
@@ -120,7 +120,10 @@ class ClassMethods implements HydratorInterface
                 $property = preg_replace_callback('/(_[a-z])/', $transform, $property);
             }
             $method = 'set' . ucfirst($property);
-            $object->$method($value);
+            if (method_exists($object, $method)) {
+                $object->$method($value);
+            }
         }
+        return $object;
     }
 }

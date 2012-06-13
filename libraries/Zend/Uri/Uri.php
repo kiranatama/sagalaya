@@ -184,6 +184,33 @@ class Uri
     }
 
     /**
+     * Check if the URI is a valid relative URI
+     *
+     * @return boolean
+     */
+    public function isValidRelative()
+    {
+        if ($this->scheme || $this->host || $this->userInfo || $this->port) {
+            return false;
+        }
+
+        if ($this->path) {
+            // Check path-only (no host) URI
+            if (substr($this->path, 0, 2) == '//') {
+                return false;
+            }
+            return true;
+        }
+
+        if (! ($this->query || $this->fragment)) {
+            // No host, path, query or fragment - this is not a valid URI
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Check if the URI is an absolute or relative URI
      *
      * @return boolean
@@ -274,9 +301,11 @@ class Uri
     public function toString()
     {
         if (!$this->isValid()) {
-            throw new Exception\InvalidUriException(
-                'URI is not valid and cannot be converted into a string'
-            );
+            if ($this->isAbsolute() || !$this->isValidRelative()) {
+                throw new Exception\InvalidUriException(
+                    'URI is not valid and cannot be converted into a string'
+                );
+            }
         }
 
         $uri = '';
@@ -388,7 +417,7 @@ class Uri
         if (!$baseUri instanceof static) {
             throw new Exception\InvalidUriTypeException(sprintf(
                 'Provided base URL is not an instance of "%s"',
-                get_class($this)
+                get_called_class()
             ));
         }
 
@@ -616,7 +645,7 @@ class Uri
             throw new Exception\InvalidUriPartException(sprintf(
                 'Scheme "%s" is not valid or is not accepted by %s',
                 $scheme,
-                get_class($this)
+                get_called_class()
             ), Exception\InvalidUriPartException::INVALID_SCHEME);
         }
 
@@ -663,7 +692,7 @@ class Uri
             throw new Exception\InvalidUriPartException(sprintf(
                 'Host "%s" is not valid or is not accepted by %s',
                 $host,
-                get_class($this)
+                get_called_class()
             ), Exception\InvalidUriPartException::INVALID_HOSTNAME);
         }
 

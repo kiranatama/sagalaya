@@ -13,6 +13,7 @@ use lithium\analysis\Debugger;
 use lithium\analysis\Logger;
 
 ErrorHandler::apply('lithium\action\Dispatcher::run', array(), function($info, $params) {
+	
 	$stack = Debugger::trace(array('format' => 'array', 'trace' => $info['exception']->getTrace()));
     $exception_class = get_class($info['exception']);
 	
@@ -26,12 +27,15 @@ ErrorHandler::apply('lithium\action\Dispatcher::run', array(), function($info, $
                 'request' => $params['request'],
                 'status' => $info['exception']->getCode()
             ));
-	    
+    $url = $params['request']->url;
+    $type = substr($url, strrpos($url, '.') + 1);    
+	
     Media::render($response, compact('info', 'params', 'stack', 'exception_class'), array(
         'controller' => 'errors',
         'template' => ($info['exception']->getCode() == 404) ? "404" : "development",
         'layout' => 'error',
-        'request' => $params['request']
+        'request' => $params['request'],
+    	'type' => (in_array($type, array('json', 'html'))) ? $type : 'html'
     ));
         
     return $response;

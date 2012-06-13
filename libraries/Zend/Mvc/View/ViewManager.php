@@ -21,6 +21,7 @@
 
 namespace Zend\Mvc\View;
 
+use ArrayAccess;
 use Traversable;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\ListenerAggregateInterface;
@@ -125,7 +126,7 @@ class ViewManager implements ListenerAggregateInterface
     /**
      * Prepares the view layer
      * 
-     * @param  ApplicationInterface $application 
+     * @param  $event
      * @return void
      */
     public function onBootstrap($event)
@@ -136,7 +137,9 @@ class ViewManager implements ListenerAggregateInterface
         $events       = $application->events();
         $sharedEvents = $events->getSharedManager();
 
-        $this->config   = $config;
+        $this->config   = isset($config['view_manager']) && (is_array($config['view_manager']) || $config['view_manager'] instanceof ArrayAccess)
+                        ? $config['view_manager'] 
+                        : array();
         $this->services = $services;
         $this->event    = $event;
 
@@ -146,6 +149,9 @@ class ViewManager implements ListenerAggregateInterface
         $createViewModelListener = new CreateViewModelListener();
         $injectTemplateListener  = new InjectTemplateListener();
         $injectViewModelListener = new InjectViewModelListener();
+
+        $this->registerMvcRenderingStrategies($events);
+        $this->registerViewStrategies();
 
         $events->attach($routeNotFoundStrategy);
         $events->attach($exceptionStrategy);
@@ -171,8 +177,11 @@ class ViewManager implements ListenerAggregateInterface
         }
 
         $map = array();
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['helper_map'])) {
-            $map = $this->config['view_manager']['helper_map'];
+        if (isset($this->config['helper_map'])) {
+            $map = $this->config['helper_map'];
+        }
+        if (!in_array('Zend\Form\View\HelperLoader', $map)) {
+            array_unshift($map, 'Zend\Form\View\HelperLoader');
         }
         $this->helperLoader = new ViewHelperLoader($map);
 
@@ -200,24 +209,34 @@ class ViewManager implements ListenerAggregateInterface
         $this->helperBroker->setServiceLocator($this->services);
 
         // Configure URL view helper with router
-        $router = $this->services->get('Router');
-        $url    = $this->helperBroker->load('url');
-        $url->setRouter($router);
+        $this->services->setFactory('Zend\View\Helper\Url', function($sm) {
+            $urlHelper = new \Zend\View\Helper\Url;
+            $urlHelper->setRouter($sm->get('Router'));
+            return $urlHelper;
+        });
+
+        $config = $this->config;
 
         // Configure basePath view helper with base path from configuration, if available
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['base_path'])) {
-            $basePath = $this->config['view_manager']['base_path'];
-        } else {
-            $basePath = $this->services->get('Request')->getBasePath();
-        }
-        $basePathHelper = $this->helperBroker->load('basePath');
-        $basePathHelper->setBasePath($basePath);
+        $this->services->setFactory('Zend\View\Helper\BasePath', function($sm) use($config) {
+            $basePathHelper = new \Zend\View\Helper\BasePath;
+            if (isset($config['base_path'])) {
+                $basePath = $config['base_path'];
+            } else {
+                $basePath = $sm->get('Request')->getBasePath();
+            }
+            $basePathHelper->setBasePath($basePath);
+            return $basePathHelper;
+        });
 
         // Configure doctype view helper with doctype from configuration, if available
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['doctype'])) {
-            $doctype = $this->helperBroker->load('doctype');
-            $doctype->setDoctype($this->config['view_manager']['doctype']);
-        }
+        $this->services->setFactory('Zend\View\Helper\Doctype', function($sm) use($config) {
+            $doctypeHelper = new \Zend\View\Helper\Doctype;
+            if (isset($config['doctype'])) {
+                $doctypeHelper->setDoctype($config['doctype']);
+            }
+            return $doctypeHelper;
+        });
 
         $this->services->setService('ViewHelperBroker', $this->helperBroker);
         $this->services->setAlias('Zend\View\HelperBroker', 'ViewHelperBroker');
@@ -237,17 +256,14 @@ class ViewManager implements ListenerAggregateInterface
         }
 
         $map = array();
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['template_map'])) {
-            $map = $this->config['view_manager']['template_map'];
+        if (isset($this->config['template_map'])) {
+            $map = $this->config['template_map'];
         }
         $templateMapResolver = new ViewResolver\TemplateMapResolver($map);
 
         $stack = array();
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['template_path_stack'])) {
-            $stack = $this->config['view_manager']['template_path_stack'];
-            if ($stack instanceof Traversable) {
-                $stack = ArrayUtils::iteratorToArray($stack);
-            }
+        if (isset($this->config['template_path_stack'])) {
+            $stack = $this->config['template_path_stack'];
         }
         $templatePathStack = new ViewResolver\TemplatePathStack();
         $templatePathStack->addPaths($stack);
@@ -344,8 +360,8 @@ class ViewManager implements ListenerAggregateInterface
     public function getLayoutTemplate()
     {
         $layout = 'layout/layout';
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['layout'])) {
-            $layout = $this->config['view_manager']['layout'];
+        if (isset($this->config['layout'])) {
+            $layout = $this->config['layout'];
         }
         return $layout;
     }
@@ -386,11 +402,11 @@ class ViewManager implements ListenerAggregateInterface
         $displayExceptions = false;
         $exceptionTemplate = 'error';
 
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['display_exceptions'])) {
-            $displayExceptions = $this->config['view_manager']['display_exceptions'];
+        if (isset($this->config['display_exceptions'])) {
+            $displayExceptions = $this->config['display_exceptions'];
         }
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['exception_template'])) {
-            $exceptionTemplate = $this->config['view_manager']['exception_template'];
+        if (isset($this->config['exception_template'])) {
+            $exceptionTemplate = $this->config['exception_template'];
         }
 
         $this->exceptionStrategy->setDisplayExceptions($displayExceptions);
@@ -418,11 +434,11 @@ class ViewManager implements ListenerAggregateInterface
         $displayNotFoundReason = false;
         $notFoundTemplate      = '404';
 
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['display_not_found_reason'])) {
-            $displayNotFoundReason = $this->config['view_manager']['display_not_found_reason'];
+        if (isset($this->config['display_not_found_reason'])) {
+            $displayNotFoundReason = $this->config['display_not_found_reason'];
         }
-        if (isset($this->config['view_manager']) && isset($this->config['view_manager']['not_found_template'])) {
-            $notFoundTemplate = $this->config['view_manager']['not_found_template'];
+        if (isset($this->config['not_found_template'])) {
+            $notFoundTemplate = $this->config['not_found_template'];
         }
 
         $this->routeNotFoundStrategy->setDisplayNotFoundReason($displayNotFoundReason);
@@ -450,5 +466,77 @@ class ViewManager implements ListenerAggregateInterface
         $model->setTemplate($this->getLayoutTemplate());
 
         return $this->viewModel;
+    }
+
+    /**
+     * Register additional mvc rendering strategies
+     *
+     * If there is a "mvc_strategies" key of the view manager configuration, loop
+     * through it. Pull each as a service fromt the service manager, and, if it
+     * is a ListenerAggregate, attach it to the view, at priority 100. This
+     * latter allows each to trigger before the default mvc rendering strategy,
+     * and for them to trigger in the order they are registered.
+     */
+    protected function registerMvcRenderingStrategies(EventManagerInterface $events)
+    {
+        if (!isset($this->config['mvc_strategies'])) {
+            return;
+        }
+        $mvcStrategies = $this->config['mvc_strategies'];
+        if (is_string($mvcStrategies)) {
+            $mvcStrategies = array($mvcStrategies);
+        }
+        if (!is_array($mvcStrategies) && !$mvcStrategies instanceof Traversable) {
+            return;
+        }
+
+        foreach ($mvcStrategies as $mvcStrategy) {
+            if (!is_string($mvcStrategy)) {
+                continue;
+            }
+
+            $listener = $this->services->get($mvcStrategy);
+            if ($listener instanceof ListenerAggregateInterface) {
+                $events->attach($listener, 100);
+            }
+        }
+    }
+
+    /**
+     * Register additional view strategies
+     *
+     * If there is a "strategies" key of the view manager configuration, loop
+     * through it. Pull each as a service from the service manager, and, if it
+     * is a ListenerAggregate, attach it to the view, at priority 100. This 
+     * latter allows each to trigger before the default strategy, and for them
+     * to trigger in the order they are registered.
+     * 
+     * @return void
+     */
+    protected function registerViewStrategies()
+    {
+        if (!isset($this->config['strategies'])) {
+            return;
+        }
+        $strategies = $this->config['strategies'];
+        if (is_string($strategies)) {
+            $strategies = array($strategies);
+        }
+        if (!is_array($strategies) && !$strategies instanceof Traversable) {
+            return;
+        }
+
+        $view = $this->getView();
+
+        foreach ($strategies as $strategy) {
+            if (!is_string($strategy)) {
+                continue;
+            }
+
+            $listener = $this->services->get($strategy);
+            if ($listener instanceof ListenerAggregateInterface) {
+                $view->events()->attach($listener, 100);
+            }
+        }
     }
 }
