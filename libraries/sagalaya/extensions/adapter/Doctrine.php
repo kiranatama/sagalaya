@@ -4,6 +4,10 @@ namespace sagalaya\extensions\adapter;
 
 class Doctrine extends \lithium\security\auth\adapter\Form {
 
+	/**
+	 * (non-PHPdoc)
+	 * @see lithium\security\auth\adapter.Form::check()
+	 */
 	public function check($credentials, array $options = array()) {
 
 		$model = $this->_model;
@@ -21,6 +25,10 @@ class Doctrine extends \lithium\security\auth\adapter\Form {
 		return $this->_validate($user, $data);
 	}
 
+	/**
+	 * (non-PHPdoc)
+	 * @see lithium\security\auth\adapter.Form::_validate()
+	 */
 	protected function _validate($user, array $data) {
 		foreach ($this->_validators as $field => $validator) {
 			if (!isset($this->_fields[$field]) || $field === 0) {

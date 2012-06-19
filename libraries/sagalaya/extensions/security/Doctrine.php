@@ -6,14 +6,14 @@ namespace sagalaya\extensions\security;
  * Authentication using Doctrine ORM object
  * @author Mukhamad Ikhsan
  * `options` 
- * 		`auth`			:
- * 		`adapter`		:
- * 		`model`			:
- * 		`fields`		:
- * 		`filters`		:
- * 		`query`			:
- * 		`sessionHolder`	:
- * 		`validator`		:
+ * 		`auth`			: auth class used (e.g : \sagalaya\extensions\security\Doctrine)
+ * 		`adapter`		: adapter class used (e.g : \sagalaya\extensions\adapter\Doctrine)
+ * 		`model`			: model class will be use (e.g : \app\models\User)
+ * 		`fields`		: the fields that will use for querying (e.g : 'email', 'password')
+ * 		`filters`		: `filterize` function if needed (e.g : array('password' => array('\lithium\util\String', 'hash'))) 
+ * 		`query`			: the query will be execute (e.g : findOneBy)
+ * 		`sessionHolder`	: class used for session holder (e.g : \app\models\UserSession)
+ * 		`validator`		: 
  */
 class Doctrine extends \lithium\security\Auth {
 	
