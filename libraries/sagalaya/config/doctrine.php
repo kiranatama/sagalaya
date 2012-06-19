@@ -1,6 +1,7 @@
 <?php 
 use \lithium\core\Libraries;
 use \lithium\core\ConfigException;
+use Doctrine\DBAL\Types\Type;
 
 // Adding Doctrine libraries
 $libraries = array('Doctrine\Common', 'Doctrine\DBAL',
@@ -22,5 +23,7 @@ foreach ($libraries as $name) {
 		}
 	}
 }
+
+Type::addType('money', 'sagalaya\extensions\doctrine\type\MoneyType');
 
 ?>

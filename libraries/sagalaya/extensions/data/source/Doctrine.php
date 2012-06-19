@@ -91,6 +91,8 @@ class Doctrine extends \lithium\data\source\Database {
 					new MysqlSessionInit('utf8', 'utf8_unicode_ci')
 			);
 		}
+		
+		$this->_em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('Decimal', 'money');
 		parent::__construct($config);
 	}
 

@@ -54,6 +54,12 @@ class Doctrine extends \lithium\security\Auth {
 	}
 	
 
+	/**
+	 * 
+	 * @param string $name
+	 * @param array $data
+	 * @param array $options
+	 */
 	public static function set($name, $data, array $options = array()) {
 		$params = compact('name', 'data', 'options');
 	

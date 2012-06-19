@@ -101,4 +101,12 @@ class Number {
 		$this->value = rtrim(rtrim($this->value, '0'),'.');		
 		return $this->value;			
 	}
+	
+	public function __sleep() {
+		return array('value');
+	}
+	
+	public function __wakeup() {
+		return $this;
+	}
 }
