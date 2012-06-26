@@ -15,7 +15,7 @@ class ControllerTest extends Generator {
 		$class->setNamespaceName($this->namespace);
 		
 		$setup = new MethodGenerator('setUp');
-		$class->setMethod($setup);
+		$class->addMethodFromGenerator($setup);
 	
 		return $class;
 	}

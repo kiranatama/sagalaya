@@ -26,12 +26,12 @@ class Controller extends Generator {
 		$publicActions = new PropertyGenerator('publicActions', array(), PropertyGenerator::FLAG_PUBLIC);
 		$docBlock = new DocblockGenerator('Array of function excluded from auth (has public access)');
 		$publicActions->setDocBlock($docBlock);
-		$class->setProperty($publicActions);
+		$class->addPropertyFromGenerator($publicActions);
 
 		$messageMethod = new MethodGenerator('_message');
 		$messageMethod->setParameter('value');
 		$messageMethod->setBody("\lithium\storage\Session::write('message', \$value);");
-		$class->setMethod($messageMethod);
+		$class->addMethodFromGenerator($messageMethod);
 
 		foreach (array('index', 'create', 'edit', 'view', 'delete') as $action) {
 			$method = new MethodGenerator($action);
@@ -99,7 +99,7 @@ class Controller extends Generator {
 					$method->setBody($body);
 					break;
 			}
-			$class->setMethod($method);
+			$class->addMethodFromGenerator($method);
 		}
 
 		if (isset($model->actions)) {
@@ -109,7 +109,7 @@ class Controller extends Generator {
 				if (!file_exists($view_directory . '/' . $action . '.html.twig')) {
 					file_put_contents($view_directory . '/' . $action . '.html.twig', '');
 				}
-				$class->setMethod($method);
+				$class->addMethodFromGenerator($method);
 			}
 		}
 

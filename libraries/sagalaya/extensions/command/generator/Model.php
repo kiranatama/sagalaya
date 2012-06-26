@@ -21,14 +21,14 @@ class Model extends Generator {
 			$this->interfaces[] = '\\Zend\\Acl\\Resource';
 			$resourceId = new MethodGenerator('getResourceId');
 			$resourceId->setBody("return \$this->id;");
-			$class->setMethod($resourceId);
+			$class->addMethodFromGenerator($resourceId);
 		}
 
 		if (isset($model->config->role)) {
 			$this->interfaces[] = '\\Zend\\Acl\\Role';
 			$roleId = new MethodGenerator('getRoleId');
 			$roleId->setBody("return \$this->id;");
-			$class->setMethod($roleId);
+			$class->addMethodFromGenerator($roleId);
 		}
 		
 		$docblock = '@Entity';
@@ -48,7 +48,7 @@ class Model extends Generator {
 			$beforePersist->setBody("\$this->created = new \DateTime();");
 			$beforeUpdate->setBody("\$this->modified = new \DateTime();");
 			
-			$class->setMethods(array($beforePersist, $beforeUpdate));
+			$class->addMethods(array($beforePersist, $beforeUpdate));
 		}
 		$docblock .= "\n@Table(name=\"{$model->config->table}\")";						
 		$class->setDocblock(new DocblockGenerator($docblock));
@@ -76,7 +76,7 @@ class Model extends Generator {
 				$setPassword = new MethodGenerator('setPassword');
 				$setPassword->setParameter("password");
 				$setPassword->setBody("\$this->password = \\lithium\\util\\String::hash(\$password);");
-				$class->setMethod($setPassword);
+				$class->addMethodFromGenerator($setPassword);
 			}
 
 			switch ($type) {
@@ -126,7 +126,7 @@ class Model extends Generator {
 						}
 						
 						$method->setBody($content);
-						$class->setMethod($method);
+						$class->addMethodFromGenerator($method);
 					}
 					
 					$cascades = null;
@@ -144,12 +144,12 @@ class Model extends Generator {
 						$setter = new MethodGenerator("set" . ucfirst("{$field->name}"));
 						$setter->setParameter("date");
 						$setter->setBody("\$this->{$field->name} = new \DateTime(\$date);");
-						$class->setMethod($setter);
+						$class->addMethodFromGenerator($setter);
 					}
 					$docblock = "@Column(type=\"{$type}\"{$attributes})";
 			}			
 			$property->setDocblock($docblock);
-			$class->setProperty($property);
+			$class->addPropertyFromGenerator($property);
 		}
 
 		if ($model->validations) {
@@ -162,7 +162,7 @@ class Model extends Generator {
 		}
 
 		if (!empty($validations)) {
-			$class->setProperty(new PropertyGenerator("validations", $validations, PropertyGenerator::FLAG_PROTECTED));
+			$class->addPropertyFromGenerator(new PropertyGenerator("validations", $validations, PropertyGenerator::FLAG_PROTECTED));
 		}
 
 		$class->setImplementedInterfaces($this->interfaces);
