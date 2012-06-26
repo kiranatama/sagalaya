@@ -18,14 +18,14 @@ class Model extends Generator {
 		$class->setNamespaceName($this->namespace);
 		
 		if (isset($model->config->resource)) {
-			$this->interfaces[] = '\\Zend\\Acl\\Resource';
+			$this->interfaces[] = '\\Zend\\Acl\\Resource\\ResourceInterface';
 			$resourceId = new MethodGenerator('getResourceId');
 			$resourceId->setBody("return \$this->id;");
 			$class->addMethodFromGenerator($resourceId);
 		}
 
 		if (isset($model->config->role)) {
-			$this->interfaces[] = '\\Zend\\Acl\\Role';
+			$this->interfaces[] = '\\Zend\\Acl\\Role\\RoleInterface';
 			$roleId = new MethodGenerator('getRoleId');
 			$roleId->setBody("return \$this->id;");
 			$class->addMethodFromGenerator($roleId);
