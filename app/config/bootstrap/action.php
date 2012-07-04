@@ -42,6 +42,7 @@ use lithium\action\Response;
  * @see lithium\net\http\Router
  */
 Dispatcher::applyFilter('run', function($self, $params, $chain) {
+	$params['app'] = 'app';	
 	Environment::set($params['request']);
 
 	foreach (array_reverse(Libraries::get()) as $name => $config) {

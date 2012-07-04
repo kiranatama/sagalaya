@@ -4,15 +4,13 @@ use \lithium\core\ConfigException;
 use Doctrine\DBAL\Types\Type;
 
 // Adding Doctrine libraries
-$libraries = array('Doctrine\Common', 'Doctrine\DBAL',
-		'Doctrine\ORM', 'Doctrine\DBAL\Migrations');
+$libraries = array('Doctrine');
 
 // Adding Symfony libraries, sagalaya dependent only
-$libraries = array_merge($libraries, array(
-		'Symfony\Component\Yaml', 'Symfony\Component\Console'));
+$libraries = array_merge($libraries, array('Symfony'));
 
 // Adding Zend libraries, sagalaya dependent only
-$libraries = array_merge($libraries, array('Zend\Code', 'Zend\Acl'));
+$libraries = array_merge($libraries, array('Zend'));
 
 foreach ($libraries as $name) {
 	if (!Libraries::get($name)) {
@@ -24,6 +22,7 @@ foreach ($libraries as $name) {
 	}
 }
 
+// Custom type for doctrine
 Type::addType('money', 'sagalaya\extensions\doctrine\type\MoneyType');
 
 ?>

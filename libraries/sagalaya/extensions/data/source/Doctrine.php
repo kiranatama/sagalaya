@@ -70,7 +70,14 @@ class Doctrine extends \lithium\data\source\Database {
 		$configuration->setMetadataCacheImpl(new ArrayCache());
 
 		// Annotation Driver
-		$driver = $configuration->newDefaultAnnotationDriver(array(LITHIUM_APP_PATH . '/models'));
+		$classPaths = array(LITHIUM_APP_PATH . '/models');
+		$iterator = new \DirectoryIterator(reset($classPaths));
+		foreach ($iterator as $file) {
+			if ($file->isDir()) {
+				$classPaths[] = $file->getPath();
+			}
+		}
+		$driver = $configuration->newDefaultAnnotationDriver($classPaths);
 		$configuration->setMetadataDriverImpl($driver);
 
 		$configuration->setSqlLogger(new SqlLogger());
