@@ -1,7 +1,5 @@
 <?php
 
-use lithium\core\Libraries;
-use lithium\core\Environment;
 use lithium\action\Dispatcher;
 use lithium\security\Auth;
 use lithium\storage\Session;
@@ -52,3 +50,5 @@ Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
 		return new Response(compact('request') + array('location' => 'Sessions::add'));
 	};
 });
+
+?>

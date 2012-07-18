@@ -1,6 +1,7 @@
 <?php
-use \lithium\core\Libraries;
-use \lithium\net\http\Media;
+
+use lithium\core\Libraries;
+use lithium\net\http\Media;
 
 Media::type('default', null, array(
 		'view' => '\lithium\template\View',
@@ -15,7 +16,7 @@ Media::type('default', null, array(
 Libraries::add('Twig', array(
 		'path' => LITHIUM_LIBRARY_PATH . '/Twig',
 		'prefix' => 'Twig_',
-		'loader' => 'Twig_Autoloader::autoload',
+		'loader' => 'Twig_Autoloader::autoload'
 ));
 
 require LITHIUM_LIBRARY_PATH . '/sagalaya/extensions/template/Loader.php';

@@ -5,11 +5,13 @@ require __DIR__ . '/twig.php';
 require __DIR__ . '/action.php';
 
 // Load controllers subdirectories
-use \lithium\core\Libraries;
-use \lithium\core\ConfigException;
+use lithium\core\Libraries;
+use lithium\core\ConfigException;
 
+// Populate all subfolder of controllers
 $directory = LITHIUM_APP_PATH . '/controllers';
-$iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory));
+$iterator = new \RecursiveIteratorIterator(
+		new \RecursiveDirectoryIterator($directory));
 $paths = array();
 while ($iterator->valid()) {
 	if (!$iterator->isDot()) {
@@ -21,12 +23,15 @@ while ($iterator->valid()) {
 	$iterator->next();
 }
 
+// Register all controller subfolder as library
 foreach ($paths as $path) {
 	try {
-		Libraries::add($path, array('bootstrap' => false, 'path' => LITHIUM_APP_PATH . '/controllers' . $path));
+		Libraries::add($path,
+				array('bootstrap' => false,
+						'path' => LITHIUM_APP_PATH . '/controllers' . $path));
 	} catch (ConfigException $e) {
 		echo $e->getMessage();
-	}	
+	}
 }
 
 ?>

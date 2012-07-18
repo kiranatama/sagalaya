@@ -4,21 +4,21 @@ namespace sagalaya\extensions\util;
 
 /**
  * When we need to render some function like calendar,
- * it's look messy when we harcode all tag output, 
+ * it's look messy when we harcode all tag output,
  * so this class is make easier to build an html output
  */
 class DomBuilder {
-	
+
 	protected $tag, $properties;
-	public $content; 
+	public $content;
 	protected $parent, $childs;
-	
+
 	public function __construct($tag, $properties = array()) {
 		$this->tag = $tag;
 		$this->properties = $properties;
-		$this->childs = array();				
+		$this->childs = array();
 	}
-	
+
 	/**
 	 * Adding dom element as a child
 	 * @param string $tag
@@ -33,7 +33,7 @@ class DomBuilder {
 		$this->childs[] = $child;
 		return $child;
 	}
-	
+
 	/**
 	 * Get the first tag element that want to modify
 	 * @param string $tag
@@ -45,7 +45,7 @@ class DomBuilder {
 			}
 		}
 	}
-	
+
 	/**
 	 * Output the object to html code
 	 */
@@ -57,7 +57,7 @@ class DomBuilder {
 					$properties .= "$key=\"$value\"";
 				}
 			}
-		}		
+		}
 		$render = "<{$this->tag} {$properties}>";
 		if (isset($this->content)) {
 			$render .= $this->content;
@@ -66,7 +66,8 @@ class DomBuilder {
 			$render .= $child->render();
 		}
 		$render .= "</{$this->tag}>";
-		return $render;	
+		return $render;
 	}
-
 }
+
+?>

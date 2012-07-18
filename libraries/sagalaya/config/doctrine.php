@@ -1,6 +1,6 @@
-<?php 
-use \lithium\core\Libraries;
-use \lithium\core\ConfigException;
+<?php
+use lithium\core\Libraries;
+use lithium\core\ConfigException;
 use Doctrine\DBAL\Types\Type;
 
 // Adding Doctrine libraries
