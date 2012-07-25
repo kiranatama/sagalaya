@@ -136,7 +136,11 @@ class Request extends \lithium\net\http\Request {
 	protected $_locale = null;
 
 	/**
-	 * Pulls request data from superglobals.
+	 * Initialize request object, pulling request data from superglobals.
+	 *
+	 * Defines an artificial `'PLATFORM'` environment variable as either
+	 * `'IIS'`, `'CGI'` or `null` to allow checking for the SAPI in a
+	 * normalized way.
 	 *
 	 * @return void
 	 */
@@ -242,7 +246,12 @@ class Request extends \lithium\net\http\Request {
 		$this->_env[$key] = $val;
 
 		if ($key == 'REMOTE_ADDR') {
-			$val = ($addr = $this->env('HTTP_PC_REMOTE_ADDR')) ? $addr : $val;
+			foreach (array('HTTP_X_FORWARDED_FOR', 'HTTP_PC_REMOTE_ADDR') as $altKey) {
+				if ($addr = $this->env($altKey)) {
+					$val = $addr;
+					break;
+				}
+			}
 		}
 
 		if ($val !== null && $val !== false && $key !== 'HTTPS') {
@@ -258,6 +267,11 @@ class Request extends \lithium\net\http\Request {
 					return (!empty($this->_env['HTTPS']) && $this->_env['HTTPS'] !== 'off');
 				}
 				return false;
+			case 'SERVER_ADDR':
+				if (empty($this->_env['SERVER_ADDR']) && !empty($this->_env['LOCAL_ADDR'])) {
+					return $this->_env['LOCAL_ADDR'];
+				}
+				return $this->_env['SERVER_ADDR'];
 			case 'SCRIPT_FILENAME':
 				if ($this->_env['PLATFORM'] == 'IIS') {
 					return str_replace('\\\\', '\\', $this->env('PATH_TRANSLATED'));
@@ -572,7 +586,9 @@ class Request extends \lithium\net\http\Request {
 			return rtrim($_GET['url'], '/');
 		}
 		if ($uri = $this->env('REQUEST_URI')) {
-			return str_replace($this->env('base'), '/', parse_url($uri, PHP_URL_PATH));
+			return trim(preg_replace(
+				'/^' . preg_quote($this->env('base'), '/') . '/', '', parse_url($uri, PHP_URL_PATH)
+			), '/') ?: '/';
 		}
 		return '/';
 	}

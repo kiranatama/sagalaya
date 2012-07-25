@@ -97,8 +97,7 @@ class Libraries {
 			)
 		),
 		'controllers' => array(
-			'{:library}\controllers\{:namespace}\{:class}\{:name}Controller',
-			'{:application}\controllers\{:library}\{:name}Controller'
+			'{:library}\controllers\{:namespace}\{:class}\{:name}Controller'
 		),
 		'data' => array(
 			'{:library}\extensions\data\{:namespace}\{:class}\{:name}',
@@ -495,8 +494,7 @@ class Libraries {
 	 * is used instead.
 	 *
 	 * @param array $classes An array of fully-namespaced class names (as keys) and
-	 *                     their correponding file's paths (as values).
-	 *
+	 *        their correponding file's paths (as values).
 	 * @return void
 	 */
 	public static function map(array $classes) {
@@ -509,10 +507,9 @@ class Libraries {
 	/**
 	 * Unmap fully-namespaced class names mapped using `lithium\core\Libraries::map()`.
 	 *
-	 * @param mixed $classes An array of fully-namespaced class names or
-	 *		       a string with a fully-namespaced class name.
-	 *
 	 * @see lithium\core\Libraries::map()
+	 * @param mixed $classes An array of fully-namespaced class names or
+	 *        a string with a fully-namespaced class name.
 	 */
 	public static function unmap($classes) {
 		if (!is_array($classes)) {
@@ -838,22 +835,21 @@ class Libraries {
 		if (isset($options['library'])) {
 			$libraries = static::get((array) $options['library']);
 		}
-		
 		foreach ($libraries as $library => $config) {
 			if ($config['defer'] !== $defer && $defer !== null) {
 				continue;
 			}
 
 			foreach (static::_searchPaths($paths, $library, $params) as $tpl) {
-				$params['library'] = $library;				
+				$params['library'] = rtrim($config['prefix'], '\\');
 				$class = str_replace('\\*', '', String::insert($tpl, $params));
-				
+
 				if (file_exists($file = Libraries::path($class, $options))) {
 					return ($options['type'] === 'file') ? $file : $class;
 				}
 			}
-		}		
-	}		
+		}
+	}
 
 	/**
 	 * Returns the list of valid search path templates for the given service location lookup.
@@ -1029,11 +1025,11 @@ class Libraries {
 			$name = '*';
 		}
 		$library = $namespace = $class = '*';
-		
+
 		if (strpos($type, '.') !== false) {
 			$parts = explode('.', $type);
 			$type = array_shift($parts);
-			
+
 			switch (count($parts)) {
 				case 1:
 					list($class) = $parts;
@@ -1053,9 +1049,7 @@ class Libraries {
 			$name = array_pop($parts);
 			$namespace = $parts ? join('\\', $parts) : "*";
 		}
-		
-		$application = substr(LITHIUM_APP_PATH, strrpos(LITHIUM_APP_PATH, '/') + 1);
-		return compact('library', 'namespace', 'type', 'class', 'name', 'application');
+		return compact('library', 'namespace', 'type', 'class', 'name');
 	}
 }
 

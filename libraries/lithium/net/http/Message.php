@@ -47,7 +47,10 @@ class Message extends \lithium\net\Message {
 	 *
 	 * @var array
 	 */
-	protected $_classes = array('media' => 'lithium\net\http\Media');
+	protected $_classes = array(
+		'media' => 'lithium\net\http\Media',
+		'auth' => 'lithium\net\http\Auth'
+	);
 
 	/**
 	 * Adds config values to the public properties when a new object is created.
@@ -104,17 +107,13 @@ class Message extends \lithium\net\Message {
 			}
 		}
 
-		if ($value) {
-			$this->headers = array_merge($this->headers, array($key => $value));
-		} else {
-			foreach ((array) $key as $header => $value) {
-				if (!is_string($header)) {
-					if (preg_match('/(.*?):(.+)/i', $value, $match)) {
-						$this->headers[$match[1]] = trim($match[2]);
-					}
-				} else {
-					$this->headers[$header] = $value;
+		foreach (($value ? array($key => $value) : (array) $key) as $header => $value) {
+			if (!is_string($header)) {
+				if (preg_match('/(.*?):(.+)/', $value, $match)) {
+					$this->headers[$match[1]] = trim($match[2]);
 				}
+			} else {
+				$this->headers[$header] = $value;
 			}
 		}
 		$headers = array();

@@ -37,9 +37,9 @@ class RouterTest extends \lithium\test\Unit {
 		$result = Router::connect('/hello', array('controller' => 'posts', 'action' => 'index'));
 		$expected = array(
 			'template' => '/hello',
-			'pattern' => '@^/hello$@',
-			'params' => array('controller' => 'posts', 'action' => 'index'),
-			'match' => array('controller' => 'posts', 'action' => 'index'),
+			'pattern' => '@^/hello$@u',
+			'params' => array('controller' => 'Posts', 'action' => 'index'),
+			'match' => array('controller' => 'Posts', 'action' => 'index'),
 			'meta' => array(),
 			'persist' => array('controller'),
 			'defaults' => array(),
@@ -53,7 +53,7 @@ class RouterTest extends \lithium\test\Unit {
 		$this->assertTrue($result instanceof Route);
 		$expected = array(
 			'template' => '/{:controller}/{:action}',
-			'pattern' => '@^(?:/(?P<controller>[^\\/]+))(?:/(?P<action>[^\\/]+)?)?$@',
+			'pattern' => '@^(?:/(?P<controller>[^\\/]+))(?:/(?P<action>[^\\/]+)?)?$@u',
 			'params' => array('action' => 'view'),
 			'defaults' => array('action' => 'view'),
 			'match' => array(),
@@ -75,7 +75,7 @@ class RouterTest extends \lithium\test\Unit {
 		));
 		$expected = array(
 			'template' => '/{:controller}/{:action}',
-			'pattern' => '@^(?:/(?P<controller>[^\\/]+))(?:/(?P<action>[^\\/]+)?)?$@',
+			'pattern' => '@^(?:/(?P<controller>[^\\/]+))(?:/(?P<action>[^\\/]+)?)?$@u',
 			'keys' => array('controller' => 'controller', 'action' => 'action'),
 			'params' => array('action' => 'view', 'required' => true),
 			'defaults' => array('action' => 'view'),
@@ -92,7 +92,7 @@ class RouterTest extends \lithium\test\Unit {
 		$result = Router::connect('/{:controller}/{:action}', array('action' => 'archive'));
 		$expected = array(
 			'template' => '/{:controller}/{:action}',
-			'pattern' => '@^(?:/(?P<controller>[^\/]+))(?:/(?P<action>[^\/]+)?)?$@',
+			'pattern' => '@^(?:/(?P<controller>[^\/]+))(?:/(?P<action>[^\/]+)?)?$@u',
 			'keys' => array('controller' => 'controller', 'action' => 'action'),
 			'params' => array('action' => 'archive'),
 			'match' => array(),
@@ -110,7 +110,7 @@ class RouterTest extends \lithium\test\Unit {
 	 */
 	public function testBasicRouteMatching() {
 		Router::connect('/hello', array('controller' => 'posts', 'action' => 'index'));
-		$expected = array('controller' => 'posts', 'action' => 'index');
+		$expected = array('controller' => 'Posts', 'action' => 'index');
 
 		foreach (array('/hello/', '/hello', 'hello/', 'hello') as $url) {
 			$this->request->url = $url;
@@ -215,7 +215,7 @@ class RouterTest extends \lithium\test\Unit {
 		$this->assertEqual('/posts', $result);
 
 		$ex = "No parameter match found for URL ";
-		$ex .= "`('controller' => 'sessions', 'action' => 'create', 'id' => 'foo')`.";
+		$ex .= "`('controller' => 'Sessions', 'action' => 'create', 'id' => 'foo')`.";
 		$this->expectException($ex);
 		$result = Router::match(array("Sessions::create", 'id' => 'foo'));
 	}
@@ -234,7 +234,7 @@ class RouterTest extends \lithium\test\Unit {
 		$this->assertEqual($expected, $result);
 
 		$ex = "No parameter match found for URL `(";
-		$ex .= "'controller' => 'posts', 'action' => 'view', 'id' => '4bbf25bd8ead0e5180130000')`.";
+		$ex .= "'controller' => 'Posts', 'action' => 'view', 'id' => '4bbf25bd8ead0e5180130000')`.";
 		$this->expectException($ex);
 		$result = Router::match(array(
 			'controller' => 'posts', 'action' => 'view', 'id' => '4bbf25bd8ead0e5180130000'
@@ -256,7 +256,7 @@ class RouterTest extends \lithium\test\Unit {
 
 		$request = new Request(array('url' => '/posts/13'));
 		$result = Router::process($request);
-		$expected = array('controller' => 'posts', 'action' => 'index', 'page' => '13');
+		$expected = array('controller' => 'Posts', 'action' => 'index', 'page' => '13');
 		$this->assertEqual($expected, $result->params);
 	}
 
@@ -284,7 +284,7 @@ class RouterTest extends \lithium\test\Unit {
 		$this->assertEqual('/login', $result);
 
 		$this->expectException(
-			"No parameter match found for URL `('controller' => 'sessions', 'action' => 'index')`."
+			"No parameter match found for URL `('controller' => 'Sessions', 'action' => 'index')`."
 		);
 		Router::match(array('controller' => 'sessions', 'action' => 'index'));
 	}
@@ -297,7 +297,7 @@ class RouterTest extends \lithium\test\Unit {
 		$this->assertEqual('/posts', Router::match(array('controller' => 'posts')));
 
 		$this->expectException(
-			"No parameter match found for URL `('controller' => 'posts', 'action' => 'view')`."
+			"No parameter match found for URL `('controller' => 'Posts', 'action' => 'view')`."
 		);
 		Router::match(array('controller' => 'posts', 'action' => 'view'));
 	}
@@ -322,7 +322,7 @@ class RouterTest extends \lithium\test\Unit {
 		$this->assertEqual('/posts/view', $result);
 
 		$ex = "No parameter match found for URL ";
-		$ex .= "`('controller' => 'posts', 'action' => 'view', 'id' => '2')`.";
+		$ex .= "`('controller' => 'Posts', 'action' => 'view', 'id' => '2')`.";
 		$this->expectException($ex);
 		Router::match(array('controller' => 'posts', 'action' => 'view', 'id' => '2'));
 	}
@@ -447,7 +447,7 @@ class RouterTest extends \lithium\test\Unit {
 		Router::connect('/add/{:args}', array('controller' => 'tests', 'action' => 'add'));
 		$request = Router::process(new Request(array('url' => '/add/foo/bar')));
 
-		$params = array('controller' => 'tests', 'action' => 'add', 'args' => array('foo', 'bar'));
+		$params = array('controller' => 'Tests', 'action' => 'add', 'args' => array('foo', 'bar'));
 		$this->assertEqual($params, $request->params);
 		$this->assertEqual(array('controller'), $request->persist);
 
@@ -624,7 +624,7 @@ class RouterTest extends \lithium\test\Unit {
 	 */
 	public function testCustomConfiguration() {
 		$old = Router::config();
-		$config = array('classes' => array('route' => 'my\custom\Route'));
+		$config = array('classes' => array('route' => 'my\custom\Route'), 'unicode' => true);
 
 		Router::config($config);
 		$this->assertEqual($config, Router::config());
@@ -664,7 +664,7 @@ class RouterTest extends \lithium\test\Unit {
 
 		$request = new Request(array('url' => '/en'));
 		$result = Router::process($request)->params;
-		$expected = array('locale' => 'en', 'controller' => 'pages', 'action' => 'view');
+		$expected = array('locale' => 'en', 'controller' => 'Pages', 'action' => 'view');
 		$this->assertEqual($expected, $result);
 	}
 
@@ -753,6 +753,25 @@ class RouterTest extends \lithium\test\Unit {
 			'id' => 13
 		));
 		$this->assertEqual('/versions/13', $result);
+	}
+
+	/**
+	 * Tests default route formatters, and setting/getting new formatters.
+	 */
+	public function testRouteFormatters() {
+		$formatters = Router::formatters();
+		$this->assertEqual(array('args', 'controller'), array_keys($formatters));
+
+		$this->assertEqual('foo/bar', $formatters['args'](array('foo', 'bar')));
+		$this->assertEqual('list_items', $formatters['controller']('ListItems'));
+
+		Router::formatters(array('action' => function($value) { return strtolower($value); }));
+		$formatters = Router::formatters();
+		$this->assertEqual(array('action', 'args', 'controller'), array_keys($formatters));
+
+		Router::formatters(array('action' => null));
+		$formatters = Router::formatters();
+		$this->assertEqual(array('args', 'controller'), array_keys($formatters));
 	}
 }
 

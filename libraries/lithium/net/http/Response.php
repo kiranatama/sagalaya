@@ -107,7 +107,7 @@ class Response extends \lithium\net\http\Message {
 			$this->body = $this->_httpChunkedDecode($this->body);
 		}
 		if (isset($this->headers['Content-Type'])) {
-			$pattern = '/([-\w\/+]+)(;\s*?charset=(.+))?/i';
+			$pattern = '/([-\w\/\.+]+)(;\s*?charset=(.+))?/i';
 			preg_match($pattern, $this->headers['Content-Type'], $match);
 
 			if (isset($match[1])) {
@@ -177,17 +177,8 @@ class Response extends \lithium\net\http\Message {
 		if (empty($this->headers['WWW-Authenticate'])) {
 			return array();
 		}
-		$header = $this->headers['WWW-Authenticate'];
-		$params = array('realm' => 1, 'qop' => 1, 'nonce' => 1, 'opaque' => 1);
-		$keys = implode('|', array_keys($params));
-		$regex = '@(' . $keys . ')=(?:([\'"])([^\2]+?)\2|([^\s,]+))@';
-		preg_match_all($regex, $header, $matches, PREG_SET_ORDER);
-		$results = array();
-
-		foreach ($matches as $m) {
-			$results[$m[1]] = $m[3] ? $m[3] : $m[4];
-		}
-		return $results;
+		$auth = $this->_classes['auth'];
+		return $auth::decode($this->headers['WWW-Authenticate']);
 	}
 
 	/**

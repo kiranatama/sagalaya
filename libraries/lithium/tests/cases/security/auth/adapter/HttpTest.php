@@ -13,6 +13,8 @@ use lithium\action\Request;
 
 class HttpTest extends \lithium\test\Unit {
 
+	public $request;
+
 	public function setUp() {
 		$this->request = new Request();
 	}
@@ -59,7 +61,8 @@ class HttpTest extends \lithium\test\Unit {
 				. 'nc="00000001",cnonce="95b2cd1e179bf5414e52ed62811481cf",'
 				. 'uri="/http_auth",realm="app",'
 				. 'opaque="d3fb67a7aa4d887ec4bf83040a820a46",username="gwoo",'
-				. 'response="04d7d878c67f289f37e553d2025e3a52"')
+				. 'response="04d7d878c67f289f37e553d2025e3a52"'
+			)
 		));
 		$http = new MockHttp(array('realm' => 'app', 'users' => array('gwoo' => 'li3')));
 		$result = $http->check($request);

@@ -10,18 +10,18 @@
 
 namespace Zend\Db\RowGateway;
 
-use Zend\Db\Adapter\Adapter,
-    Zend\Db\ResultSet\Row,
-    Zend\Db\ResultSet\RowObjectInterface,
-    Zend\Db\Sql\TableIdentifier,
-    Zend\Db\Sql\Sql;
+use ArrayAccess;
+use Countable;
+use Zend\Db\Adapter\Adapter;
+use Zend\Db\Sql\Sql;
+use Zend\Db\Sql\TableIdentifier;
 
 /**
  * @category   Zend
  * @package    Zend_Db
  * @subpackage RowGateway
  */
-abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInterface
+abstract class AbstractRowGateway implements ArrayAccess, Countable, RowGatewayInterface
 {
 
     /**
@@ -47,7 +47,7 @@ abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInter
     /**
      * @var array
      */
-    protected $data = null;
+    protected $data = array();
 
     /**
      * @var Sql
@@ -122,6 +122,15 @@ abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInter
     }
 
     /**
+     * @param mixed $array
+     * @return array|void
+     */
+    public function exchangeArray($array)
+    {
+        return $this->populate($array, true);
+    }
+
+    /**
      * Save
      *
      * @return integer
@@ -167,7 +176,8 @@ abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInter
         $rowData = $result->current();
         unset($statement, $result); // cleanup
 
-        $this->populateOriginalData($rowData);
+        // make sure data and original data are in sync after save
+        $this->populate($rowData, true);
 
         // return rows affected
         return $rowsAffected;
@@ -176,7 +186,7 @@ abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInter
     /**
      * Delete
      *
-     * @return type
+     * @return void
      */
     public function delete()
     {
@@ -203,7 +213,7 @@ abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInter
      * Offset get
      *
      * @param  string $offset
-     * @return type
+     * @return mixed
      */
     public function offsetGet($offset)
     {
@@ -214,7 +224,7 @@ abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInter
      * Offset set
      *
      * @param  string $offset
-     * @param  type $value
+     * @param  mixed $value
      * @return RowGateway
      */
     public function offsetSet($offset, $value)
@@ -236,13 +246,7 @@ abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInter
     }
 
     /**
-     * (PHP 5 &gt;= 5.1.0)<br/>
-     * Count elements of an object
-     * @link http://php.net/manual/en/countable.count.php
-     * @return int The custom count as an integer.
-     * </p>
-     * <p>
-     * The return value is cast to an integer.
+     * @return int
      */
     public function count()
     {
@@ -272,5 +276,39 @@ abstract class AbstractRowGateway implements RowGatewayInterface, RowObjectInter
         } else {
             throw new \InvalidArgumentException('Not a valid column in this row: ' . $name);
         }
+    }
+
+    /**
+     * __set
+     *
+     * @param  string $name
+     * @param  mixed $value
+     * @return void
+     */
+    public function __set($name, $value)
+    {
+        $this->offsetSet($name, $value);
+    }
+
+    /**
+     * __isset
+     *
+     * @param  string $name
+     * @return boolean
+     */
+    public function __isset($name)
+    {
+        return $this->offsetExists($name);
+    }
+
+    /**
+     * __unset
+     *
+     * @param  string $name
+     * @return void
+     */
+    public function __unset($name)
+    {
+        $this->offsetUnset($name);
     }
 }

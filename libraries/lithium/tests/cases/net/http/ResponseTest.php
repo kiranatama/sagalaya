@@ -89,6 +89,13 @@ class ResponseTest extends \lithium\test\Unit {
 		$this->assertEqual('UTF-8', $response->encoding); //default
 	}
 
+	public function testParsingContentTypeWithVersionNumber() {
+		$response = new Response(array('headers' => array(
+			'Content-Type' => 'application/x-amz-json-1.0'
+		)));
+		$this->assertEqual('application/x-amz-json-1.0', $response->type);
+	}
+
 	public function testConstructionWithBody() {
 		$response = new Response(array('message' => "Content-type: image/jpeg\r\n\r\nimage data"));
 		$this->assertEqual("image data", $response->body());
@@ -297,7 +304,7 @@ class ResponseTest extends \lithium\test\Unit {
 			'realm' => 'app', 'qop' => 'auth', 'nonce' => '4ee1617b8756e',
 			'opaque' => 'dd7bcee161192cb8fba765eb595eba87'
 		);
-		$result = $response->digest();
+		$result = array_filter($response->digest());
 		$this->assertEqual($expected, $result);
 	}
 }

@@ -371,7 +371,7 @@ class RecordSetTest extends \lithium\test\Unit {
 	}
 
 	public function testTo() {
-		Collection::formats('\lithium\net\http\Media');
+		Collection::formats('lithium\net\http\Media');
 
 		$this->assertFalse(isset($this->_recordSet[0]));
 		$expected = array(
@@ -441,6 +441,15 @@ class RecordSetTest extends \lithium\test\Unit {
 
 		$result = $this->_objectRecordSet->map($filter);
 		$this->assertEqual($expected, $result->get('_data'));
+	}
+
+	public function testReduce() {
+		$filter = function($memo, $rec) {
+			return $memo + $rec->id;
+		};
+		$expected = 10;
+		$result = $this->_recordSet->reduce($filter, 0);
+		$this->assertEqual($expected, $result);
 	}
 
 	public function testRecordSet() {

@@ -23,7 +23,7 @@ use lithium\net\http\RoutingException;
  * {{{
  * use lithium\net\http\Router;
  *
- * Router::connect('/login', array('controller' => 'sessions', 'action' => 'add'));
+ * Router::connect('/login', array('controller' => 'Sessions', 'action' => 'add'));
  *
  * // -- or --
  *
@@ -45,11 +45,21 @@ use lithium\net\http\RoutingException;
 class Router extends \lithium\core\StaticObject {
 
 	/**
-	 * An array of loaded lithium\net\http\Route objects used to match Request objects against.
+	 * An array of loaded `Route` objects used to match Request objects against.
 	 *
+	 * @see lithium\net\http\Route
 	 * @var array
 	 */
 	protected static $_configurations = array();
+
+	/**
+	 * An array of named closures matching up to corresponding route parameter values. Used to
+	 * format those values.
+	 *
+	 * @see lithium\net\http\Router::formatters()
+	 * @var array
+	 */
+	protected static $_formatters = array();
 
 	/**
 	 * Classes used by `Router`.
@@ -60,12 +70,28 @@ class Router extends \lithium\core\StaticObject {
 		'route' => 'lithium\net\http\Route'
 	);
 
+	/**
+	 * Flag for generating Unicode-capable routes. Turn this off if you don't need it, or if you're
+	 * using a broken OS distribution (i.e. CentOS).
+	 */
+	protected static $_unicode = true;
+
+	/**
+	 * Modify `Router` configuration settings and dependencies.
+	 *
+	 * @param array $config Optional array to override configuration. Acceptable keys are
+	 *              `'classes'` and `'unicode'`.
+	 * @return array Returns the current configuration settings.
+	 */
 	public static function config($config = array()) {
 		if (!$config) {
-			return array('classes' => static::$_classes);
+			return array('classes' => static::$_classes, 'unicode' => static::$_unicode);
 		}
 		if (isset($config['classes'])) {
 			static::$_classes = $config['classes'] + static::$_classes;
+		}
+		if (isset($config['unicode'])) {
+			static::$_unicode = $config['unicode'];
 		}
 	}
 
@@ -84,21 +110,26 @@ class Router extends \lithium\core\StaticObject {
 	 * @return array Array of routes
 	 */
 	public static function connect($template, $params = array(), $options = array()) {
-		if (!is_object($template)) {
-			if (is_string($params)) {
-				$params = static::_parseString($params, false);
-			}
-			if (isset($params[0]) && is_array($tmp = static::_parseString($params[0], false))) {
-				unset($params[0]);
-				$params = $tmp + $params;
-			}
-			if (is_callable($options)) {
-				$options = array('handler' => $options);
-			}
-			$class = static::$_classes['route'];
-			$template = new $class(compact('template', 'params') + $options);
+		if (is_object($template)) {
+			return (static::$_configurations[] = $template);
 		}
-		return (static::$_configurations[] = $template);
+		if (is_string($params)) {
+			$params = static::_parseString($params, false);
+		}
+		if (isset($params[0]) && is_array($tmp = static::_parseString($params[0], false))) {
+			unset($params[0]);
+			$params = $tmp + $params;
+		}
+		$params = static::_parseController($params);
+
+		if (is_callable($options)) {
+			$options = array('handler' => $options);
+		}
+		$config = compact('template', 'params') + $options + array(
+			'formatters' => static::formatters(),
+			'unicode' => static::$_unicode
+		);
+		return (static::$_configurations[] = static::_instance('route', $config));
 	}
 
 	/**
@@ -113,6 +144,44 @@ class Router extends \lithium\core\StaticObject {
 			return $request;
 		}
 		return $result;
+	}
+
+	/**
+	 * Used to get or set an array of named formatter closures, which are used to format route
+	 * parameters when generating URLs. For example, for controller/action parameters to be dashed
+	 * instead of underscored or camelBacked, you could do the following:
+	 *
+	 * {{{
+	 * use lithium\util\Inflector;
+	 *
+	 * Router::formatters(array(
+	 * 	'controller' => function($value) { return Inflector::slug($value); },
+	 * 	'action' => function($value) { return Inflector::slug($value); }
+	 * ));
+	 * }}}
+	 *
+	 *  _Note_: Because formatters are copied to `Route` objects on an individual basis, make sure
+	 * you append custom formatters _before_ connecting new routes.
+	 *
+	 * @param array $formatters An array of named formatter closures to append to (or overwrite) the
+	 *              existing list.
+	 * @return array Returns the formatters array.
+	 */
+	public static function formatters(array $formatters = array()) {
+		if (!static::$_formatters) {
+			static::$_formatters = array(
+				'args' => function($value) {
+					return is_array($value) ? join('/', $value) : $value;
+				},
+				'controller' => function($value) {
+					return Inflector::underscore($value);
+				}
+			);
+		}
+		if ($formatters) {
+			static::$_formatters = array_filter($formatters + static::$_formatters);
+		}
+		return static::$_formatters;
 	}
 
 	/**
@@ -258,6 +327,20 @@ class Router extends \lithium\core\StaticObject {
 		return str_replace($match, $replace, var_export($url, true));
 	}
 
+	protected static function _parseController(array $params) {
+		if (!isset($params['controller'])) {
+			return $params;
+		}
+		if (strpos($params['controller'], '.')) {
+			$separated = explode('.', $params['controller'], 2);
+			list($params['library'], $params['controller']) = $separated;
+		}
+		if (strpos($params['controller'], '\\') === false) {
+			$params['controller'] = Inflector::camelize($params['controller']);
+		}
+		return $params;
+	}
+
 	protected static function _prepareParams($url, $context, array $options) {
 		if (is_string($url)) {
 			if (strpos($url, '://')) {
@@ -276,7 +359,7 @@ class Router extends \lithium\core\StaticObject {
 			unset($url[0]);
 			$url = $params + $url;
 		}
-		return static::_persist($url, $context);
+		return static::_persist(static::_parseController($url), $context);
 	}
 
 	/**
@@ -367,7 +450,6 @@ class Router extends \lithium\core\StaticObject {
 			return $context !== false ? "{$base}/{$path}" : null;
 		}
 		list($controller, $action) = explode('::', $path, 2);
-		$controller = Inflector::underscore($controller);
 		return compact('controller', 'action');
 	}
 }

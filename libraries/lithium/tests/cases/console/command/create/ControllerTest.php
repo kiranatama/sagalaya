@@ -22,7 +22,7 @@ class ControllerTest extends \lithium\test\Unit {
 
 	public function skip() {
 		$this->_testPath = Libraries::get(true, 'resources') . '/tmp/tests';
-		$this->skipIf(!is_writable($this->_testPath), "{$this->_testPath} is not writable.");
+		$this->skipIf(!is_writable($this->_testPath), "Path `{$this->_testPath}` is not writable.");
 	}
 
 	public function setUp() {
@@ -78,7 +78,7 @@ class ControllerTest extends \lithium\test\Unit {
 		));
 		$controller->path = $this->_testPath;
 		$controller->run('controller');
-		$expected = "PostsController created in create_test\\controllers.\n";
+		$expected = "PostsController created in controllers/PostsController.php.\n";
 		$result = $controller->response->output;
 		$this->assertEqual($expected, $result);
 
