@@ -1,6 +1,6 @@
 <?php
 
-namespace app\controllers\authentication;
+namespace app\controllers;
 
 use lithium\security\Auth;
 use lithium\storage\Session;

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models\authentication;
+namespace app\models;
 
 /**
  * @Entity(repositoryClass="core\resources\repository\UserRepository")

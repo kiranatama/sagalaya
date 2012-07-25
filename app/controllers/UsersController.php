@@ -1,6 +1,6 @@
 <?php
 
-namespace app\controllers\authentication;
+namespace app\controllers;
 
 class UsersController extends \lithium\action\Controller {
 	
