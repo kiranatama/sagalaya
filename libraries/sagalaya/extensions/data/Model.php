@@ -7,7 +7,7 @@ use lithium\data\Connections;
 /**
  * Description of core Model
  * This class must inherited by all model class
- * @author Mukhamad Ikhsant
+ * @author Mukhamad Ikhsan
  */
 abstract class Model {
 

@@ -6,3 +6,4 @@
 /app/resources/tmp/logs/*
 /app/resources/tmp/tests/*
 /nbproject/private/
+*.komodoproject
