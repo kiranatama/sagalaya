@@ -8,13 +8,13 @@ use Doctrine\Common\Collections\ArrayCollection;
  * Build doctrine object model from array or post data
  * @author Mukhamad Ikhsan
  *
- */ 
+ */
 class ModelBuilder {
 
     public static $properties, $class, $namespace;
 
     /**
-     * 
+     *
      * @param sagalaya\extensions\data\Model $object
      */
     public static function init($object) {
@@ -124,13 +124,13 @@ class ModelBuilder {
      * @param mixed $value
      */
     public static function add($object, $field, $value) {
-        
+
         $targetEntity = static::$namespace . '\\' . ModelAnnotation::get($object, $field, 'targetEntity');
-        
+
         foreach ($value as $index => $item) {
 
             if (is_array($item)) {
-                $instance = $targetEntity::findOneBy($item);                
+                $instance = $targetEntity::findOneBy($item);
             } else if (is_int($item) || is_string($item)) {
                 $instance = $targetEntity::get($item);
             } else if (is_object($item)) {

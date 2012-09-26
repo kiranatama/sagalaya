@@ -22,13 +22,13 @@ class SqlLogger extends \lithium\core\Object implements \Doctrine\DBAL\Logging\S
     public function logSQL($sql, array $params = null, $executionMS = null) {
 		Logger::write('debug', $sql);
 	}
-	
+
 	public function startQuery($sql, array $params = null, array $types = null){
-		
+
 	}
-	
+
 	public function stopQuery(){
-		
+
 	}
 }
 

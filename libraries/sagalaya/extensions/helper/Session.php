@@ -24,16 +24,16 @@ class Session extends Helper {
      * @param string $key Key of flash message. Defaults to 'message' if not set.
      * @return string Flash message, or null if not set.
      */
-    public function message($key = null) {        
+    public function message($key = null) {
         $class = $this->_classes['session'];
-        
+
         $key = ($key === null) ? 'message' : $key;
-        
-        if ($message = $class::read($key)) {                        
-            $class::delete($key);            
+
+        if ($message = $class::read($key)) {
+            $class::delete($key);
             return $message;
         }
-        
+
         return "";
     }
 
@@ -44,7 +44,7 @@ class Session extends Helper {
      * @return string The value stored in the session, or null if it does not exist.
      */
     public function read($key = null) {
-        $class = $this->_classes['session'];        
+        $class = $this->_classes['session'];
         return $class::read($key);
     }
 }

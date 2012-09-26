@@ -9,11 +9,8 @@
 namespace sagalaya\extensions\template\view\adapter;
 
 use RuntimeException;
-use \lithium\core\Libraries;
-use \Twig_Environment;
-use \Twig_Loader_Filesystem;
-use \Twig_Node_Expression_GetAttr;
-use \Twig_TemplateInterface;
+use lithium\core\Libraries;
+use Twig_TemplateInterface;
 
 /**
  * Template class for rendering Twig templates

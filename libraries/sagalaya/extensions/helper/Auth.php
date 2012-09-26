@@ -6,7 +6,7 @@ use lithium\template\Helper;
 use sagalaya\extensions\security\Auth as sAuth;
 
 /**
- * 
+ *
  * @author Mukhamad Ikhsan
  *
  */

@@ -24,18 +24,18 @@ class Generator extends \lithium\console\Command {
 	 */
 	public function run($args = array()) {
 		$blueprint = opendir(LITHIUM_APP_PATH . $this->designPath);
-		
-		$args = $this->request->argv;		
-		if (count($args) > 1) {			
+
+		$args = $this->request->argv;
+		if (count($args) > 1) {
 			foreach ($args as $argv) {
-				$filename = LITHIUM_APP_PATH . $this->designPath . DIRECTORY_SEPARATOR . $argv . '.xml';				
+				$filename = LITHIUM_APP_PATH . $this->designPath . DIRECTORY_SEPARATOR . $argv . '.xml';
 				if (file_exists($filename)) {
 					$this->process($filename);
 				}
-			}			
+			}
 		} else {
 			while (($filename = readdir($blueprint)) !== false) {
-				if (!is_dir($filename)) {				
+				if (!is_dir($filename)) {
 					$this->process(LITHIUM_APP_PATH . $this->designPath . DIRECTORY_SEPARATOR . $filename);
 				}
 			}
@@ -53,7 +53,7 @@ class Generator extends \lithium\console\Command {
 		$model = new Model($xml);
 		$modelTest = new ModelTest($xml);
 		$repository = new Repository($xml);
-		
+
 		$this->write(array($model, $modelTest, $repository));
 
 		if (isset($xml->config->controller) && "{$xml->config->controller}" == "true") {
@@ -70,10 +70,10 @@ class Generator extends \lithium\console\Command {
 	public function write($classes) {
 
 		foreach ($classes as $class) {
-			
+
 			$type = substr(get_class($class), strripos(get_class($class), '\\') + 1);
-									
-			if (file_exists($class->path) && !$this->generateAll && 
+
+			if (file_exists($class->path) && !$this->generateAll &&
 					!in_array($type, array('ModelTest', 'Controller', 'ControllerTest', 'Repository'))) {
 
 				$result = $this->in("File {$class->path} is already exists, overwrite the file?",
@@ -85,9 +85,9 @@ class Generator extends \lithium\console\Command {
 				}
 
 			} else {
-				$this->put_file($class->path,  $class->generate());				
+				$this->put_file($class->path,  $class->generate());
 			}
-				
+
 		}
 
 	}

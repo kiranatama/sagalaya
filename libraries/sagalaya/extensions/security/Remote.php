@@ -5,11 +5,11 @@ namespace sagalaya\extensions\security;
 /**
  * Authenticate using remote function
  * @author Mukhamad Ikhsan
- * `options` 	: 
+ * `options` 	:
  * 		`auth`		:
  * 		`adapter`	:
  * 		`api` 		: Used classname
- * 		`function`	: called function on the classname 
+ * 		`function`	: called function on the classname
  */
 class Remote extends \lithium\security\Auth {
 
@@ -18,25 +18,25 @@ class Remote extends \lithium\security\Auth {
 		$defaults = array('checkSession' => true, 'writeSession' => true);
 		$options += $defaults;
 		$params = compact('name', 'credentials', 'options');
-		
+
 		return static::_filter(__FUNCTION__, $params, function($self, $params) {
 			extract($params);
-				
+
 			$config = $self::invokeMethod('_config', array($name));
 
 			if ($config === null) {
 				throw new ConfigException("Configuration `{$name}` has not been defined.");
 			}
-				
+
 			$session = $config['session'];
 			$options += $config;
-				
+
 			if ($options['checkSession'] && !isset($credentials)) {
-				if ($data = $session['class']::read($session['key'], $session['options'])) {										
+				if ($data = $session['class']::read($session['key'], $session['options'])) {
 					return call_user_func(array($options['api'], $options['function']), $data);
 				}
 			}
-			
+
 			if (($credentials) && $data = $self::adapter($name)->check($credentials, $options)) {
 				return ($options['writeSession']) ? $self::set($name, $data) : $data;
 			}

@@ -9,11 +9,10 @@
 
 namespace sagalaya\extensions\template\view\adapter;
 
-use \lithium\core\Libraries;
-use \lithium\core\Environment;
-use \Twig_Environment;
-use \Twig_Loader_Filesystem;
-use \sagalaya\extensions\template\adapter\view\Template;
+use lithium\core\Libraries;
+use lithium\core\Environment;
+use Twig_Environment;
+use Twig_Loader_Filesystem;
 
 /**
  * View adapter for Twig templating.
@@ -84,9 +83,9 @@ class Twig extends \lithium\template\view\Renderer {
 	 * @param array $options
 	 * @return string
 	 */
-	public function render($paths, $data = array(), array $options = array()) {		
+	public function render($paths, $data = array(), array $options = array()) {
 		$this->_context = $options['context'] + $this->_context;
-		
+
 		$directories = array_map(function ($item) {
 			if (file_exists(dirname($item))) {
 				return dirname($item);
@@ -102,7 +101,7 @@ class Twig extends \lithium\template\view\Renderer {
 
 		//Because $this is not available in the Twig template view is used as a substitute.
 		return $template->render((array) $data + array('this' => $this));
-	}	
+	}
 
 }
 

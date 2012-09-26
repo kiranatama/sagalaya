@@ -52,7 +52,7 @@ class Doctrine extends \lithium\data\source\Database {
 						'auto' => (Environment::is('production'))?false:true,
 						'path' => LITHIUM_APP_PATH . '/resources/tmp/cache/Doctrine/Proxies',
 						'namespace' => 'Doctrine\Proxies'
-				),				
+				),
 				'mapping' => array('class' => null, 'path' => LITHIUM_APP_PATH . '/models'),
 				'configuration' => null,
 				'eventManager' => null,
@@ -98,7 +98,7 @@ class Doctrine extends \lithium\data\source\Database {
 					new MysqlSessionInit('utf8', 'utf8_unicode_ci')
 			);
 		}
-		
+
 		$this->_em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('Decimal', 'money');
 		parent::__construct($config);
 	}

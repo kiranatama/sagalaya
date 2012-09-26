@@ -156,10 +156,10 @@ abstract class Model {
 	 * @return array query result
 	 */
 	public static function getCompactList($field, $conditions = array()) {
-			
+
 		$query = self::findAll($conditions);
 		$result = array();
-		
+
 		foreach ($query as $row) {
 			if (is_array($field)) {
 				$result[$row->id] = '';
@@ -171,7 +171,7 @@ abstract class Model {
 				$result[$row->id] = $row->$field;
 			}
 		}
-		
+
 		return $result;
 	}
 
@@ -243,7 +243,7 @@ abstract class Model {
 		}
 
 		if (isset($options['select'])) {
-			foreach ($options['select'] as $select) {				
+			foreach ($options['select'] as $select) {
 				if (isset($select['aggregate'])) {
 					$aggregate = strtoupper($select['aggregate']);
 					$as = (isset($select['as'])) ? $select['as'] : $select['field'];
@@ -252,12 +252,12 @@ abstract class Model {
 						foreach ($select['field'] as $key => $field) {
 							$select['field'][$key] = "{$className}.{$field}";
 						}
-						$selectField = implode(" {$separator} ", $select['field']);						
+						$selectField = implode(" {$separator} ", $select['field']);
 					} else {
 						$selectField =	"{$className}.{$select['field']}";
-					}										
+					}
 					switch ($aggregate) {
-						case 'SUM' :							
+						case 'SUM' :
 							$selected[] = "SUM({$selectField}) as {$as}";
 							break;
 						case 'AVG' :
@@ -272,7 +272,7 @@ abstract class Model {
 				}
 			}
 		}
-		
+
 		$qb->select($className . (!empty($selected) ? ", " : "") . implode(", ", $selected) .
 				(isset($options['groupBy']['select']) ? ", {$options['groupBy']['select']}" : ""))
 				->from(get_called_class(), $className);
@@ -316,7 +316,7 @@ abstract class Model {
 
 	/**
 	 * findAll is intensive method that using of processQuery function
-	 * 
+	 *
 	 * example of using findAll function
 	 *
 	 * $users = User::findAll([
@@ -330,20 +330,20 @@ abstract class Model {
 	 * 			['city' => ['like' => '%Bandung%']]],
 	 * 		'or' => [['birthday' => ['lte' => '2012-10-10']]]
 	 * 	],
-	 * 	'leftJoin' => [['field' => 'group', 'where' => [ ['name' => ['eq' => 'administrator']] ] ]],	 
+	 * 	'leftJoin' => [['field' => 'group', 'where' => [ ['name' => ['eq' => 'administrator']] ] ]],
 	 * 	'orderBy' => ['fields' => ['age', 'fullname'], 'direction' => 'DESC'],
 	 * 	'offset' => 0, 'limit' => 10, 'groupBy' => 'group'
 	 * ], User::Model_Single_Scalar)
-	 * 
+	 *
 	 * Note : sample on PHP 5.4 provide [] as array
-	 *  
+	 *
 	 * @param array $options
 	 * @param string $type
 	 */
 	public static function findAll($options = array(), $type = Model::Model_Object) {
-			
+
 		$qb = self::processQuery($options);
-			
+
 		switch ($type) {
 			case Model::Model_Object :
 				return $qb->getQuery()->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_OBJECT);
@@ -355,8 +355,8 @@ abstract class Model {
 				return $qb->getQuery()->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_SINGLE_SCALAR);
 			case Model::Model_Simple_Object :
 				return $qb->getQuery()->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_SIMPLEOBJECT);
-		}				
-			
+		}
+
 		throw new \Exception("Wrong provided type of returning query for Model::findAll(). \n
 				Must one of these (OBJECT, ARRAY, SCALAR, SINGLESCALAR, SIMPLE)");
 	}
@@ -366,13 +366,13 @@ abstract class Model {
 	 * @param array $options
 	 */
 	public static function debugQuery($options = array()) {
-			
+
 		$qb = self::processQuery($options);
 		$br = "<br />";
-			
+
 		$debug = "DQL Result : {$br}\n{$qb->getDQL()}{$br}{$br}\n";
 		$debug .= "SQL Result : {$br}\n{$qb->getQuery()->getSQL()}{$br}\n";
-			
+
 		die($debug);
 	}
 
@@ -415,7 +415,7 @@ abstract class Model {
 	 * @param string $alias
 	 */
 	private static function addRule($qb, $rule, $alias = null) {
-			
+
 		foreach ($rule as $key => $value) {
 			$field = $key;
 			foreach ($value as $_cond => $_match) {
@@ -423,7 +423,7 @@ abstract class Model {
 				$match = $_match;
 			}
 		}
-			
+
 		if (!is_numeric($match) && !is_array($match) &&
 				$condition != 'is') {
 			if ($match instanceof \DateTime) {
@@ -438,7 +438,7 @@ abstract class Model {
 				if ($value instanceof \DateTime) {
 					$value = $value->format('Y-m-d');
 				}
-					
+
 				if (!preg_match('|\'.*\'|', $value)) {
 					$match[$index] = "'{$value}'";
 				}
@@ -489,15 +489,15 @@ abstract class Model {
 	 * @return array
 	 */
 	public function toArray($joins = array()) {
-		
+
 		if (empty($this->id)) {
 			return ModelValidator::convertToArray($this);
 		}
-		
+
 		foreach ($joins as $key => $join) {
 			$joins[$key] = array('field' => $join);
 		}
-		
+
 		return end(self::findAll(array(
 			'where' => array(
 					'and' => array(

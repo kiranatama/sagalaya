@@ -10,14 +10,14 @@ use lithium\template\Helper;
  * @author Mukhamad Ikhsan
  */
 class Server extends Helper {
-    
+
     public function url() {
         return 'http://' . $_SERVER['SERVER_NAME'];
     }
-    
-    public function matchUrl($match, $url) {        
+
+    public function matchUrl($match, $url) {
         return preg_match("|{$match}|", $url);
-    }      
+    }
 }
 
 ?>

@@ -12,11 +12,11 @@ class Model extends Generator {
 	public $interfaces = array();
 
 	public function build($model) {
-		
+
 		$class = new ClassGenerator($model->config->name);
-		$class->setExtendedClass('\sagalaya\extensions\data\Model');		
+		$class->setExtendedClass('\sagalaya\extensions\data\Model');
 		$class->setNamespaceName($this->namespace);
-		
+
 		if (isset($model->config->resource)) {
 			$this->interfaces[] = '\\Zend\\Acl\\Resource\\ResourceInterface';
 			$resourceId = new MethodGenerator('getResourceId');
@@ -30,29 +30,29 @@ class Model extends Generator {
 			$roleId->setBody("return \$this->id;");
 			$class->addMethodFromGenerator($roleId);
 		}
-		
+
 		$docblock = '@Entity';
 		if (isset($model->config->repository) && "{$model->config->repository}" == "true") {
 			$docblock .= "(repositoryClass=\"{$this->app}\\resources\\repository\\{$model->config->name}Repository\")";
 		}
-		
+
 		if (isset($model->config->callback) && "{$model->config->callback}" == "true") {
 			$docblock .= "\n@HasLifecycleCallbacks";
-			
+
 			$beforePersist = new MethodGenerator('beforePersist');
 			$beforeUpdate = new MethodGenerator('beforeUpdate');
-			
+
 			$beforePersist->setDocblock("@PrePersist");
 			$beforeUpdate->setDocblock("@PreUpdate");
-			
+
 			$beforePersist->setBody("\$this->created = new \DateTime();");
 			$beforeUpdate->setBody("\$this->modified = new \DateTime();");
-			
+
 			$class->addMethods(array($beforePersist, $beforeUpdate));
 		}
-		$docblock .= "\n@Table(name=\"{$model->config->table}\")";						
+		$docblock .= "\n@Table(name=\"{$model->config->table}\")";
 		$class->setDocblock(new DocblockGenerator($docblock));
-		
+
 		$validations = array();
 
 		foreach ($model->fields->field as $field) {
@@ -95,27 +95,27 @@ class Model extends Generator {
 					$relation = "{$field->relation}";
 					$mappedBy = (isset($field->mappedBy)) ? ", mappedBy=\"{$field->mappedBy}\"" : null;
 					$inversedBy = (isset($field->inversedBy)) ? ", inversedBy=\"{$field->inversedBy}\"" : null;
-					
-					
+
+
 					if ($relation == "OneToMany" || $relation == "ManyToMany") {
-							
+
 						$methodName = "add" . ucfirst("$field->name");
 						$parameter = lcfirst("$field->targetEntity");
-								
+
 						$method = new MethodGenerator($methodName);
 						$method->setParameter($parameter);
-						
+
 						$content = "\$this->{$field->name}->add(\${$parameter});";
-						
+
 						if (isset($field->mappedBy)) {
 							$content .= "\n";
 							if ($relation == "OneToMany") {
 								$content .= "\${$parameter}->{$field->mappedBy} = \$this;";
 							} else {
 								$content .= "\${$parameter}->{$field->mappedBy}->add(\$this);";
-							}							
+							}
 						}
-						
+
 						if (isset($field->inversedBy)) {
 							$content .= "\n";
 							if ($relation == "OneToMany") {
@@ -124,11 +124,11 @@ class Model extends Generator {
 								$content .= "\${$parameter}->{$field->inversedBy}->add(\$this);";
 							}
 						}
-						
+
 						$method->setBody($content);
 						$class->addMethodFromGenerator($method);
 					}
-					
+
 					$cascades = null;
 					if (isset($field->cascades->cascade[0])) {
 						$cascades = ", cascade={";
@@ -147,7 +147,7 @@ class Model extends Generator {
 						$class->addMethodFromGenerator($setter);
 					}
 					$docblock = "@Column(type=\"{$type}\"{$attributes})";
-			}			
+			}
 			$property->setDocblock($docblock);
 			$class->addPropertyFromGenerator($property);
 		}

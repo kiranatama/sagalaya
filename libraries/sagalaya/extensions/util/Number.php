@@ -48,65 +48,67 @@ class Number {
 		$this->value = bcadd($this->value, $number, $this->_getMaxPoint($number));
 		return clone $this;
 	}
-	
+
 	public function sub($number) {
 		$number = "$number";
 		$this->value = bcsub($this->value, $number, $this->_getMaxPoint($number));
 		return clone $this;
 	}
-	
+
 	public function mul($number) {
 		$number = "$number";
 		$this->value = bcmul($this->value, $number, $this->_getMaxPoint($number) * 2);
 		return clone $this;
 	}
-	
+
 	public function div($number) {
 		$number = "$number";
 		$this->value = bcdiv($this->value, $number, Number::MAX_POINT_LENGTH);
 		return clone $this;
 	}
-	
+
 	public function comp($number) {
 		$number = "$number";
 		return bccomp($this->__toString(), $number, $this->_getMaxPoint($number));
 	}
-	
+
 	public function gt($number) {
 		return ($this->comp($number) == 1);
 	}
-	
+
 	public function lt($number) {
 		return ($this->comp($number) == -1);
 	}
-	
+
 	public function gte($number) {
 		return ($this->gt($number) || $this->comp($number) == 0);
 	}
-	
+
 	public function lte($number) {
 		return ($this->lt($number) || $this->comp($number) == 0);
 	}
-	
+
 	public function eq($number) {
 		return ($this->comp($number) == 0);
 	}
-	
+
 	public function neq($number) {
 		return ($this->comp($number) != 0);
 	}
-	
+
 	public function __toString() {
-		if (empty($this->value)) return '0';		
-		$this->value = rtrim(rtrim($this->value, '0'),'.');		
-		return $this->value;			
+		if (empty($this->value)) { return '0'; }
+		$this->value = rtrim(rtrim($this->value, '0'),'.');
+		return $this->value;
 	}
-	
+
 	public function __sleep() {
 		return array('value');
 	}
-	
+
 	public function __wakeup() {
 		return $this;
 	}
 }
+
+?>

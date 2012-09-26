@@ -5,16 +5,16 @@ namespace sagalaya\extensions\data;
 use lithium\util\Validator;
 
 /**
- * 
+ *
  * @author Mukhamad Ikhsan
  *
  */
 class ModelValidator {
-	
+
 	public static $_errors;
-	
+
 	/**
-	 * 
+	 *
 	 * @param Model $object
 	 * @param array $object_hash
 	 */
@@ -22,26 +22,26 @@ class ModelValidator {
 		$errors = ModelValidator::validate($object, $object_hash);
 		return empty($errors);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param Model $object
 	 * @param array $object_hash
 	 */
 	public static function validate($object, $object_hash = array()) {
-		
-		$errors = null;			
+
+		$errors = null;
 		if (!in_array(spl_object_hash($object), $object_hash)) {
 			$object_hash[] = spl_object_hash($object);
 		}
 		$reflection = new \ReflectionClass($object);
 		$classname = $reflection->getName();
 		$validations = $object->validations;
-		
+
 		if (!empty($validations)) {
-			
-			$unique = $equalWith = $custom = array();			 
-			
+
+			$unique = $equalWith = $custom = array();
+
 			foreach ($validations as $field => $rules) {
 				foreach ($rules as $key => $value) {
 					if ($value[0] == "unique") {
@@ -64,43 +64,43 @@ class ModelValidator {
 							unset($validations[$field]);
 						} else {
 							unset($validations[$field][$key]);
-						} 
+						}
 					}
 				}
 			}
-												
+
 			$errors = Validator::check(static::convertToArray($object), $validations);
-			
+
 			/** Unique checking */
 			foreach ($unique as $key => $value) {
-				$result = $classname::findOneBy(array($value[0] => $object->$value[0]));								
+				$result = $classname::findOneBy(array($value[0] => $object->$value[0]));
 				if (!empty($result)) {
-					
+
 					// same unique value but different id
-					if (isset($object->id) && $object->id != $result->id) {						
+					if (isset($object->id) && $object->id != $result->id) {
 						$errors[$value[0]][] = $value["message"];
 					}
-					
+
 					// new instance trying to be same unique value
-					if (!$object->id) {								
+					if (!$object->id) {
 						$errors[$value[0]][] = $value["message"];
 					}
 				}
 			}
-			
+
 			/** EqualWith checking */
-			foreach ($equalWith as $key => $value) {					
-				
+			foreach ($equalWith as $key => $value) {
+
 				// get exception for existing object password
-				if ($object->id && $value['with'] == 'password') {					
+				if ($object->id && $value['with'] == 'password') {
 					break;
 				}
-										
-				if (strcmp($object->$value[0], $object->$value['with']) != 0) {							
+
+				if (strcmp($object->$value[0], $object->$value['with']) != 0) {
 					$errors[$value[0]][] = $value["message"];
 				}
 			}
-			
+
 			/** Custom validations */
 			foreach ($custom as $key => $value) {
 				$rule = create_function('$object', $value['function']);
@@ -108,22 +108,22 @@ class ModelValidator {
 					$errors[$value[0]][] = $value['message'];
 				}
 			}
-									
+
 			$reflection = new \ReflectionClass($object);
 			$properties = $reflection->getProperties(\ReflectionProperty::IS_PROTECTED);
 			try {
-				foreach ($properties as $property) {					
-					$property->setAccessible(true);					
+				foreach ($properties as $property) {
+					$property->setAccessible(true);
 					if (ModelAnnotation::match($property, array('ManyToMany', 'OneToMany'))) {
-						$relation = $property->getValue($object);						
-						foreach ($relation as $item) {							
+						$relation = $property->getValue($object);
+						foreach ($relation as $item) {
 							if (!in_array(spl_object_hash($item), $object_hash)) {
 								if (!ModelValidator::isValid($item, $object_hash)) {
 									$errors[$property->getName()] = $item->getErrors();
 								}
 							}
 						}
-					} elseif(ModelAnnotation::match($property, array('ManyToOne', 'OneToOne'))) {						
+					} elseif(ModelAnnotation::match($property, array('ManyToOne', 'OneToOne'))) {
 						if ($item = $property->getValue($object)) {
 							if (!in_array(spl_object_hash($item), $object_hash)) {
 								if (!ModelValidator::isValid($item, $object_hash)) {
@@ -134,25 +134,25 @@ class ModelValidator {
 					}
 				}
 			} catch (\ReflectionException $e) {
-				die($e->getTrace() . "-" . $e->getMessage());				
+				die($e->getTrace() . "-" . $e->getMessage());
 				continue;
 			}
 		}
-		
+
 		ModelValidator::$_errors[spl_object_hash($object)] = $errors;
-		return $errors;		
+		return $errors;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param Model $object
 	 */
 	public static function getErrors($object) {
-		return ModelValidator::$_errors[spl_object_hash($object)];		
+		return ModelValidator::$_errors[spl_object_hash($object)];
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param Model $object
 	 */
 	public static function convertToArray($object) {
@@ -167,15 +167,15 @@ class ModelValidator {
 				$result[$field] = null;
 			} else {
 				if (ModelAnnotation::match($property, array('ManyToMany', 'OneToMany'))) {
-					$result[$field] = $value->count();					
-				} elseif (ModelAnnotation::match($property, array('ManyToOne', 'OneToOne'))) {				
+					$result[$field] = $value->count();
+				} elseif (ModelAnnotation::match($property, array('ManyToOne', 'OneToOne'))) {
 					$result[$field] = $value->id;
 				} else {
 					$result[$field] = $value;
-				}	
+				}
 			}
 		}
 		return $result;
 	}
-	
+
 }

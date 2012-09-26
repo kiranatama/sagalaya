@@ -9,12 +9,12 @@ use Zend\Code\Generator\PropertyGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use lithium\util\Inflector;
 
-class Controller extends Generator {	
-	
+class Controller extends Generator {
+
 	public function build($model) {
-		
+
 		$class = new ClassGenerator(Inflector::pluralize("{$model->config->name}") . 'Controller');
-		$class->setExtendedClass('\lithium\action\Controller');		
+		$class->setExtendedClass('\lithium\action\Controller');
 		$class->setNamespaceName($this->namespace);
 
 		$directory = LITHIUM_APP_PATH . '/views/' . strtolower(Inflector::pluralize("{$model->config->name}"));
@@ -115,8 +115,8 @@ class Controller extends Generator {
 
 		return $class;
 	}
-	
+
 	public function createView($filename) {
-		
+
 	}
 }

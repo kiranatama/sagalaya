@@ -59,3 +59,5 @@ class Doctrine extends \lithium\security\auth\adapter\Form {
 	}
 
 }
+
+?>
