@@ -1,6 +1,15 @@
+
+{{this.html.script(['syntax/shCore', 'syntax/shLegacy', 
+					'syntax/shAutoloader', 
+    				'syntax/shBrushPhp', 'syntax/shBrushBash'])}}
+{{this.html.style(['syntax/shCore', 'syntax/shThemeDefault'])}}
+
 <div class="span8">
 	<h2>Getting Started</h2>
 	<ul class="additional-resources">
+		<li>
+			Clone this code from <pre class="brush: bash">git@github.com:codebe/sagalaya.git</pre>
+		</li>
 		<li>
 			Sagalaya is a <strong><i>plugin</i></strong> framework, what do you mean? Sagalaya is not a framework that built from scratch,
 			actually this is just plugin for lithium, that make lithium like a monolithic framework.
@@ -10,11 +19,9 @@
 		<li>
 			Why Lithium? Lithium is a great framework for flexibility. Has a small footprint and very flexible. 
 			You can built a monolithic framework with this (like i do), but Lithium always give a choice for you to make a decission.					
-		</li>			
+		</li>
+		<li>Go to the {{ this.html.link('tutorial page',{'controller':'pages','action':'tutorial'}) }} for grasp the basic of sagalaya.</li>
 	</ul>
 </div>
 
-<div class="span4">	
-	{{ this.calendar.render(null, 
-		{'abbreviate':true, 'style':{'table':'table table-striped', 'title':'title'}}) }}
-</div>
+
