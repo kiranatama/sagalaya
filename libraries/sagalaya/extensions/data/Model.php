@@ -318,36 +318,24 @@ abstract class Model {
 	 * findAll is intensive method that using of processQuery function
 	 * 
 	 * example of using findAll function
+	 *
+	 * $users = User::findAll([
+	 * 	'select' => [
+	 * 		['field' => 'type'],
+	 * 		['field' => ['salary', 'others], 'aggregate' => 'SUM', 'operator' => '*', 'as' => 'income]
+	 * 		['field' => 'id', 'aggregate' => 'COUNT', 'as' => 'number]
+	 * 	],
+	 * 	'where' => [
+	 * 		'and' => [['fullname' => ['is' => 'NOT NULL']],
+	 * 			['city' => ['like' => '%Bandung%']]],
+	 * 		'or' => [['birthday' => ['lte' => '2012-10-10']]]
+	 * 	],
+	 * 	'leftJoin' => [['field' => 'group', 'where' => [ ['name' => ['eq' => 'administrator']] ] ]],	 
+	 * 	'orderBy' => ['fields' => ['age', 'fullname'], 'direction' => 'DESC'],
+	 * 	'offset' => 0, 'limit' => 10, 'groupBy' => 'group'
+	 * ], User::Model_Single_Scalar)
 	 * 
-	 * User::findAll(array(
-	 * 
-	 * 		'select' => array(
-	 * 			array('field' => 'type'),
-	 * 			array('field' => array('salary', 'others'), 
-	 * 					'aggregate' => 'SUM', 'operator' => '*', 'as' => 'income'),
-	 * 			array('field' => 'id', 'aggregate' => 'COUNT', 'as' => 'number')
-	 * 		),
-	 * 
-	 * 		'where' => array(
-	 * 			'and' => array(
-	 * 				array('fullname' => array('is' => 'NOT NULL')),
-	 * 				array('city' => array('like' => '%Bandung%')) 
-	 * 			),
-	 * 			'or' => array(
-	 *				array('birthday' => array('lte' => '2012-10-10'))
-	 * 			)
-	 * 		),
-	 *  
-	 * 		'leftJoin' => array(
-	 * 			array('field' => 'group', 
-	 * 					'where' => array(
-	 * 						array('name' => array('eq' => 'administrator'))
-	 * 			))
-	 * 		),
-	 * 
-	 * 		'offset' => 0, 'limit' => 10, 'groupBy' => 'group',
-	 * 		'orderBy' => array('fields' => array('age', 'fullname'), 'direction' => 'DESC')
-	 * ), User::Model_Array);
+	 * Note : sample on PHP 5.4 provide [] as array
 	 *  
 	 * @param array $options
 	 * @param string $type

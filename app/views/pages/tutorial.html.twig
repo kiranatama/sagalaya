@@ -440,6 +440,27 @@
 					<div class="span8">													
 							<!-- Twig Templating -->
 							<h3 id="twig-templating">Twig Templating</h3>
+							<span>For documentation you can click {{ this.html.link('here', 'http://twig.sensiolabs.org/doc/templates.html') }},
+							below is example on form view (e.g : create.html.twig)</span>
+							<pre class="brush: php">
+								{% raw %}
+								
+										{% macro errors(input) %}
+												{% for error in input %}
+												<div class="warning">{{error}}</div>
+												{% endfor %}
+										{% endmacro %}
+										
+										{{ this.form.create() }}
+										
+												{{ this.form.field('username',{'value':user.username})}}
+												{{ _self.errors(errors.username) }}
+												
+												{{ this.form.submit('Create',{'class':'btn-submit'}) }}
+										
+										{{ this.form.end() }}
+								{% endraw %}
+							</pre>
 							
 							<!-- Element and Layout -->
 							<h3 id="layout">Element and Layout</h3>
