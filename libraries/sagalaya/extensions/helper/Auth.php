@@ -3,7 +3,7 @@
 namespace sagalaya\extensions\helper;
 
 use lithium\template\Helper;
-use sagalaya\extensions\security\Auth;
+use sagalaya\extensions\security\Auth as sAuth;
 
 /**
  * 
@@ -16,7 +16,7 @@ class Auth extends Helper {
 	 * Check if current session is logged user or not
 	 */
 	public function isLogged() {
-		return Auth::check('default');
+		return sAuth::check('default');
 	}
 
 	/**
@@ -24,7 +24,7 @@ class Auth extends Helper {
 	 * @param string $field
 	 */
 	public function getUserData($field) {
-		$user = Auth::check('default');
+		$user = sAuth::check('default');
 		return $user->$field;
 	}
 }
