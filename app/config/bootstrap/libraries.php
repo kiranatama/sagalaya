@@ -124,6 +124,6 @@ Libraries::add('sagalaya', array('bootstrap' => true));
  * Add some plugins:
  */
 // Libraries::add('li3_docs');
-Libraries::add('lithium_qa');
+Libraries::add('li3_quality');
 
 ?>
