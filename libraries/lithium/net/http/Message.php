@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -47,7 +47,10 @@ class Message extends \lithium\net\Message {
 	 *
 	 * @var array
 	 */
-	protected $_classes = array('media' => 'lithium\net\http\Media');
+	protected $_classes = array(
+		'media' => 'lithium\net\http\Media',
+		'auth' => 'lithium\net\http\Auth'
+	);
 
 	/**
 	 * Adds config values to the public properties when a new object is created.
@@ -82,7 +85,7 @@ class Message extends \lithium\net\Message {
 		if (strpos($this->host, '/') !== false) {
 			list($this->host, $this->path) = explode('/', $this->host, 2);
 		}
-		$this->path = str_replace('//', '/', "/{$this->path}/");
+		$this->path = str_replace('//', '/', "/{$this->path}");
 		$this->protocol = $this->protocol ?: "HTTP/{$this->version}";
 	}
 
@@ -104,22 +107,24 @@ class Message extends \lithium\net\Message {
 			}
 		}
 
-		if ($value) {
-			$this->headers = array_merge($this->headers, array($key => $value));
-		} else {
-			foreach ((array) $key as $header => $value) {
-				if (!is_string($header)) {
-					if (preg_match('/(.*?):(.+)/i', $value, $match)) {
-						$this->headers[$match[1]] = trim($match[2]);
-					}
-				} else {
-					$this->headers[$header] = $value;
+		foreach (($value ? array($key => $value) : (array) $key) as $header => $value) {
+			if (!is_string($header)) {
+				if (preg_match('/(.*?):(.+)/', $value, $match)) {
+					$this->headers[$match[1]] = trim($match[2]);
 				}
+			} else {
+				$this->headers[$header] = $value;
 			}
 		}
 		$headers = array();
 
 		foreach ($this->headers as $key => $value) {
+			if (is_array($value)) {
+				foreach ($value as $val) {
+					$headers[] = "{$key}: {$val}";
+				}
+				continue;
+			}
 			$headers[] = "{$key}: {$value}";
 		}
 		return $headers;

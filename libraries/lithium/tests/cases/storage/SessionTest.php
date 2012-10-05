@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -11,7 +11,7 @@ namespace lithium\tests\cases\storage;
 use lithium\storage\Session;
 use lithium\storage\session\adapter\Memory;
 use lithium\tests\mocks\storage\session\adapter\SessionStorageConditional;
-
+use lithium\tests\mocks\storage\session\strategy\MockEncrypt;
 
 /**
  *
@@ -244,6 +244,75 @@ class SessionTest extends \lithium\test\Unit {
 
 		$this->assertFalse(Session::check('test'));
 		$this->assertFalse(Session::check('test', array('strategies' => false)));
+	}
+
+	public function testMultipleStrategies() {
+		Session::config(array(
+			'primary' => array(
+				'adapter' => new Memory(),
+				'filters' => array(),
+				'strategies' => array()
+			),
+			'secondary' => array(
+				'adapter' => new Memory(),
+				'filters' => array(),
+				'strategies' => array('lithium\storage\cache\strategy\Json')
+			)
+		));
+
+		Session::write('test', array('foo' => 'bar'));
+		$result = Session::read('test');
+		$this->assertEqual(array('foo' => 'bar'), $result);
+
+		$result = Session::read('test', array('name' => 'primary', 'strategies' => false));
+		$this->assertEqual(array('foo' => 'bar'), $result);
+
+		$result = Session::read('test', array('name' => 'secondary', 'strategies' => false));
+		$this->assertEqual('{"foo":"bar"}', $result);
+	}
+
+	public function testEncryptedStrategy() {
+		$this->skipIf(!MockEncrypt::enabled(), 'The Mcrypt extension is not installed or enabled.');
+
+		$key = 'foobar';
+		$adapter = new Memory();
+		Session::config(array('primary' => array(
+			'adapter' => $adapter, 'filters' => array(), 'strategies' => array(
+				'lithium\tests\mocks\storage\session\strategy\MockEncrypt' => array(
+					'secret' => $key
+				)
+			)
+		)));
+
+		$value = array('foo' => 'bar');
+
+		Session::write('test', $value);
+		$this->assertEqual(array('foo' => 'bar'), Session::read('test'));
+
+		$this->assertTrue(Session::check('test'));
+		$this->assertTrue(Session::check('test', array('strategies' => false)));
+
+		$encrypted = Session::read('test', array('strategies' => false));
+
+		$this->assertNotEqual($value, $encrypted);
+		$this->assertTrue(is_string($encrypted));
+
+		$result = Session::read('test');
+		$this->assertEqual($value, $result);
+
+		$result = Session::clear(array('strategies' => false));
+		$this->assertNull(Session::read('test'));
+
+		$this->assertFalse(Session::check('test'));
+		$this->assertFalse(Session::check('test', array('strategies' => false)));
+
+		$savedData = array('test' => $value);
+
+		$encrypt = new MockEncrypt(array('secret' => $key));
+		$result = $encrypt->encrypt($savedData);
+		$this->assertEqual($encrypted, $result);
+		$result = $encrypt->decrypt($encrypted);
+		$this->assertEqual($savedData, $result);
 	}
 }
 

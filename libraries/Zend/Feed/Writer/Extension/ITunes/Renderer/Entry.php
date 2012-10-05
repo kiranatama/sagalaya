@@ -1,35 +1,22 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Feed_Writer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Feed
  */
- 
-/**
-* @namespace
-*/
+
 namespace Zend\Feed\Writer\Extension\ITunes\Renderer;
+
+use DOMDocument;
+use DOMElement;
 use Zend\Feed\Writer\Extension;
 
 /**
-* @uses \Zend\Feed\Writer\Extension\AbstractRenderer
 * @category Zend
 * @package Zend_Feed_Writer
-* @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
-* @license http://framework.zend.com/license/new-bsd New BSD License
 */
 class Entry extends Extension\AbstractRenderer
 {
@@ -41,10 +28,10 @@ class Entry extends Extension\AbstractRenderer
      * @var bool
      */
     protected $_called = false;
-    
+
     /**
      * Render entry
-     * 
+     *
      * @return void
      */
     public function render()
@@ -60,26 +47,26 @@ class Entry extends Extension\AbstractRenderer
             $this->_appendNamespaces();
         }
     }
-    
+
     /**
      * Append namespaces to entry root
-     * 
+     *
      * @return void
      */
     protected function _appendNamespaces()
     {
         $this->getRootElement()->setAttribute('xmlns:itunes',
-            'http://www.itunes.com/dtds/podcast-1.0.dtd');  
+            'http://www.itunes.com/dtds/podcast-1.0.dtd');
     }
 
     /**
      * Set entry authors
-     * 
-     * @param  DOMDocument $dom 
-     * @param  DOMElement $root 
+     *
+     * @param  DOMDocument $dom
+     * @param  DOMElement $root
      * @return void
      */
-    protected function _setAuthors(\DOMDocument $dom, \DOMElement $root)
+    protected function _setAuthors(DOMDocument $dom, DOMElement $root)
     {
         $authors = $this->getDataContainer()->getItunesAuthors();
         if (!$authors || empty($authors)) {
@@ -93,15 +80,15 @@ class Entry extends Extension\AbstractRenderer
             $this->_called = true;
         }
     }
-    
+
     /**
      * Set itunes block
-     * 
-     * @param  DOMDocument $dom 
-     * @param  DOMElement $root 
+     *
+     * @param  DOMDocument $dom
+     * @param  DOMElement $root
      * @return void
      */
-    protected function _setBlock(\DOMDocument $dom, \DOMElement $root)
+    protected function _setBlock(DOMDocument $dom, DOMElement $root)
     {
         $block = $this->getDataContainer()->getItunesBlock();
         if ($block === null) {
@@ -113,15 +100,15 @@ class Entry extends Extension\AbstractRenderer
         $root->appendChild($el);
         $this->_called = true;
     }
-    
+
     /**
      * Set entry duration
-     * 
-     * @param  DOMDocument $dom 
-     * @param  DOMElement $root 
+     *
+     * @param  DOMDocument $dom
+     * @param  DOMElement $root
      * @return void
      */
-    protected function _setDuration(\DOMDocument $dom, \DOMElement $root)
+    protected function _setDuration(DOMDocument $dom, DOMElement $root)
     {
         $duration = $this->getDataContainer()->getItunesDuration();
         if (!$duration) {
@@ -133,15 +120,15 @@ class Entry extends Extension\AbstractRenderer
         $root->appendChild($el);
         $this->_called = true;
     }
-    
+
     /**
      * Set explicit flag
-     * 
-     * @param  DOMDocument $dom 
-     * @param  DOMElement $root 
+     *
+     * @param  DOMDocument $dom
+     * @param  DOMElement $root
      * @return void
      */
-    protected function _setExplicit(\DOMDocument $dom, \DOMElement $root)
+    protected function _setExplicit(DOMDocument $dom, DOMElement $root)
     {
         $explicit = $this->getDataContainer()->getItunesExplicit();
         if ($explicit === null) {
@@ -153,15 +140,15 @@ class Entry extends Extension\AbstractRenderer
         $root->appendChild($el);
         $this->_called = true;
     }
-    
+
     /**
      * Set entry keywords
-     * 
-     * @param  DOMDocument $dom 
-     * @param  DOMElement $root 
+     *
+     * @param  DOMDocument $dom
+     * @param  DOMElement $root
      * @return void
      */
-    protected function _setKeywords(\DOMDocument $dom, \DOMElement $root)
+    protected function _setKeywords(DOMDocument $dom, DOMElement $root)
     {
         $keywords = $this->getDataContainer()->getItunesKeywords();
         if (!$keywords || empty($keywords)) {
@@ -173,15 +160,15 @@ class Entry extends Extension\AbstractRenderer
         $root->appendChild($el);
         $this->_called = true;
     }
-    
+
     /**
      * Set entry subtitle
-     * 
-     * @param  DOMDocument $dom 
-     * @param  DOMElement $root 
+     *
+     * @param  DOMDocument $dom
+     * @param  DOMElement $root
      * @return void
      */
-    protected function _setSubtitle(\DOMDocument $dom, \DOMElement $root)
+    protected function _setSubtitle(DOMDocument $dom, DOMElement $root)
     {
         $subtitle = $this->getDataContainer()->getItunesSubtitle();
         if (!$subtitle) {
@@ -193,15 +180,15 @@ class Entry extends Extension\AbstractRenderer
         $root->appendChild($el);
         $this->_called = true;
     }
-    
+
     /**
      * Set entry summary
-     * 
-     * @param  DOMDocument $dom 
-     * @param  DOMElement $root 
+     *
+     * @param  DOMDocument $dom
+     * @param  DOMElement $root
      * @return void
      */
-    protected function _setSummary(\DOMDocument $dom, \DOMElement $root)
+    protected function _setSummary(DOMDocument $dom, DOMElement $root)
     {
         $summary = $this->getDataContainer()->getItunesSummary();
         if (!$summary) {

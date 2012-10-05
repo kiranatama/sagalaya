@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -37,7 +37,7 @@ class MockCommand extends \lithium\console\Command {
 	protected $_dontShow = null;
 
 	protected $_classes = array(
-		'response' => '\lithium\tests\mocks\console\MockResponse'
+		'response' => 'lithium\tests\mocks\console\MockResponse'
 	);
 
 	public function testRun() {

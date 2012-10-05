@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage GApps
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\GApps;
 
 use Zend\GData\GApps;
@@ -40,14 +37,10 @@ use Zend\GData\GApps;
  *
  * This class represents <atom:entry> in the Google Data protocol.
  *
- * @uses       \Zend\GData\Entry
- * @uses       \Zend\GData\GApps
- * @uses       \Zend\GData\GApps\Extension\Login
- * @uses       \Zend\GData\GApps\Extension\Nickname
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage GApps
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class NicknameEntry extends \Zend\GData\Entry

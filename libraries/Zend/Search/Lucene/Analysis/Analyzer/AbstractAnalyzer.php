@@ -15,25 +15,21 @@
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Analysis
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Search\Lucene\Analysis\Analyzer;
 
-use Zend\Search\Lucene\Analysis\Analyzer as LuceneAnalyzer;
+use Zend\Search\Lucene\Analysis\Analyzer\AnalyzerInterface as LuceneAnalyzer;
 
 /**
  * General analyzer implementation.
  *
- * @uses       \Zend\Search\Lucene\Analysis\Analyzer
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Analysis
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractAnalyzer implements LuceneAnalyzer

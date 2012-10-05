@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Media
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Media;
 
 use Zend\GData\Media;
@@ -29,13 +26,10 @@ use Zend\GData\Media;
 /**
  * Represents the Gdata flavor of an Atom entry
  *
- * @uses       \Zend\GData\Entry
- * @uses       \Zend\GData\Media
- * @uses       \Zend\GData\Media\Extension\MediaGroup
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Media
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Entry extends \Zend\GData\Entry

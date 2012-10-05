@@ -15,29 +15,22 @@
  * @category   Zend
  * @package    Zend_Service_Amazon
  * @subpackage Sqs
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Amazon\Sqs;
 use Zend\Service\Amazon,
     Zend\Service\Amazon\Sqs\Exception,
-    Zend\Crypt;
+    Zend\Crypt\Hmac;
 
 /**
  * Class for connecting to the Amazon Simple Queue Service (SQS)
  *
- * @uses       SimpleXMLElement
- * @uses       Zend_Crypt_Hmac
- * @uses       Zend_Service_Amazon_Abstract
- * @uses       \Zend\Service\Amazon\Sqs\Exception
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Amazon_Sqs
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @see        http://aws.amazon.com/sqs/ Amazon Simple Queue Service
  */
@@ -431,7 +424,7 @@ class Sqs extends \Zend\Service\Amazon\AbstractAmazon
 
         $data .= implode('&', $arrData);
 
-        $hmac = Crypt\Hmac::compute($this->_getSecretKey(), 'SHA256', $data, Crypt\Hmac::BINARY);
+        $hmac = Hmac::compute($this->_getSecretKey(), 'SHA256', $data, Hmac::BINARY);
 
         return base64_encode($hmac);
     }

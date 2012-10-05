@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -37,7 +37,8 @@ $bootstrap = function() use ($working) {
 	lithium\core\Libraries::add('lithium');
 	lithium\core\Libraries::add(basename($working), array(
 		'default' => true,
-		'path' => $working
+		'path' => $working,
+		'resources' => sys_get_temp_dir()
 	));
 };
 

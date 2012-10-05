@@ -1,45 +1,30 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Filter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Filter
  */
 
-/**
- * @namespace
- */
 namespace Zend\Filter;
 
-use Zend\Config,
-    Zend\Loader\Broker;
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
 
 /**
  * Filter chain for string inflection
  *
  * @category   Zend
  * @package    Zend_Filter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Inflector extends AbstractFilter
 {
     /**
-     * @var \Zend\Loader\Broker
+     * @var FilterPluginManager
      */
-    protected $_pluginBroker = null;
+    protected $_pluginManager = null;
 
     /**
      * @var string
@@ -64,13 +49,14 @@ class Inflector extends AbstractFilter
     /**
      * Constructor
      *
-     * @param string|array $options Options to set
+     * @param string|array|Traversable $options Options to set
      */
     public function __construct($options = null)
     {
-        if ($options instanceof Config\Config) {
-            $options = $options->toArray();
-        } else if (!is_array($options)) {
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
+        }
+        if (!is_array($options)) {
             $options = func_get_args();
             $temp    = array();
 
@@ -99,59 +85,47 @@ class Inflector extends AbstractFilter
     /**
      * Retreive plugin broker
      *
-     * @return \Zend\Loader\Broker
+     * @return FilterPluginManager
      */
-    public function getPluginBroker()
+    public function getPluginManager()
     {
-        if (!$this->_pluginBroker instanceof Broker) {
-            $this->setPluginBroker(new FilterBroker());
+        if (!$this->_pluginManager instanceof FilterPluginManager) {
+            $this->setPluginManager(new FilterPluginManager());
         }
 
-        return $this->_pluginBroker;
+        return $this->_pluginManager;
     }
 
     /**
-     * Set plugin broker
+     * Set plugin manager
      *
-     * @param \Zend\Loader\Broker $broker
-     * @return \Zend\Filter\Inflector
+     * @param  FilterPluginManager $manager
+     * @return Inflector
      */
-    public function setPluginBroker(Broker $broker)
+    public function setPluginManager(FilterPluginManager $manager)
     {
-        $this->_pluginBroker = $broker;
+        $this->_pluginManager = $manager;
         return $this;
-    }
-
-    /**
-     * Use Zend_Config object to set object state
-     *
-     * @deprecated Use setOptions() instead
-     * @param  \Zend\Config\Config $config
-     * @return \Zend\Filter\Inflector
-     */
-    public function setConfig(Config\Config $config)
-    {
-        return $this->setOptions($config);
     }
 
     /**
      * Set options
      *
-     * @param  array $options
-     * @return \Zend\Filter\Inflector
+     * @param  array|Traversable $options
+     * @return Inflector
      */
-    public function setOptions($options) 
+    public function setOptions($options)
     {
-        if ($options instanceof Config\Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         }
 
-        // Set broker
-        if (array_key_exists('pluginBroker', $options)) {
-            if (is_scalar($options['pluginBroker']) && class_exists($options['pluginBroker'])) {
-                $options['pluginBroker'] = new $options['pluginBroker'];
-            } 
-            $this->setPluginBroker($broker);
+        // Set plugin manager
+        if (array_key_exists('pluginManager', $options)) {
+            if (is_scalar($options['pluginManager']) && class_exists($options['pluginManager'])) {
+                $options['pluginManager'] = new $options['pluginManager'];
+            }
+            $this->setPluginManager($options['pluginManager']);
         }
 
         if (array_key_exists('throwTargetExceptionsOn', $options)) {
@@ -178,7 +152,7 @@ class Inflector extends AbstractFilter
      * identifier is still found within an inflected target.
      *
      * @param bool $throwTargetExceptions
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function setThrowTargetExceptionsOn($throwTargetExceptionsOn)
     {
@@ -200,7 +174,7 @@ class Inflector extends AbstractFilter
      * Set the Target Replacement Identifier, by default ':'
      *
      * @param string $targetReplacementIdentifier
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function setTargetReplacementIdentifier($targetReplacementIdentifier)
     {
@@ -226,7 +200,7 @@ class Inflector extends AbstractFilter
      * ex: 'scripts/:controller/:action.:suffix'
      *
      * @param string
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function setTarget($target)
     {
@@ -248,7 +222,7 @@ class Inflector extends AbstractFilter
      * Set Target Reference
      *
      * @param reference $target
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function setTargetReference(&$target)
     {
@@ -261,7 +235,7 @@ class Inflector extends AbstractFilter
      * clears the rules before adding them.
      *
      * @param array $rules
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function setRules(Array $rules)
     {
@@ -284,7 +258,7 @@ class Inflector extends AbstractFilter
      *     );
      *
      * @param array
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function addRules(Array $rules)
     {
@@ -327,7 +301,7 @@ class Inflector extends AbstractFilter
      *
      * @param string $spec
      * @param int $index
-     * @return \Zend\Filter\Filter|false
+     * @return FilterInterface|false
      */
     public function getRule($spec, $index)
     {
@@ -343,7 +317,7 @@ class Inflector extends AbstractFilter
     /**
      * ClearRules() clears the rules currently in the inflector
      *
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function clearRules()
     {
@@ -356,8 +330,8 @@ class Inflector extends AbstractFilter
      * or an array of strings or filter objects.
      *
      * @param string $spec
-     * @param array|string|\Zend\Filter\Filter $ruleSet
-     * @return \Zend\Filter\Inflector
+     * @param array|string|\Zend\Filter\FilterInterface $ruleSet
+     * @return Inflector
      */
     public function setFilterRule($spec, $ruleSet)
     {
@@ -371,7 +345,7 @@ class Inflector extends AbstractFilter
      *
      * @param mixed $spec
      * @param mixed $ruleSet
-     * @return void
+     * @return Inflector
      */
     public function addFilterRule($spec, $ruleSet)
     {
@@ -402,7 +376,7 @@ class Inflector extends AbstractFilter
      *
      * @param string $name
      * @param string $value
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function setStaticRule($name, $value)
     {
@@ -420,7 +394,7 @@ class Inflector extends AbstractFilter
      *
      * @param string $name
      * @param mixed $reference
-     * @return \Zend\Filter\Inflector
+     * @return Inflector
      */
     public function setStaticRuleReference($name, &$reference)
     {
@@ -487,15 +461,15 @@ class Inflector extends AbstractFilter
      * Resolve named filters and convert them to filter objects.
      *
      * @param  string $rule
-     * @return \Zend\Filter\Filter
+     * @return FilterInterface
      */
     protected function _getRule($rule)
     {
-        if ($rule instanceof Filter) {
+        if ($rule instanceof FilterInterface) {
             return $rule;
         }
 
         $rule = (string) $rule;
-        return $this->getPluginBroker()->load($rule);
+        return $this->getPluginManager()->get($rule);
     }
 }

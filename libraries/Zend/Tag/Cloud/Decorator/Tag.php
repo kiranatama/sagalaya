@@ -15,23 +15,22 @@
  * @category   Zend
  * @package    Zend_Tag
  * @subpackage Cloud
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Tag\Cloud\Decorator;
 
-use Zend\Tag\Cloud\Decorator;
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
+use Zend\Tag\Cloud\Decorator\DecoratorInterface as Decorator;
 
 /**
  * Abstract class for tag decorators
  *
  * @category  Zend
  * @package   Zend_Tag
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class Tag implements Decorator
@@ -49,14 +48,13 @@ abstract class Tag implements Decorator
     /**
      * Create a new cloud decorator with options
      *
-     * @param mixed $options
+     * @param  array|Traversable $options
      */
     public function __construct($options = null)
     {
-        if ($options instanceof \Zend\Config\Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         }
-
         if (is_array($options)) {
             $this->setOptions($options);
         }

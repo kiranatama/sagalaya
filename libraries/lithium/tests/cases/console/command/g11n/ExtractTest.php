@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright	 Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright	 Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license	   http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -15,22 +15,32 @@ use lithium\g11n\Catalog;
 
 class ExtractTest extends \lithium\test\Unit {
 
+	protected $_backup = array();
+
 	protected $_path;
 
 	public $command;
 
 	public function skip() {
 		$this->_path = Libraries::get(true, 'resources') . '/tmp/tests';
-		$this->skipIf(!is_writable($this->_path), "{$this->_path} is not writable.");
+		$this->skipIf(!is_writable($this->_path), "Path `{$this->_path}` is not writable.");
 	}
 
 	public function setUp() {
+		$this->_backup['catalogConfig'] = Catalog::config();
+		Catalog::reset();
+
 		$this->command = new Extract(array(
-				'request' => new Request(array('input' => fopen('php://temp', 'w+'))),
-				'classes' => array('response' => 'lithium\tests\mocks\console\MockResponse')
-			));
+			'request' => new Request(array('input' => fopen('php://temp', 'w+'))),
+			'classes' => array('response' => 'lithium\tests\mocks\console\MockResponse')
+		));
 		mkdir($this->command->source = "{$this->_path}/source");
 		mkdir($this->command->destination = "{$this->_path}/destination");
+	}
+
+	public function tearDown() {
+		Catalog::config($this->_backup['catalogConfig']);
+		$this->_cleanUp();
 	}
 
 	protected function _writeInput(array $input = array()) {
@@ -40,13 +50,9 @@ class ExtractTest extends \lithium\test\Unit {
 		rewind($this->command->request->input);
 	}
 
-	public function tearDown() {
-		$this->_cleanUp();
-	}
-
 	public function testInit() {
 		$command = new Extract();
-		$this->assertEqual(LITHIUM_APP_PATH, $command->source);
+		$this->assertEqual(realpath(Libraries::get(true, 'path')), $command->source);
 		$this->assertEqual(Libraries::get(true, 'resources') . '/g11n', $command->destination);
 	}
 
@@ -74,7 +80,7 @@ EOD;
 
 		$configs = Catalog::config();
 		$configKey = key($configs);
-		$this->_writeInput(array($configKey, 'q', '', '', '', 'y'));
+		$this->_writeInput(array($configKey, '', '', '', '', 'y'));
 		$result = $this->command->run();
 		$expected = 1;
 		$this->assertIdentical($expected, $result);
@@ -113,7 +119,7 @@ EOD;
 		$expected = '/msgid "Apples are green\."/';
 		$this->assertPattern($expected, $result);
 
-		$expected = '#/resources/tmp/tests/source(/|\\\\)a.html.php:2#';
+		$expected = '#/tmp/tests/source(/|\\\\)a.html.php:2#';
 		$this->assertPattern($expected, $result);
 
 		$result = $this->command->response->error;

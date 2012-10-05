@@ -1,39 +1,23 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Filter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Filter
  */
 
-/**
- * @namespace
- */
 namespace Zend\Filter\File;
-use Zend\Filter,
-    Zend\Filter\Exception;
+
+use Zend\Filter;
+use Zend\Filter\Exception;
 
 /**
  * Encrypts a given file and stores the encrypted file content
  *
- * @uses       \Zend\Filter\Encrypt\Encrypt
- * @uses       \Zend\Filter\Exception
  * @category   Zend
  * @package    Zend_Filter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Encrypt extends Filter\Encrypt
 {
@@ -58,7 +42,7 @@ class Encrypt extends Filter\Encrypt
      * Sets the new filename where the content will be stored
      *
      * @param  string $filename (Optional) New filename to set
-     * @return Zend_Filter_File_Encryt
+     * @return Encrypt
      */
     public function setFilename($filename = null)
     {
@@ -73,8 +57,10 @@ class Encrypt extends Filter\Encrypt
      *
      * @param  string $value Full path of file to change
      * @return string The filename which has been set, or false when there were errors
+     * @throws Exception\InvalidArgumentException
+     * @throws Exception\RuntimeException
      */
-    public function __invoke($value)
+    public function filter($value)
     {
         if (!file_exists($value)) {
             throw new Exception\InvalidArgumentException("File '$value' not found");
@@ -93,7 +79,7 @@ class Encrypt extends Filter\Encrypt
             throw new Exception\RuntimeException("Problem while reading file '$value'");
         }
 
-        $encrypted = parent::__invoke($content);
+        $encrypted = parent::filter($content);
         $result    = file_put_contents($this->_filename, $encrypted);
 
         if (!$result) {

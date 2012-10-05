@@ -2,11 +2,13 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
 namespace lithium\net\socket;
+
+use lithium\net\http\Message;
 
 /**
  * A Curl-based socket adapter
@@ -53,6 +55,7 @@ class Curl extends \lithium\net\Socket {
 	 *         resource stream.
 	 */
 	public function open(array $options = array()) {
+		$this->options = array();
 		parent::open($options);
 		$config = $this->_config;
 
@@ -62,9 +65,11 @@ class Curl extends \lithium\net\Socket {
 
 		$url = "{$config['scheme']}://{$config['host']}";
 		$this->_resource = curl_init($url);
-		curl_setopt($this->_resource, CURLOPT_PORT, $config['port']);
-		curl_setopt($this->_resource, CURLOPT_HEADER, true);
-		curl_setopt($this->_resource, CURLOPT_RETURNTRANSFER, true);
+		$this->set(array(
+			CURLOPT_PORT => $config['port'],
+			CURLOPT_HEADER =>  true,
+			CURLOPT_RETURNTRANSFER => true
+		));
 
 		if (!is_resource($this->_resource)) {
 			return false;
@@ -134,7 +139,7 @@ class Curl extends \lithium\net\Socket {
 		}
 		$this->set(CURLOPT_URL, $data->to('url'));
 
-		if (is_a($data, 'lithium\net\http\Message')) {
+		if ($data instanceof Message) {
 			if (!empty($this->_config['ignoreExpect'])) {
 				$data->headers('Expect', ' ');
 			}
@@ -173,6 +178,7 @@ class Curl extends \lithium\net\Socket {
 	 * @param string $charset
 	 */
 	public function encoding($charset) {}
+
 	/**
 	 * Sets the options to be used in subsequent curl requests.
 	 *
@@ -188,7 +194,7 @@ class Curl extends \lithium\net\Socket {
 		if ($value !== null) {
 			$flags = array($flags => $value);
 		}
-		$this->options += $flags;
+		$this->options = $flags + $this->options;
 	}
 }
 

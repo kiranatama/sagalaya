@@ -1,45 +1,27 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Markup
- * @subpackage Parser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Markup
  */
 
-/**
- * @namespace
- */
 namespace Zend\Markup\Parser;
-use Zend\Markup\Parser,
-    Zend\Markup\Token,
-    Zend\Markup\TokenList,
-    Zend\Config\Config;
+
+use Traversable;
+use Zend\Markup\Parser;
+use Zend\Markup\Token;
+use Zend\Markup\TokenList;
+use Zend\Stdlib\ArrayUtils;
 
 /**
- * @uses       \Zend\Markup\Parser\Exception
- * @uses       \Zend\Markup\Parser\ParserInterface
- * @uses       \Zend\Markup\Token
- * @uses       \Zend\Markup\TokenList
  * @category   Zend
  * @package    Zend_Markup
  * @subpackage Parser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Bbcode implements Parser
+class Bbcode implements ParserInterface
 {
     const NEWLINE   = "[newline\0]";
 
@@ -134,14 +116,13 @@ class Bbcode implements Parser
     /**
      * Constructor
      *
-     * @param \Zend\Config\Config|array $config
-     *
+     * @param  array|Traversable $options
      * @return array
      */
     public function __construct($options = array())
     {
-        if ($options instanceof Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         }
 
         if (isset($options['groups'])) {
@@ -163,8 +144,8 @@ class Bbcode implements Parser
      *
      * @param string $group
      * @param string $inside
-     *
      * @return Bbcode
+     * @throws Exception\InvalidArgumentException
      */
     public function allowInside($group, $inside)
     {
@@ -423,6 +404,7 @@ class Bbcode implements Parser
      *
      * @param  string $value
      * @return \Zend\Markup\TokenList
+     * @throws Exception\InvalidArgumentException
      */
     public function parse($value)
     {
@@ -463,7 +445,7 @@ class Bbcode implements Parser
             }
 
             $matches = array();
-            $regex   = '#\G(?<text>[^\[]*)(?<open>\[(?<name>[' . self::NAME_CHARSET . ']+)?)?#';
+            $regex   = '#\G(?P<text>[^\[]*)(?P<open>\[(?P<name>[' . self::NAME_CHARSET . ']+)?)?#';
             if (!preg_match($regex, $value, $matches, null, $pointer)) {
                 goto end;
             }
@@ -508,7 +490,7 @@ class Bbcode implements Parser
 
         scanattrs: {
             $matches = array();
-            $regex   = '#\G((?<end>\s*\])|\s+(?<attribute>[' . self::NAME_CHARSET . ']+)(?<eq>=?))#';
+            $regex   = '#\G((?P<end>\s*\])|\s+(?P<attribute>[' . self::NAME_CHARSET . ']+)(?P<eq>=?))#';
             if (!preg_match($regex, $value, $matches, null, $pointer)) {
                 goto end;
             }
@@ -547,7 +529,7 @@ class Bbcode implements Parser
 
         parsevalue: {
             $matches = array();
-            $regex   = '#\G((?<quote>"|\')(?<valuequote>.*?)\\2|(?<value>[^\]\s]+))#';
+            $regex   = '#\G((?P<quote>"|\')(?P<valuequote>.*?)\\2|(?P<value>[^\]\s]+))#';
             if (!preg_match($regex, $value, $matches, null, $pointer)) {
                 goto scanattrs;
             }
@@ -585,7 +567,7 @@ class Bbcode implements Parser
      * @throws Exception\RuntimeException If there are no groups defined
      * @throws Exception\RuntimeException If there is no initial group defined
      * @throws Exception\RuntimeException If there is no default group defined
-     *
+     * @throws Exception\InvalidArgumentException If there is no treebuilding strategy
      * @return \Zend\Markup\TokenList/
      */
     public function buildTree(array $tokens, $strategy = 'default')

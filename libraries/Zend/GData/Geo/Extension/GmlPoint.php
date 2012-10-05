@@ -15,25 +15,19 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Geo
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Geo\Extension;
 
 /**
  * Represents the gml:point element used by the Gdata Geo extensions.
  *
- * @uses       \Zend\GData\Extension
- * @uses       \Zend\GData\Geo
- * @uses       \Zend\GData\Geo\Extension\GmlPos
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Geo
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class GmlPoint extends \Zend\GData\Extension

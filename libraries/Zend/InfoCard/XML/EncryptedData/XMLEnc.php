@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\InfoCard\XML\EncryptedData;
 use Zend\InfoCard\XML\AbstractElement,
     Zend\InfoCard\XML;
@@ -29,12 +26,10 @@ use Zend\InfoCard\XML\AbstractElement,
 /**
  * An XmlEnc formatted EncryptedData XML block
  *
- * @uses       \Zend\InfoCard\XML\EncryptedData\AbstractEncryptedData
- * @uses       \Zend\InfoCard\XML\Exception
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class XMLEnc extends AbstractEncryptedData
@@ -43,7 +38,7 @@ class XMLEnc extends AbstractEncryptedData
     /**
      * Returns the Encrypted CipherValue block from the EncryptedData XML document
      *
-     * @throws \Zend\InfoCard\XML\Exception
+     * @throws XML\Exception\RuntimeException
      * @return string The value of the CipherValue block base64 encoded
      */
     public function getCipherValue()

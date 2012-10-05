@@ -2,26 +2,26 @@
 <html
     <head>
         {{this.html.charset()}}
-        {{ this.html.script(['jquery/jquery-1.7.1.min', 'jquery/jquery.tabs']) }}
+        {{ this.html.script(['jquery/jquery-1.7.1.min', 'bootstrap/bootstrap.min']) }}
         {{this.html.style(['layout', 'custom'])}}
-        {% if this.server.matchUrl('pages/tutorial', this.request.url) %}
-        		{{this.html.script(['syntax/shCore', 'syntax/shLegacy', 
-        							'syntax/shAutoloader', 
-        							'syntax/shBrushPhp', 'syntax/shBrushBash'])}}
-    			{{this.html.style(['syntax/shCore', 'syntax/shThemeDefault',
-    							   'yaml/add-ons/accessible-tabs/tabs'])}}   
-        {% endif %}
         {{ this.scripts() }}
         <title>Sagalaya</title>
-        {{this.html.link('Icon', null, {'type' : 'icon'})}}
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <style type="text/css">
+	      body {
+	        padding-top: 60px;
+	        padding-bottom: 40px;
+	      }
+		</style>
     </head>
     <body>    	
-		<div class="ym-wrapper">
-			<div class="ym-wbox">
-				{% include "/elements/header.html.twig" %}
-				{% include "/elements/navigation.html.twig" %}
+		{% include "/elements/navigation.html.twig" %}
+		<div class="container">			
+			{% include "/elements/header.html.twig" %}			
+			<div class="row">
 				{{this.content()}}
 			</div>
-		</div>    	
+			{% include "/elements/footer.html.twig" %}			
+		</div>     	
     </body>
 </html>

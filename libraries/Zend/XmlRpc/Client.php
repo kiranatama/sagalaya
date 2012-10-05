@@ -1,50 +1,27 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_XmlRpc
- * @subpackage Client
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_XmlRpc
  */
 
-/**
- * @namespace
- */
 namespace Zend\XmlRpc;
-use Zend\Http,
-    Zend\XmlRpc\Value;
+
+use Zend\Http;
+use Zend\Server\Client as ServerClient;
+use Zend\XmlRpc\AbstractValue;
 
 /**
  * An XML-RPC client implementation
  *
- * @uses       Zend\Http\Client
- * @uses       Zend\XmlRpc\Client\FaultException
- * @uses       Zend\XmlRpc\Client\HttpException
- * @uses       Zend\XmlRpc\Client\ServerIntrospection
- * @uses       Zend\XmlRpc\Client\ServerProxy
- * @uses       Zend\XmlRpc\Fault
- * @uses       Zend\XmlRpc\Request
- * @uses       Zend\XmlRpc\Response
- * @uses       Zend\XmlRpc\Value
  * @category   Zend
  * @package    Zend_XmlRpc
  * @subpackage Client
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Client
+class Client implements ServerClient
 {
     /**
      * Full address of the XML-RPC service
@@ -94,7 +71,7 @@ class Client
      *
      * @param  string $server      Full address of the XML-RPC service
      *                             (e.g. http://time.xmlrpc.com/RPC2)
-     * @param  Zend\Http\Client $httpClient HTTP Client to use for requests
+     * @param  \Zend\Http\Client $httpClient HTTP Client to use for requests
      * @return void
      */
     public function __construct($server, Http\Client $httpClient = null)
@@ -231,39 +208,42 @@ class Client
         iconv_set_encoding('output_encoding', 'UTF-8');
         iconv_set_encoding('internal_encoding', 'UTF-8');
 
-        $http = $this->getHttpClient();
-        if($http->getUri() === null) {
+        $http        = $this->getHttpClient();
+        $httpRequest = $http->getRequest();
+        if ($httpRequest->getUriString() === null) {
             $http->setUri($this->_serverAddress);
         }
 
-        $http->setHeaders(array(
+        $headers = $httpRequest->getHeaders();
+        $headers->addHeaders(array(
             'Content-Type: text/xml; charset=utf-8',
             'Accept: text/xml',
         ));
 
-        if ($http->getHeader('user-agent') === null) {
-            $http->setHeaders(array('User-Agent: Zend_XmlRpc_Client'));
+        if (!$headers->get('user-agent')) {
+            $headers->addHeaderLine('user-agent', 'Zend_XmlRpc_Client');
         }
 
         $xml = $this->_lastRequest->__toString();
-        $http->setRawData($xml);
-        $httpResponse = $http->request(Http\Client::POST);
+        $http->setRawBody($xml);
+        $httpResponse = $http->setMethod('POST')->send();
 
-        if (! $httpResponse->isSuccessful()) {
+        if (!$httpResponse->isSuccess()) {
             /**
              * Exception thrown when an HTTP error occurs
              */
             throw new Client\Exception\HttpException(
-                $httpResponse->getMessage(),
-                $httpResponse->getStatus()
+                $httpResponse->getReasonPhrase(),
+                $httpResponse->getStatusCode()
             );
         }
 
         if ($response === null) {
             $response = new Response();
         }
+
         $this->_lastResponse = $response;
-        $this->_lastResponse->loadXml($httpResponse->getBody());
+        $this->_lastResponse->loadXml(trim($httpResponse->getBody()));
     }
 
     /**
@@ -282,45 +262,54 @@ class Client
             $success = true;
             try {
                 $signatures = $this->getIntrospector()->getMethodSignature($method);
-            } catch (\Zend\XmlRpc\Exception $e) {
+            } catch (\Zend\XmlRpc\Exception\ExceptionInterface $e) {
                 $success = false;
             }
             if ($success) {
                 $validTypes = array(
-                    Value::XMLRPC_TYPE_ARRAY,
-                    Value::XMLRPC_TYPE_BASE64,
-                    Value::XMLRPC_TYPE_BOOLEAN,
-                    Value::XMLRPC_TYPE_DATETIME,
-                    Value::XMLRPC_TYPE_DOUBLE,
-                    Value::XMLRPC_TYPE_I4,
-                    Value::XMLRPC_TYPE_INTEGER,
-                    Value::XMLRPC_TYPE_NIL,
-                    Value::XMLRPC_TYPE_STRING,
-                    Value::XMLRPC_TYPE_STRUCT,
+                    AbstractValue::XMLRPC_TYPE_ARRAY,
+                    AbstractValue::XMLRPC_TYPE_BASE64,
+                    AbstractValue::XMLRPC_TYPE_BOOLEAN,
+                    AbstractValue::XMLRPC_TYPE_DATETIME,
+                    AbstractValue::XMLRPC_TYPE_DOUBLE,
+                    AbstractValue::XMLRPC_TYPE_I4,
+                    AbstractValue::XMLRPC_TYPE_INTEGER,
+                    AbstractValue::XMLRPC_TYPE_NIL,
+                    AbstractValue::XMLRPC_TYPE_STRING,
+                    AbstractValue::XMLRPC_TYPE_STRUCT,
                 );
 
                 if (!is_array($params)) {
                     $params = array($params);
                 }
                 foreach ($params as $key => $param) {
-
-                    if ($param instanceof Value) {
+                    if ($param instanceof AbstractValue) {
                         continue;
                     }
 
-                    $type = Value::AUTO_DETECT_TYPE;
-                    foreach ($signatures as $signature) {
-                        if (!is_array($signature)) {
-                            continue;
+                    if (count($signatures) > 1) {
+                        $type = AbstractValue::getXmlRpcTypeByValue($param);
+                        foreach ($signatures as $signature) {
+                            if (!is_array($signature)) {
+                                continue;
+                            }
+                            if (isset($signature['parameters'][$key])) {
+                                if ($signature['parameters'][$key] == $type) {
+                                    break;
+                                }
+                            }
                         }
-
-                        if (isset($signature['parameters'][$key])) {
-                            $type = $signature['parameters'][$key];
-                            $type = in_array($type, $validTypes) ? $type : Value\Value::AUTO_DETECT_TYPE;
-                        }
+                    } elseif (isset($signatures[0]['parameters'][$key])) {
+                        $type = $signatures[0]['parameters'][$key];
+                    } else {
+                        $type = null;
                     }
 
-                    $params[$key] = Value::getXmlRpcValue($param, $type);
+                    if (empty($type) || !in_array($type, $validTypes)) {
+                        $type = AbstractValue::AUTO_DETECT_TYPE;
+                    }
+
+                    $params[$key] = AbstractValue::getXmlRpcValue($param, $type);
                 }
             }
         }

@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Media
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Media\Extension;
 
 /**
@@ -30,26 +27,10 @@ namespace Zend\GData\Media\Extension;
  * different representations of the same content.  When it exists,
  * it is a child of an Entry (Atom) or Item (RSS).
  *
- * @uses       \Zend\GData\Entry
- * @uses       \Zend\GData\Extension
- * @uses       \Zend\GData\Media
- * @uses       \Zend\GData\Media\Extension\MediaCategory
- * @uses       \Zend\GData\Media\Extension\MediaContent
- * @uses       \Zend\GData\Media\Extension\MediaCopyright
- * @uses       \Zend\GData\Media\Extension\MediaCredit
- * @uses       \Zend\GData\Media\Extension\MediaDescription
- * @uses       \Zend\GData\Media\Extension\MediaHash
- * @uses       \Zend\GData\Media\Extension\MediaKeywords
- * @uses       \Zend\GData\Media\Extension\MediaPlayer
- * @uses       \Zend\GData\Media\Extension\MediaRating
- * @uses       \Zend\GData\Media\Extension\MediaRestriction
- * @uses       \Zend\GData\Media\Extension\MediaText
- * @uses       \Zend\GData\Media\Extension\MediaThumbnail
- * @uses       \Zend\GData\Media\Extension\MediaTitle
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Media
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class MediaGroup extends \Zend\GData\Extension

@@ -15,23 +15,21 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage LiveDocx
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\LiveDocx;
 
-use Zend\Config\Config,
-    Zend\Soap\Client as SoapClient;
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
+use Zend\Soap\Client as SoapClient;
 
 /**
  * @category   Zend
  * @package    Zend_Service
  * @subpackage LiveDocx
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractLiveDocx
@@ -77,18 +75,17 @@ abstract class AbstractLiveDocx
     /**
      * Constructor.
      *
-     * Optionally, pass an array of options (or \Zend\Config\Config object).
+     * Optionally, pass an array of options or Traversable object.
      *
-     * @param  array|Config $options
-     * @return void
+     * @param  array|Traversable $options
      * @since  LiveDocx 1.0
      */
     public function __construct($options = null)
     {
         $this->setIsLoggedIn(false);
 
-        if ($options instanceof Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         }
 
         if (is_array($options)) {
@@ -109,8 +106,8 @@ abstract class AbstractLiveDocx
 
     /**
      * Set options. Valid options are username, password and soapClient.
-     * 
-     * @param  $options
+     *
+     * @param  array $options
      * @throws Exception\InvalidArgumentException
      * @return AbstractLiveDocx
      * @since  LiveDocx 1.2
@@ -261,7 +258,7 @@ abstract class AbstractLiveDocx
      */
     public function getFormat($filename)
     {
-        return strtolower(substr(strrchr($filename, '.'), 1));
+        return pathinfo($filename, PATHINFO_EXTENSION);
     }
 
     /**

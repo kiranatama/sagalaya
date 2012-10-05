@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Photos
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Photos;
 
 use Zend\GData\Photos;
@@ -35,24 +32,10 @@ use Zend\GData\Photos;
  *
  * This class represents <atom:entry> in the Google Data protocol.
  *
- * @uses       \Zend\GData\App\Extension\Category
- * @uses       \Zend\GData\Entry
- * @uses       \Zend\GData\Geo\Extension\GeoRssWhere
- * @uses       \Zend\GData\Media\Extension\MediaGroup
- * @uses       \Zend\GData\Photos
- * @uses       \Zend\GData\Photos\Extension\Access
- * @uses       \Zend\GData\Photos\Extension\BytesUsed
- * @uses       \Zend\GData\Photos\Extension\CommentCount
- * @uses       \Zend\GData\Photos\Extension\CommentingEnabled
- * @uses       \Zend\GData\Photos\Extension\Id
- * @uses       \Zend\GData\Photos\Extension\Location
- * @uses       \Zend\GData\Photos\Extension\Name
- * @uses       \Zend\GData\Photos\Extension\NumPhotos
- * @uses       \Zend\GData\Photos\Extension\NumPhotosRemaining
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Photos
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class AlbumEntry extends \Zend\GData\Entry

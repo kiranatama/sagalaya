@@ -1,52 +1,33 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Authentication
- * @subpackage Adapter_HTTP
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Authentication
  */
 
-/**
- * @namespace
- */
 namespace Zend\Authentication\Adapter;
 
-use Zend\Authentication\Adapter as AuthenticationAdapter,
-    Zend\Authentication,
-    Zend\Http\Request as HTTPRequest,
-    Zend\Http\Response as HTTPResponse,
-    Zend\Uri\UriFactory;
+use Zend\Authentication;
+use Zend\Http\Request as HTTPRequest;
+use Zend\Http\Response as HTTPResponse;
+use Zend\Uri\UriFactory;
 
 /**
  * HTTP Authentication Adapter
  *
  * Implements a pretty good chunk of RFC 2617.
  *
- * @uses       Zend\Authentication\Exception
- * @uses       Zend\Authentication\Adapter
  * @category   Zend
  * @package    Zend_Authentication
  * @subpackage Adapter_Http
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @todo       Support auth-int
  * @todo       Track nonces, nonce-count, opaque for replay protection and stale support
  * @todo       Support Authentication-Info header
  */
-class Http implements AuthenticationAdapter
+class Http implements AdapterInterface
 {
     /**
      * Reference to the HTTP Request object
@@ -65,14 +46,14 @@ class Http implements AuthenticationAdapter
     /**
      * Object that looks up user credentials for the Basic scheme
      *
-     * @var Zend\Authentication\Adapter\Http\Resolver
+     * @var Http\ResolverInterface
      */
     protected $_basicResolver;
 
     /**
      * Object that looks up user credentials for the Digest scheme
      *
-     * @var Zend\Authentication\Adapter\Http\Resolver
+     * @var Http\ResolverInterface
      */
     protected $_digestResolver;
 
@@ -167,29 +148,25 @@ class Http implements AuthenticationAdapter
      *    'use_opaque' => <bool> Whether to send the opaque value in the header
      *    'alogrithm' => <string> See $_supportedAlgos. Default: MD5
      *    'proxy_auth' => <bool> Whether to do authentication as a Proxy
-     * @throws Zend\Authentication\Adapter\InvalidArgumentException
-     * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function __construct(array $config)
     {
-        if (!extension_loaded('hash')) {
-            throw new Exception\InvalidArgumentException(__CLASS__  . ' requires the \'hash\' extension to be availabe in PHP');
-        }
-
         $this->_request  = null;
         $this->_response = null;
         $this->_ieNoOpaque = false;
 
-
         if (empty($config['accept_schemes'])) {
-            throw new Exception\InvalidArgumentException('Config key \'accept_schemes\' is required');
+            throw new Exception\InvalidArgumentException('Config key "accept_schemes" is required');
         }
 
         $schemes = explode(' ', $config['accept_schemes']);
         $this->_acceptSchemes = array_intersect($schemes, $this->_supportedSchemes);
         if (empty($this->_acceptSchemes)) {
-            throw new Exception\InvalidArgumentException('No supported schemes given in \'accept_schemes\'. Valid values: '
-                                                . implode(', ', $this->_supportedSchemes));
+            throw new Exception\InvalidArgumentException(sprintf(
+                'No supported schemes given in "accept_schemes". Valid values: %s',
+                implode(', ', $this->_supportedSchemes)
+            ));
         }
 
         // Double-quotes are used to delimit the realm string in the HTTP header,
@@ -198,8 +175,10 @@ class Http implements AuthenticationAdapter
             !ctype_print($config['realm']) ||
             strpos($config['realm'], ':') !== false ||
             strpos($config['realm'], '"') !== false) {
-            throw new Exception\InvalidArgumentException('Config key \'realm\' is required, and must contain only printable '
-                                                . 'characters, excluding quotation marks and colons');
+            throw new Exception\InvalidArgumentException(
+                'Config key \'realm\' is required, and must contain only printable characters,'
+                . 'excluding quotation marks and colons'
+            );
         } else {
             $this->_realm = $config['realm'];
         }
@@ -208,16 +187,19 @@ class Http implements AuthenticationAdapter
             if (empty($config['digest_domains']) ||
                 !ctype_print($config['digest_domains']) ||
                 strpos($config['digest_domains'], '"') !== false) {
-                throw new Exception\InvalidArgumentException('Config key \'digest_domains\' is required, and must contain '
-                                                    . 'only printable characters, excluding quotation marks');
+                throw new Exception\InvalidArgumentException(
+                    'Config key \'digest_domains\' is required, and must contain '
+                    . 'only printable characters, excluding quotation marks'
+                );
             } else {
                 $this->_domains = $config['digest_domains'];
             }
 
             if (empty($config['nonce_timeout']) ||
                 !is_numeric($config['nonce_timeout'])) {
-                throw new Exception\InvalidArgumentException('Config key \'nonce_timeout\' is required, and must be an '
-                                                    . 'integer');
+                throw new Exception\InvalidArgumentException(
+                    'Config key \'nonce_timeout\' is required, and must be an integer'
+                );
             } else {
                 $this->_nonceTimeout = (int) $config['nonce_timeout'];
             }
@@ -247,10 +229,10 @@ class Http implements AuthenticationAdapter
     /**
      * Setter for the _basicResolver property
      *
-     * @param  Zend\Authentication\Adapter\Http\Resolver $resolver
-     * @return Zend\Authentication\Adapter\Http Provides a fluent interface
+     * @param  Http\ResolverInterface $resolver
+     * @return Http Provides a fluent interface
      */
-    public function setBasicResolver(Http\Resolver $resolver)
+    public function setBasicResolver(Http\ResolverInterface $resolver)
     {
         $this->_basicResolver = $resolver;
 
@@ -260,7 +242,7 @@ class Http implements AuthenticationAdapter
     /**
      * Getter for the _basicResolver property
      *
-     * @return Zend\Authentication\Adapter\Http\Resolver
+     * @return Http\ResolverInterface
      */
     public function getBasicResolver()
     {
@@ -270,10 +252,10 @@ class Http implements AuthenticationAdapter
     /**
      * Setter for the _digestResolver property
      *
-     * @param  Zend\Authentication\Adapter\Http\Resolver $resolver
-     * @return Zend\Authentication\Adapter\Http Provides a fluent interface
+     * @param  Http\ResolverInterface $resolver
+     * @return Http Provides a fluent interface
      */
-    public function setDigestResolver(Http\Resolver $resolver)
+    public function setDigestResolver(Http\ResolverInterface $resolver)
     {
         $this->_digestResolver = $resolver;
 
@@ -283,7 +265,7 @@ class Http implements AuthenticationAdapter
     /**
      * Getter for the _digestResolver property
      *
-     * @return Zend\Authentication\Adapter\Http\Resolver
+     * @return Http\ResolverInterface
      */
     public function getDigestResolver()
     {
@@ -339,8 +321,8 @@ class Http implements AuthenticationAdapter
     /**
      * Authenticate
      *
-     * @throws Zend\Authentication\Adapter\Exception\RuntimeException
-     * @return Zend\Authentication\Result
+     * @throws Exception\RuntimeException
+     * @return Authentication\Result
      */
     public function authenticate()
     {
@@ -355,7 +337,7 @@ class Http implements AuthenticationAdapter
             $getHeader = 'Authorization';
         }
 
-        $headers = $this->_request->headers();
+        $headers = $this->_request->getHeaders();
         if (!$headers->has($getHeader)) {
             return $this->_challengeClient();
         }
@@ -390,7 +372,7 @@ class Http implements AuthenticationAdapter
                 break;
             case 'digest':
                 $result = $this->_digestAuth($authHeader);
-            break;
+                break;
             default:
                 throw new Exception\RuntimeException('Unsupported authentication scheme: ' . $clientScheme);
         }
@@ -404,7 +386,7 @@ class Http implements AuthenticationAdapter
      * Sets a 401 or 407 Unauthorized response code, and creates the
      * appropriate Authenticate header(s) to prompt for credentials.
      *
-     * @return Zend\Authentication\Result Always returns a non-identity Auth result
+     * @return Authentication\Result Always returns a non-identity Auth result
      */
     protected function _challengeClient()
     {
@@ -419,7 +401,7 @@ class Http implements AuthenticationAdapter
         $this->_response->setStatusCode($statusCode);
 
         // Send a challenge in each acceptable authentication scheme
-        $headers = $this->_response->headers();
+        $headers = $this->_response->getHeaders();
         if (in_array('basic', $this->_acceptSchemes)) {
             $headers->addHeaderLine($headerName, $this->_basicHeader());
         }
@@ -470,8 +452,8 @@ class Http implements AuthenticationAdapter
      * Basic Authentication
      *
      * @param  string $header Client's Authorization header
-     * @throws Zend\Authentication\UnexpectedValueException
-     * @return Zend\Authentication\Result
+     * @throws Exception\ExceptionInterface
+     * @return Authentication\Result
      */
     protected function _basicAuth($header)
     {
@@ -503,22 +485,27 @@ class Http implements AuthenticationAdapter
             return $this->_challengeClient();
         }
 
-        $password = $this->_basicResolver->resolve($creds[0], $this->_realm);
-        if ($password && 
-            $this->_secureStringCompare($password, $creds[1])) {
+        $result = $this->_basicResolver->resolve($creds[0], $this->_realm, $creds[1]);
+
+        if ($result
+            && !is_array($result)
+            && $this->_secureStringCompare($result, $creds[1])
+        ) {
             $identity = array('username'=>$creds[0], 'realm'=>$this->_realm);
             return new Authentication\Result(Authentication\Result::SUCCESS, $identity);
-        } else {
-            return $this->_challengeClient();
+        } elseif (is_array($result)) {
+            return new Authentication\Result(Authentication\Result::SUCCESS, $result);
         }
+
+        return $this->_challengeClient();
     }
 
     /**
      * Digest Authentication
      *
      * @param  string $header Client's Authorization header
-     * @throws Zend\Authentication\Adapter\Exception\UnexpectedValueException
-     * @return Zend\Authentication\Result Valid auth result only on successful auth
+     * @throws Exception\ExceptionInterface
+     * @return Authentication\Result Valid auth result only on successful auth
      */
     protected function _digestAuth($header)
     {
@@ -621,7 +608,15 @@ class Http implements AuthenticationAdapter
         // would be surprising if the user just logged in.
         $timeout = ceil(time() / $this->_nonceTimeout) * $this->_nonceTimeout;
 
-        $nonce = hash('md5', $timeout . ':' . $this->_request->server()->get('HTTP_USER_AGENT') . ':' . __CLASS__);
+        $userAgentHeader = $this->_request->getHeaders()->get('User-Agent');
+        if ($userAgentHeader) {
+            $userAgent = $userAgentHeader->getFieldValue();
+        } elseif (isset($_SERVER['HTTP_USER_AGENT'])) {
+            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        } else {
+            $userAgent = 'Zend_Authenticaion';
+        }
+        $nonce = hash('md5', $timeout . ':' . $userAgent . ':' . __CLASS__);
         return $nonce;
     }
 
@@ -646,8 +641,8 @@ class Http implements AuthenticationAdapter
      * Parse Digest Authorization header
      *
      * @param  string $header Client's Authorization: HTTP header
-     * @return array|false Data elements from header, or false if any part of
-     *         the header is invalid
+     * @return array|bool Data elements from header, or false if any part of
+     *                    the header is invalid
      */
     protected function _parseDigestAuth($header)
     {
@@ -695,7 +690,7 @@ class Http implements AuthenticationAdapter
         // Section 3.2.2.5 in RFC 2617 says the authenticating server must
         // verify that the URI field in the Authorization header is for the
         // same resource requested in the Request Line.
-        $rUri = $this->_request->uri();
+        $rUri = $this->_request->getUri();
         $cUri = UriFactory::factory($temp[1]);
 
         // Make sure the path portion of both URIs is the same
@@ -751,7 +746,7 @@ class Http implements AuthenticationAdapter
             if (!$ret || empty($temp[1])) {
 
                 // Big surprise: IE isn't RFC 2617-compliant.
-                $headers = $this->_request->headers();
+                $headers = $this->_request->getHeaders();
                 if (!$headers->has('User-Agent')) {
                     return false;
                 }

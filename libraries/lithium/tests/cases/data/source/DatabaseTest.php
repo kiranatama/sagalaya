@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -480,6 +480,41 @@ class DatabaseTest extends \lithium\test\Unit {
 
 		$result = $this->db->order(array('author_id', "title" => "DESC"), $query);
 		$expected = 'ORDER BY {MockDatabasePost}.{author_id} ASC, {MockDatabasePost}.{title} DESC';
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testOrderOnRelated() {
+		$query = new Query(array(
+			'model' => $this->_model,
+			'with' => array('MockDatabaseComment')
+		));
+
+		$result = $this->db->order('MockDatabaseComment.created DESC', $query);
+		$expected = 'ORDER BY MockDatabaseComment.created DESC';
+		$this->assertEqual($expected, $result);
+
+		$result = $this->db->order(array('MockDatabaseComment.created' => 'DESC'), $query);
+		$expected = 'ORDER BY MockDatabaseComment.created DESC';
+		$this->assertEqual($expected, $result);
+
+		$result = $this->db->order(
+			array(
+				'MockDatabasePost.title' => 'ASC',
+				'MockDatabaseComment.created' => 'DESC'
+			),
+			$query
+		);
+		$expected = 'ORDER BY MockDatabasePost.title ASC, MockDatabaseComment.created DESC';
+		$this->assertEqual($expected, $result);
+
+		$result = $this->db->order(
+			array(
+				'title' => 'ASC',
+				'MockDatabaseComment.created' => 'DESC'
+			),
+			$query
+		);
+		$expected = 'ORDER BY {MockDatabasePost}.{title} ASC, MockDatabaseComment.created DESC';
 		$this->assertEqual($expected, $result);
 	}
 

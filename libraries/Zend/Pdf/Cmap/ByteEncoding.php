@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Font
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\Cmap;
 use Zend\Pdf\Exception;
 use Zend\Pdf;
@@ -36,11 +33,9 @@ use Zend\Pdf;
  * The mapping from Mac Roman to Unicode can be found at
  * {@link http://www.unicode.org/Public/MAPPINGS/VENDORS/APPLE/ROMAN.TXT}.
  *
- * @uses       \Zend\Pdf\Cmap\AbstractCmap
- * @uses       \Zend\Pdf\Exception
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Font
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class ByteEncoding extends AbstractCmap
@@ -146,7 +141,7 @@ class ByteEncoding extends AbstractCmap
      * malformed.
      *
      * @param string $cmapData Raw binary cmap table data.
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public function __construct($cmapData)
     {

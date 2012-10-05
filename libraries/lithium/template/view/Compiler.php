@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -53,7 +53,7 @@ class Compiler extends \lithium\core\StaticObject {
 	 */
 	public static function template($file, array $options = array()) {
 		$cachePath = Libraries::get(true, 'resources') . '/tmp/cache/templates';
-		$defaults = array('path' => $cachePath, 'fallback' => true);
+		$defaults = array('path' => $cachePath, 'fallback' => false);
 		$options += $defaults;
 
 		$stats = stat($file);

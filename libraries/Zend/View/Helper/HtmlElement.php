@@ -15,22 +15,17 @@
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\View\Helper;
 
 /**
- * @uses       \Zend\Json\Json
- * @uses       \Zend\View\Helper\AbstractHelper
  * @category   Zend
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class HtmlElement extends AbstractHelper
@@ -88,9 +83,10 @@ abstract class HtmlElement extends AbstractHelper
      */
     protected function _htmlAttribs($attribs)
     {
-        $xhtml = '';
+        $xhtml   = '';
+        $escaper = $this->view->plugin('escape');
         foreach ((array) $attribs as $key => $val) {
-            $key = $this->view->vars()->escape($key);
+            $key = $escaper($key);
 
             if (('on' == substr($key, 0, 2)) || ('constraints' == $key)) {
                 // Don't escape event attributes; _do_ substitute double quotes with singles
@@ -107,7 +103,7 @@ abstract class HtmlElement extends AbstractHelper
                 if (is_array($val)) {
                     $val = implode(' ', $val);
                 }
-                $val = $this->view->vars()->escape($val);
+                $val = $escaper($val);
             }
 
             if ('id' == $key) {

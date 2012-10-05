@@ -16,14 +16,11 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gapps
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @version    $Id: EmailList.php 20096 2010-01-06 02:05:09Z bkarwin $
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\GApps\Extension;
 
 /**
@@ -32,7 +29,7 @@ namespace Zend\GData\GApps\Extension;
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gapps
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Property extends \Zend\GData\Extension
@@ -55,7 +52,7 @@ class Property extends \Zend\GData\Extension
     protected $_value = null;
 
     /**
-     * Constructs a new Zend_Gdata_Gapps_Extension_Property object.
+     * Constructs a new Property object.
      *
      * @param string $name The name of the property
      * @param string $value The value of the property
@@ -129,7 +126,7 @@ class Property extends \Zend\GData\Extension
     /**
      * Set the value for this element's name attribute.
      * @param string $value The desired value for this attribute.
-     * @return Zend_Gdata_Gapps_Extension_Property The element being modified.
+     * @return Property The element being modified.
      */
     public function setName($value)
     {
@@ -152,7 +149,7 @@ class Property extends \Zend\GData\Extension
      * Set the value for this element's value attribute.
      *
      * @param string $value The desired value for this attribute.
-     * @return Zend_Gdata_Gapps_Extension_Property The element being modified.
+     * @return Property The element being modified.
      */
     public function setValue($value)
     {
@@ -172,4 +169,4 @@ class Property extends \Zend\GData\Extension
                "\nProperty Value: " . $this->getValue();
     }
 }
-?>
+

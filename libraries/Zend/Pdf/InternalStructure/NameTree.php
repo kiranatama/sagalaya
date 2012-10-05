@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Internal
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\InternalStructure;
 use Zend\Pdf\Exception;
 use Zend\Pdf\InternalType;
@@ -32,14 +29,9 @@ use Zend\Pdf;
  *
  * @todo implement lazy resource loading so resources will be really loaded at access time
  *
- * @uses       ArrayAccess
- * @uses       Countable
- * @uses       Iterator
- * @uses       \Zend\Pdf\InternalType\AbstractTypeObject
- * @uses       \Zend\Pdf\Exception
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Internal
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class NameTree implements \ArrayAccess, \Iterator, \Countable
@@ -56,7 +48,7 @@ class NameTree implements \ArrayAccess, \Iterator, \Countable
      * Object constructor
      *
      * @param $rootDictionary root of name dictionary
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public function __construct(InternalType\AbstractTypeObject $rootDictionary)
     {

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -51,7 +51,10 @@ class Set {
 	}
 
 	/**
-	 * Checks if a particular path is set in an array.
+	 * Checks if a particular path is set in an array. Tests by key name, or dot-delimited key
+	 * name, i.e.:
+	 *
+	 * {{{ embed:lithium\tests\cases\util\SetTest::testCheck(1-4) }}}
 	 *
 	 * @param mixed $data Data to check on.
 	 * @param mixed $path A dot-delimited string.
@@ -171,7 +174,7 @@ class Set {
 		$defaults = array('all' => false, 'count' => 0);
 		$options += $defaults;
 
- 		if (!$data) {
+		if (!$data) {
 			return 0;
 		}
 

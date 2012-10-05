@@ -1,35 +1,21 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Validator
  */
 
-/**
- * @namespace
- */
 namespace Zend\Validator;
 
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
+
 /**
- * @uses       \Zend\Validator\AbstractValidator
- * @uses       \Zend\Validator\Exception
  * @category   Zend
  * @package    Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class NotEmpty extends AbstractValidator
 {
@@ -50,7 +36,7 @@ class NotEmpty extends AbstractValidator
     const INVALID  = 'notEmptyInvalid';
     const IS_EMPTY = 'isEmpty';
 
-    protected $_constants = array(
+    protected $constants = array(
         self::BOOLEAN       => 'boolean',
         self::INTEGER       => 'integer',
         self::FLOAT         => 'float',
@@ -69,28 +55,32 @@ class NotEmpty extends AbstractValidator
     /**
      * @var array
      */
-    protected $_messageTemplates = array(
+    protected $messageTemplates = array(
         self::IS_EMPTY => "Value is required and can't be empty",
         self::INVALID  => "Invalid type given. String, integer, float, boolean or array expected",
     );
 
     /**
-     * Internal type to detect
+     * Options for this validator
      *
-     * @var integer
+     * @var array
      */
-    protected $_type = 493;
+    protected $options = array(
+        'type' => 493,  // Internal type to detect
+    );
 
     /**
      * Constructor
      *
-     * @param string|array|\Zend\Config\Config $options OPTIONAL
+     * @param  array|Traversable|int $options OPTIONAL
      */
     public function __construct($options = null)
     {
-        if ($options instanceof \Zend\Config\Config) {
-            $options = $options->toArray();
-        } else if (!is_array($options)) {
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
+        }
+
+        if (!is_array($options)) {
             $options = func_get_args();
             $temp    = array();
             if (!empty($options)) {
@@ -101,23 +91,23 @@ class NotEmpty extends AbstractValidator
         }
 
         if (is_array($options)) {
-            if (array_key_exists('type', $options)) {
-                $this->setType($options['type']);
-            } else {
+            if (!array_key_exists('type', $options)) {
                 $detected = 0;
                 $found    = false;
                 foreach ($options as $option) {
-                    if (in_array($option, $this->_constants)) {
+                    if (in_array($option, $this->constants)) {
                         $found = true;
-                        $detected += array_search($option, $this->_constants);
+                        $detected += array_search($option, $this->constants);
                     }
                 }
 
                 if ($found) {
-                    $this->setType($detected);
+                    $options['type'] = $detected;
                 }
             }
         }
+
+        parent::__construct($options);
     }
 
     /**
@@ -127,15 +117,15 @@ class NotEmpty extends AbstractValidator
      */
     public function getType()
     {
-        return $this->_type;
+        return $this->options['type'];
     }
 
     /**
      * Set the types
      *
      * @param  integer|array $type
-     * @throws \Zend\Validator\Exception
-     * @return \Zend\Validator\NotEmpty
+     * @throws Exception\InvalidArgumentException
+     * @return NotEmpty
      */
     public function setType($type = null)
     {
@@ -144,21 +134,21 @@ class NotEmpty extends AbstractValidator
             foreach($type as $value) {
                 if (is_int($value)) {
                     $detected += $value;
-                } else if (in_array($value, $this->_constants)) {
-                    $detected += array_search($value, $this->_constants);
+                } elseif (in_array($value, $this->constants)) {
+                    $detected += array_search($value, $this->constants);
                 }
             }
 
             $type = $detected;
-        } else if (is_string($type) && in_array($type, $this->_constants)) {
-            $type = array_search($type, $this->_constants);
+        } elseif (is_string($type) && in_array($type, $this->constants)) {
+            $type = array_search($type, $this->constants);
         }
 
         if (!is_int($type) || ($type < 0) || ($type > self::ALL)) {
             throw new Exception\InvalidArgumentException('Unknown type');
         }
 
-        $this->_type = $type;
+        $this->options['type'] = $type;
         return $this;
     }
 
@@ -173,12 +163,12 @@ class NotEmpty extends AbstractValidator
         if ($value !== null && !is_string($value) && !is_int($value) && !is_float($value) &&
             !is_bool($value) && !is_array($value) && !is_object($value)
         ) {
-            $this->_error(self::INVALID);
+            $this->error(self::INVALID);
             return false;
         }
 
         $type    = $this->getType();
-        $this->_setValue($value);
+        $this->setValue($value);
         $object  = false;
 
         // OBJECT_COUNT (countable object)
@@ -187,7 +177,7 @@ class NotEmpty extends AbstractValidator
             $object = true;
 
             if (is_object($value) && ($value instanceof \Countable) && (count($value) == 0)) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -199,7 +189,7 @@ class NotEmpty extends AbstractValidator
 
             if ((is_object($value) && (!method_exists($value, '__toString'))) ||
                 (is_object($value) && (method_exists($value, '__toString')) && (((string) $value) == ""))) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -208,10 +198,10 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::OBJECT) {
             $type -= self::OBJECT;
             // fall trough, objects are always not empty
-        } else if ($object === false) {
+        } elseif ($object === false) {
             // object not allowed but object given -> return false
             if (is_object($value)) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -220,7 +210,7 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::SPACE) {
             $type -= self::SPACE;
             if (is_string($value) && (preg_match('/^\s+$/s', $value))) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -229,7 +219,7 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::NULL) {
             $type -= self::NULL;
             if ($value === null) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -238,7 +228,7 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::EMPTY_ARRAY) {
             $type -= self::EMPTY_ARRAY;
             if (is_array($value) && ($value == array())) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -247,7 +237,7 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::ZERO) {
             $type -= self::ZERO;
             if (is_string($value) && ($value == '0')) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -256,7 +246,7 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::STRING) {
             $type -= self::STRING;
             if (is_string($value) && ($value == '')) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -265,7 +255,7 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::FLOAT) {
             $type -= self::FLOAT;
             if (is_float($value) && ($value == 0.0)) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -274,7 +264,7 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::INTEGER) {
             $type -= self::INTEGER;
             if (is_int($value) && ($value == 0)) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }
@@ -283,7 +273,7 @@ class NotEmpty extends AbstractValidator
         if ($type >= self::BOOLEAN) {
             $type -= self::BOOLEAN;
             if (is_bool($value) && ($value == false)) {
-                $this->_error(self::IS_EMPTY);
+                $this->error(self::IS_EMPTY);
                 return false;
             }
         }

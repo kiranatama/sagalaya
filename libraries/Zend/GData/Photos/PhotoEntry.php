@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Photos
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Photos;
 
 use Zend\GData\Photos;
@@ -35,27 +32,10 @@ use Zend\GData\Photos;
  *
  * This class represents <atom:entry> in the Google Data protocol.
  *
- * @uses       \Zend\GData\App\Extension\Category
- * @uses       \Zend\GData\EXIF\Extension\Tags
- * @uses       \Zend\GData\Geo\Extension\GeoRssWhere
- * @uses       Zend_Gdata_MediaEntry
- * @uses       \Zend\GData\Photos
- * @uses       \Zend\GData\Photos\Extension\AlbumId
- * @uses       \Zend\GData\Photos\Extension\Checksum
- * @uses       \Zend\GData\Photos\Extension\Client
- * @uses       \Zend\GData\Photos\Extension\CommentCount
- * @uses       \Zend\GData\Photos\Extension\CommentingEnabled
- * @uses       \Zend\GData\Photos\Extension\Height
- * @uses       \Zend\GData\Photos\Extension\Id
- * @uses       \Zend\GData\Photos\Extension\PhotoId
- * @uses       \Zend\GData\Photos\Extension\Size
- * @uses       \Zend\GData\Photos\Extension\Timestamp
- * @uses       \Zend\GData\Photos\Extension\Version
- * @uses       \Zend\GData\Photos\Extension\Width
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Photos
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class PhotoEntry extends \Zend\GData\Media\Entry

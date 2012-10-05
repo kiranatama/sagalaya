@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -19,7 +19,7 @@ class RecordTest extends \lithium\test\Unit {
 		$this->_configs = Connections::config();
 
 		Connections::config(array('mock-source' => array(
-			'type' => '\lithium\tests\mocks\data\MockSource'
+			'type' => 'lithium\tests\mocks\data\MockSource'
 		)));
 		$model = 'lithium\tests\mocks\data\MockPost';
 		$model::config(array('connection' => 'mock-source', 'key' => 'id'));

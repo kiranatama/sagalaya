@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -232,17 +232,26 @@ class Create extends \lithium\console\Command {
 		}
 		$contents = $this->_template();
 		$result = String::insert($contents, $params);
-
-		$path = str_replace('\\', '/', "{$params['namespace']}\\{$params['class']}");
+		$namespace = str_replace($this->_library['prefix'], '\\', $params['namespace']);
+		$path = str_replace('\\', '/', "{$namespace}\\{$params['class']}");
 		$path = $this->_library['path'] . stristr($path, '/');
 		$file = str_replace('//', '/', "{$path}.php");
 		$directory = dirname($file);
+		$relative = str_replace($this->_library['path'] . '/', "", $file);
 
 		if ((!is_dir($directory)) && !mkdir($directory, 0755, true)) {
 			return false;
 		}
+		if (file_exists($file)) {
+			$prompt = "{$relative} already exists. Overwrite?";
+			$choices = array('y', 'n');
+			if ($this->in($prompt, compact('choices')) != 'y') {
+				return "{$params['class']} skipped.";
+			}
+		}
+
 		if (file_put_contents($file, "<?php\n\n{$result}\n\n?>")) {
-			return "{$params['class']} created in {$params['namespace']}.";
+			return "{$params['class']} created in {$relative}.";
 		}
 		return false;
 	}

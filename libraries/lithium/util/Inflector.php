@@ -2,13 +2,11 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
- *                Copyright 2010, Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/mit-license.php The MIT License
  */
 
 namespace lithium\util;
-
 
 /**
  * Utility for modifying format of words. Change singular to plural and vice versa.
@@ -280,7 +278,7 @@ class Inflector {
 			$regexIrregular = static::_enclose(join( '|', array_keys($irregular)));
 			static::$_plural += compact('regexUninflected', 'regexIrregular');
 		}
-		if (preg_match('/^(' . $regexUninflected . ')$/i', $word, $regs)) {
+		if (preg_match('/(' . $regexUninflected . ')$/i', $word, $regs)) {
 			return static::$_pluralized[$word] = $word;
 		}
 		if (preg_match('/(.*)\\b(' . $regexIrregular . ')$/i', $word, $regs)) {

@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Amf
  * @subpackage Parser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Amf\Parser;
 
 /**
@@ -30,10 +27,9 @@ namespace Zend\Amf\Parser;
  * InputStream extends BinaryStream as eventually BinaryStream could be placed
  * outside of Zend_Amf in order to allow other packages to use the class.
  *
- * @uses       Zend\Amf\Util\BinaryStream
  * @package    Zend_Amf
  * @subpackage Parser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class InputStream extends \Zend\Amf\Util\BinaryStream

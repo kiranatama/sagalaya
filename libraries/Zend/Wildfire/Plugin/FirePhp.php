@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Wildfire
  * @subpackage Plugin
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Wildfire\Plugin;
 use Zend\Wildfire,
     Zend\Wildfire\Plugin\Exception;
@@ -29,18 +26,10 @@ use Zend\Wildfire,
 /**
  * Primary class for communicating with the FirePHP Firefox Extension.
  *
- * @uses       ReflectionClass
- * @uses       \Zend\Controller\Request\AbstractRequest
- * @uses       \Zend\Controller\Response\AbstractResponse
- * @uses       \Zend\Loader
- * @uses       \Zend\Wildfire\Channel\HttpHeaders
- * @uses       \Zend\Wildfire\Exception
- * @uses       \Zend\Wildfire\Plugin
- * @uses       \Zend\Wildfire\Protocol\JsonStream
  * @category   Zend
  * @package    Zend_Wildfire
  * @subpackage Plugin
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class FirePhp implements Wildfire\Plugin
@@ -216,6 +205,12 @@ class FirePhp implements Wildfire\Plugin
         }
         return self::$_instance;
     }
+
+    /**
+     * Disable clone
+     */
+    private function __clone()
+    {}
 
     /**
      * Destroys the singleton instance

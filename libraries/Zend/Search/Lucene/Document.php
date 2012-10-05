@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Document
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Search\Lucene;
 
 use Zend\Search\Lucene\Exception\InvalidArgumentException;
@@ -29,12 +26,10 @@ use Zend\Search\Lucene\Exception\InvalidArgumentException;
 /**
  * A Document is a set of fields. Each field has a name and a textual value.
  *
- * @uses       \Zend\Search\Lucene\Exception\InvalidArgumentException
- * @uses       \Zend\Search\Lucene\Document\Field
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Document
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Document
@@ -55,6 +50,17 @@ class Document
      * @var float
      */
     public $boost = 1.0;
+    
+    /**
+     * Magic method for checking the existence of a field
+     *
+     * @param string $offset
+     * @return boolean TRUE if the field exists else FALSE
+     */
+    public function __isset($offset)
+    {
+        return in_array($offset, $this->getFieldNames());
+    }
 
     /**
      * Proxy method for getFieldValue(), provides more convenient access to

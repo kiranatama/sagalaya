@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Amazon
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Amazon\Ec2;
 use Zend\Service\Amazon,
     Zend\Service\Amazon\Ec2\Exception;
@@ -29,12 +26,10 @@ use Zend\Service\Amazon,
 /**
  * Amazon Ec2 Interface to allow easy creation of the Ec2 Components
  *
- * @uses       Zend_Loader
- * @uses       Zend\Service\Amazon\Ec2\Exception
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Amazon
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Ec2

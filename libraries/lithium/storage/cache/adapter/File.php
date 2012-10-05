@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -24,7 +24,7 @@ use lithium\core\Libraries;
  * appropriate cache adapter.
  *
  * This adapter does *not* provide increment/decrement functionality. For such
- * functionality, please use a more approrpiate cache adapter.
+ * functionality, please use a more appropriate cache adapter.
  *
  * This adapter does *not* allow multi-key operations for any methods.
  *

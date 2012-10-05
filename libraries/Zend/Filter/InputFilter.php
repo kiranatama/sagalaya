@@ -14,25 +14,22 @@
  *
  * @category   Zend
  * @package    Zend_Filter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Filter;
 
 use Zend\Loader\Broker,
     Zend\Registry,
-    Zend\Translator\Adapter as TranslationAdapter,
+    Zend\Translator\Adapter\AbstractAdapter as TranslationAdapter,
     Zend\Translator\Translator as Translator,
     Zend\Validator;
 
 /**
  * @category   Zend
  * @package    Zend_Filter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class InputFilter
@@ -108,7 +105,7 @@ class InputFilter
     protected $unknownFields = array();
 
     /**
-     * @var Zend\Filter\Filter The filter object that is run on values
+     * @var Zend\Filter\FilterInterface The filter object that is run on values
      * returned by the getEscaped() method.
      */
     protected $defaultEscapeFilter = null;
@@ -185,12 +182,12 @@ class InputFilter
             case self::VALIDATOR:
                 if (is_string($broker)) {
                     if (!class_exists($broker)) {
-                        throw new Exception(sprintf('Broker class "%s" not found', $broker));
+                        throw new Exception\RuntimeException(sprintf('Broker class "%s" not found', $broker));
                     }
                     $broker = new $broker;
                 }
                 if (!$broker instanceof Broker) {
-                    throw new Exception(sprintf(
+                    throw new Exception\RuntimeException(sprintf(
                         'setPluginBroker() expects a class or object of type Zend\Loader\Broker; received "%s"',
                         (is_object($broker) ? get_class($broker) : gettype($broker))
                     ));
@@ -405,8 +402,8 @@ class InputFilter
     }
 
     /**
-     * @return Zend\Filter\InputFilter
-     * @throws Zend\Filter\Exception
+     * @return InputFilter
+     * @throws Exception\RuntimeException
      */
     public function process()
     {
@@ -423,7 +420,7 @@ class InputFilter
 
     /**
      * @param array $data
-     * @return Zend\Filter\InputFilter
+     * @return InputFilter
      */
     public function setData(array $data)
     {
@@ -445,15 +442,17 @@ class InputFilter
 
     /**
      * @param mixed $escapeFilter
-     * @return Zend\Filter\Filter
+     * @return FilterInterface
      */
     public function setDefaultEscapeFilter($escapeFilter)
     {
         if (is_string($escapeFilter) || is_array($escapeFilter)) {
             $escapeFilter = $this->_getFilter($escapeFilter);
         }
-        if (!$escapeFilter instanceof Filter) {
-            throw new Exception\InvalidArgumentException('Escape filter specified does not implement Zend\Filter\Filter');
+        if (!$escapeFilter instanceof FilterInterface) {
+            throw new Exception\InvalidArgumentException(
+                'Escape filter specified does not implement Zend\Filter\FilterInterface'
+            );
         }
         $this->defaultEscapeFilter = $escapeFilter;
         return $escapeFilter;
@@ -461,8 +460,8 @@ class InputFilter
 
     /**
      * @param array $options
-     * @return Zend\Filter\InputFilter
-     * @throws Zend\Filter\Exception if an unknown option is given
+     * @return InputFilter
+     * @throws Exception\ExceptionInterface if an unknown option is given
      */
     public function setOptions(array $options)
     {
@@ -497,7 +496,7 @@ class InputFilter
      * Set translation object
      *
      * @param  Zend_Translator|Zend\Translator\Adapter\Adapter|null $translator
-     * @return Zend\Filter\InputFilter
+     * @return InputFilter
      */
     public function setTranslator($translator = null)
     {
@@ -541,7 +540,7 @@ class InputFilter
      * Indicate whether or not translation should be disabled
      *
      * @param  bool $flag
-     * @return Zend\Filter\InputFilter
+     * @return InputFilter
      */
     public function setDisableTranslator($flag)
     {
@@ -646,7 +645,7 @@ class InputFilter
     }
 
     /**
-     * @return Zend\Filter\Filter
+     * @return Zend\Filter\FilterInterface
      */
     protected function _getDefaultEscapeFilter()
     {
@@ -966,7 +965,7 @@ class InputFilter
                                 $messages[] = $message;
                             }
                         }
-                        $errorsList[] = $notEmptyValidator->getErrors();
+                        $errorsList[] = array_keys($notEmptyValidator->getMessages());
                         $emptyFieldsFound = true;
                     }
                 }
@@ -1032,9 +1031,9 @@ class InputFilter
                     $this->invalidMessages[$validatorRule[self::RULE]] = $collectedMessages;
                     if (isset($this->invalidErrors[$validatorRule[self::RULE]])) {
                         $this->invalidErrors[$validatorRule[self::RULE]] = array_merge($this->invalidErrors[$validatorRule[self::RULE]],
-                                                                                        $validatorChain->getErrors());
+                                                                                        array_keys($validatorChain->getMessages()));
                     } else {
-                        $this->invalidErrors[$validatorRule[self::RULE]] = $validatorChain->getErrors();
+                        $this->invalidErrors[$validatorRule[self::RULE]] = array_keys($validatorChain->getMessages());
                     }
                     unset($this->validFields[$fieldName]);
                     $failed = true;
@@ -1061,7 +1060,7 @@ class InputFilter
     /**
      * Check a validatorRule for the presence of a NotEmpty validator instance.
      * The purpose is to preserve things like a custom message, that may have been
-     * set on the validator outside \Zend\Filter\InputFilter.
+     * set on the validator outside InputFilter.
      * @param  array $validatorRule
      * @return mixed False if none is found, \Zend\Validator\NotEmpty instance if found
      */
@@ -1077,7 +1076,7 @@ class InputFilter
 
     /**
      * @param mixed $classBaseName
-     * @return Zend\Filter\Filter
+     * @return \Zend\Filter\FilterInterface
      */
     protected function _getFilter($classBaseName)
     {
@@ -1086,7 +1085,7 @@ class InputFilter
 
     /**
      * @param mixed $classBaseName
-     * @return Zend\Validator\Validator
+     * @return \Zend\Validator\ValidatorInterface
      */
     protected function _getValidator($classBaseName)
     {
@@ -1096,8 +1095,8 @@ class InputFilter
     /**
      * @param string $type
      * @param mixed $classBaseName
-     * @return Zend\Filter\Filter|Zend\Validator\Validator
-     * @throws Zend\Filter\Exception
+     * @return \Zend\Filter\FilterInterface|\Zend\Validator\ValidatorInterface
+     * @throws Exception\ExceptionInterface
      */
     protected function _getFilterOrValidator($type, $classBaseName)
     {

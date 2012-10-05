@@ -15,27 +15,20 @@
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\InfoCard\XML\KeyInfo;
 use Zend\InfoCard\XML;
 
 /**
  * Factory class to return a XML KeyInfo block based on input XML
  *
- * @uses       \Zend\InfoCard\XML\AbstractElement
- * @uses       \Zend\InfoCard\XML\Exception
- * @uses       \Zend\InfoCard\XML\KeyInfo\Default
- * @uses       \Zend\InfoCard\XML\KeyInfo\XMLDSig
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Factory
@@ -43,7 +36,6 @@ class Factory
     /**
      * Constructor (disabled)
      *
-     * @return void
      */
     private function __construct()
     {
@@ -54,7 +46,7 @@ class Factory
      *
      * @param string $xmlData The KeyInfo XML Block
      * @return \Zend\InfoCard\XML\KeyInfo\AbstractKeyInfo
-     * @throws \Zend\InfoCard\XML\Exception
+     * @throws XML\Exception\InvalidArgumentException
      */
     static public function getInstance($xmlData)
     {

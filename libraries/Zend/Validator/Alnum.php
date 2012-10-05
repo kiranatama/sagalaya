@@ -14,21 +14,16 @@
  *
  * @category   Zend
  * @package    Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Validator;
 
 /**
- * @uses       \Zend\Filter\Alnum
- * @uses       \Zend\Validator\AbstractValidator
  * @category   Zend
  * @package    Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Alnum extends AbstractValidator
@@ -36,13 +31,6 @@ class Alnum extends AbstractValidator
     const INVALID      = 'alnumInvalid';
     const NOT_ALNUM    = 'notAlnum';
     const STRING_EMPTY = 'alnumStringEmpty';
-
-    /**
-     * Whether to allow white space characters; off by default
-     *
-     * @var boolean
-     */
-    protected $allowWhiteSpace;
 
     /**
      * Alphanumeric filter used for validation
@@ -63,26 +51,22 @@ class Alnum extends AbstractValidator
     );
 
     /**
+     * Options for this validator
+     *
+     * @var array
+     */
+    protected $options = array(
+        'allowWhiteSpace' => false,  // Whether to allow white space characters; off by default
+    );
+
+    /**
      * Sets default option values for this instance
      *
-     * @param  boolean|\Zend\Config\Config $allowWhiteSpace
-     * @return void
+     * @param array|\Traversable $options
      */
-    public function __construct($allowWhiteSpace = false)
+    public function __construct($options = array())
     {
-        if ($allowWhiteSpace instanceof \Zend\Config\Config) {
-            $allowWhiteSpace = $allowWhiteSpace->toArray();
-        }
-
-        if (is_array($allowWhiteSpace)) {
-            if (array_key_exists('allowWhiteSpace', $allowWhiteSpace)) {
-                $allowWhiteSpace = $allowWhiteSpace['allowWhiteSpace'];
-            } else {
-                $allowWhiteSpace = false;
-            }
-        }
-
-        $this->allowWhiteSpace = (boolean) $allowWhiteSpace;
+        parent::__construct($options);
     }
 
     /**
@@ -92,7 +76,7 @@ class Alnum extends AbstractValidator
      */
     public function getAllowWhiteSpace()
     {
-        return $this->allowWhiteSpace;
+        return $this->options['allowWhiteSpace'];
     }
 
     /**
@@ -103,7 +87,7 @@ class Alnum extends AbstractValidator
      */
     public function setAllowWhiteSpace($allowWhiteSpace)
     {
-        $this->allowWhiteSpace = (boolean) $allowWhiteSpace;
+        $this->options['allowWhiteSpace'] = (boolean) $allowWhiteSpace;
         return $this;
     }
 
@@ -116,14 +100,13 @@ class Alnum extends AbstractValidator
     public function isValid($value)
     {
         if (!is_string($value) && !is_int($value) && !is_float($value)) {
-            $this->_error(self::INVALID);
+            $this->error(self::INVALID);
             return false;
         }
 
-        $this->_setValue($value);
-
+        $this->setValue($value);
         if ('' === $value) {
-            $this->_error(self::STRING_EMPTY);
+            $this->error(self::STRING_EMPTY);
             return false;
         }
 
@@ -131,14 +114,12 @@ class Alnum extends AbstractValidator
             self::$_filter = new \Zend\Filter\Alnum();
         }
 
-        self::$_filter->setAllowWhiteSpace($this->allowWhiteSpace);
-
+        self::$_filter->setAllowWhiteSpace($this->getAllowWhiteSpace());
         if ($value != self::$_filter->filter($value)) {
-            $this->_error(self::NOT_ALNUM);
+            $this->error(self::NOT_ALNUM);
             return false;
         }
 
         return true;
     }
-
 }

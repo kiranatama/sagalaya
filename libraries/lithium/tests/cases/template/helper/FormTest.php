@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -20,6 +20,7 @@ use lithium\tests\mocks\template\helper\MockFormRenderer;
 class FormTest extends \lithium\test\Unit {
 
 	protected $_model = 'lithium\tests\mocks\template\helper\MockFormPost';
+	protected $_model2 = 'lithium\tests\mocks\template\helper\MockFormPostInfo';
 
 	/**
 	 * Test object instance.
@@ -55,8 +56,7 @@ class FormTest extends \lithium\test\Unit {
 		$this->context = new MockFormRenderer(compact('request'));
 		$this->form = new Form(array('context' => $this->context));
 
-		$base = trim($this->context->request()->env('base'), '/') . '/';
-		$this->base = ($base == '/') ? $base : '/' . $base;
+		$this->base = $this->context->request()->env('base') . '/';
 	}
 
 	public function tearDown() {
@@ -69,9 +69,9 @@ class FormTest extends \lithium\test\Unit {
 
 	public function testFormCreation() {
 		$result = $this->form->create();
-		$this->assertTags($result, array(
-			'form' => array('action' => "{$this->base}posts", 'method' => 'post')
-		));
+		$this->assertTags($result, array('form' => array(
+			'action' => "{$this->base}posts", 'method' => 'post'
+		)));
 
 		$result = $this->form->create(null, array('method' => 'get'));
 		$this->assertTags($result, array(
@@ -141,8 +141,8 @@ class FormTest extends \lithium\test\Unit {
 			'title' => 'This is a saved post',
 			'body' => 'This is the body of the saved post'
 		)));
-		$result = $this->form->create($record);
-		$this->assertTags($result, array(
+
+		$this->assertTags($this->form->create($record), array(
 			'form' => array('action' => "{$this->base}posts", 'method' => 'post')
 		));
 	}
@@ -163,8 +163,6 @@ class FormTest extends \lithium\test\Unit {
 	}
 
 	public function testFormDataBinding() {
-		$this->expectException('The data connection default is not configured');
-
 		try {
 			MockFormPost::config(array('connection' => false));
 		} catch (Exception $e) {
@@ -175,7 +173,9 @@ class FormTest extends \lithium\test\Unit {
 			'id' => '5',
 			'author_id' => '2',
 			'title' => 'This is a saved post',
-			'body' => 'This is the body of the saved post'
+			'body' => 'This is the body of the saved post',
+			'zeroInt' => 0,
+			'zeroString' => "0"
 		)));
 
 		$result = $this->form->create($record);
@@ -189,11 +189,21 @@ class FormTest extends \lithium\test\Unit {
 			'value' => 'This is a saved post', 'id' => 'MockFormPostTitle'
 		)));
 
-		$result = $this->form->end();
-		$this->assertTags($result, array('/form'));
 
-		$result = $this->form->text('title');
+		$result = $this->form->text('zeroInt');
 		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'zeroInt',
+			'value' => '0', 'id' => 'MockFormPostZeroInt'
+		)));
+		$result = $this->form->text('zeroString');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'zeroString',
+			'value' => '0', 'id' => 'MockFormPostZeroString'
+		)));
+
+		$this->assertEqual('</form>', $this->form->end());
+
+		$this->assertTags($this->form->text('title'), array('input' => array(
 			'type' => 'text', 'name' => 'title', 'id' => 'Title'
 		)));
 	}
@@ -385,6 +395,22 @@ class FormTest extends \lithium\test\Unit {
 				'checked' => 'checked', 'id' => 'MockFormPostFoo'
 			))
 		));
+
+		$document = new Document(array('model' => $this->_model, 'data' =>
+			array('subdocument' => array('foo' => true))
+		));
+		$this->form->create($document);
+
+		$result = $this->form->checkbox('subdocument.foo');
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'hidden', 'value' => '', 'name' => 'subdocument[foo]')
+			),
+			array('input' => array(
+				'type' => 'checkbox', 'value' => '1', 'name' => 'subdocument[foo]',
+				'checked' => 'checked', 'id' => 'MockFormPostSubdocumentFoo'
+			))
+		));
 	}
 
 	public function testCustomCheckbox() {
@@ -421,7 +447,7 @@ class FormTest extends \lithium\test\Unit {
 		$this->assertTags($result, array(
 			array('input' => array('type' => 'hidden', 'value' => '', 'name' => 'foo')),
 			array('input' => array(
-				'type' => 'checkbox', 'value' => '1',  'name' => 'foo', 
+				'type' => 'checkbox', 'value' => '1',  'name' => 'foo',
 				'id' => 'MockFormPostFoo', 'checked' => 'checked'
 			))
 		));
@@ -468,6 +494,114 @@ class FormTest extends \lithium\test\Unit {
 		));
 	}
 
+	public function testRadioGeneration() {
+		$result = $this->form->radio('foo');
+		$this->assertTags($result, array(array(
+			'input' => array('type' => 'radio', 'value' => '1', 'name' => 'foo', 'id' => 'Foo'))
+		));
+
+		$result = $this->form->radio('foo', array('checked' => false));
+		$this->assertTags($result, array(array(
+			'input' => array('type' => 'radio', 'value' => '1', 'name' => 'foo', 'id' => 'Foo'))
+		));
+
+		$result = $this->form->radio('foo', array('checked' => true));
+		$this->assertTags($result, array(array(
+			'input' => array(
+				'type' => 'radio',
+				'value' => '1',
+				'name' => 'foo',
+				'checked' => 'checked',
+				'id' => 'Foo')
+			)
+		));
+
+		$record = new Record(array('model' => $this->_model, 'data' => array('foo' => true)));
+		$this->form->create($record);
+
+		$result = $this->form->radio('foo');
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1', 'name' => 'foo',
+				'checked' => 'checked', 'id' => 'MockFormPostFoo'
+			))
+		));
+	}
+
+	public function testCustomRadio() {
+		$result = $this->form->radio('foo', array('value' => '1'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1',  'name' => 'foo', 'id' => 'Foo'
+			))
+		));
+
+		$result = $this->form->radio('foo', array('checked' => true, 'value' => '1'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1',  'name' => 'foo',
+				'checked' => 'checked', 'id' => 'Foo'
+			))
+		));
+
+		$record = new Record(array('model' => $this->_model, 'data' => array('foo' => true)));
+		$this->form->create($record);
+
+		$result = $this->form->radio('foo', array('value' => '1'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1',  'name' => 'foo',
+				'id' => 'MockFormPostFoo', 'checked' => 'checked'
+			))
+		));
+
+		$result = $this->form->radio('foo', array('value' => true));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => '1',  'name' => 'foo',
+				'id' => 'MockFormPostFoo', 'checked' => 'checked'
+			))
+		));
+	}
+
+	public function testCustomValueRadio() {
+		$result = $this->form->radio('foo', array('value' => 'HERO'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => 'HERO', 'name' => 'foo', 'id' => 'Foo'
+			))
+		));
+
+		$result = $this->form->radio('foo', array('value' => 'nose'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => 'nose', 'name' => 'foo', 'id' => 'Foo'
+			))
+		));
+
+		$record = new Record(array('model' => $this->_model, 'data' => array('foo' => 'nose')));
+		$this->form->create($record);
+
+		$result = $this->form->radio('foo', array('value' => 'nose'));
+		$this->assertTags($result, array(
+			array('input' => array(
+				'type' => 'radio', 'value' => 'nose', 'name' => 'foo',
+				'id' => 'MockFormPostFoo', 'checked' => 'checked'
+			))
+		));
+
+		$record = new Record(array('model' => $this->_model, 'data' => array('foo' => 'foot')));
+		$this->form->create($record);
+
+		$result = $this->form->checkbox('foo', array('value' => 'nose'));
+		$this->assertTags($result, array(
+			array('input' => array('type' => 'hidden', 'value' => '', 'name' => 'foo')),
+			array('input' => array(
+				'type' => 'checkbox', 'value' => 'nose', 'name' => 'foo', 'id' => 'MockFormPostFoo'
+			))
+		));
+	}
+
 	public function testSelectGeneration() {
 		$result = $this->form->select('foo');
 
@@ -496,14 +630,54 @@ class FormTest extends \lithium\test\Unit {
 		));
 	}
 
+	/**
+	 * When trying to determine which option of a select box should be selected, we should be
+	 * integer/string agnostic because it all looks the same in HTML.
+	 *
+	 */
+	public function testSelectTypeAgnosticism() {
+		$taglist = array(
+			'select' => array('name' => 'numbers', 'id' => 'Numbers'),
+			array('option' => array('value' => '0')),
+			'Zero',
+			'/option',
+			array('option' => array('value' => '1', 'selected' => 'selected')),
+			'One',
+			'/option',
+			array('option' => array('value' => '2')),
+			'Two',
+			'/option',
+			'/select'
+		);
+
+		$result = $this->form->select(
+			'numbers',
+			array(0 => 'Zero', 1 => 'One', 2 => 'Two'),
+			array('id' => 'Numbers', 'value' => '1')
+		);
+
+		$this->assertTags($result, $taglist);
+
+		$result = $this->form->select(
+			'numbers',
+			array('0' => 'Zero', '1' => 'One', '2' => 'Two'),
+			array('id' => 'Numbers', 'value' => 1)
+		);
+
+		$this->assertTags($result, $taglist);
+	}
+
 	public function testSelectWithEmptyOption() {
-		$result = $this->form->select('numbers', array('1' => 'first', '2' => 'second'), array(
+		$result = $this->form->select('numbers', array('zero', 'first', 'second'), array(
 			'empty' => true
 		));
 
 		$this->assertTags($result, array(
 			'select' => array('id' => 'Numbers', 'name' => 'numbers'),
 			array('option' => array('value' => '', 'selected' => 'selected')),
+			'/option',
+			array('option' => array('value' => '0')),
+			'zero',
 			'/option',
 			array('option' => array('value' => '1')),
 			'first',
@@ -514,7 +688,7 @@ class FormTest extends \lithium\test\Unit {
 			'/select'
 		));
 
-		$result = $this->form->select('numbers', array('1' => 'first', '2' => 'second'), array(
+		$result = $this->form->select('numbers', array('zero', 'first', 'second'), array(
 			'empty' => '> Make a selection'
 		));
 
@@ -522,6 +696,9 @@ class FormTest extends \lithium\test\Unit {
 			'select' => array('name' => 'numbers', 'id' => 'Numbers'),
 			array('option' => array('value' => '', 'selected' => 'selected')),
 			'&gt; Make a selection',
+			'/option',
+			array('option' => array('value' => '0')),
+			'zero',
 			'/option',
 			array('option' => array('value' => '1')),
 			'first',
@@ -855,7 +1032,7 @@ class FormTest extends \lithium\test\Unit {
 			'div' => array(),
 			'label' => array('for' => 'States'), 'States', '/label',
 			'select' => array('name' => 'states', 'id' => 'States'),
-			array('option' => array('value' => '0', 'selected' => 'selected')),
+			array('option' => array('value' => '0')),
 			'CA',
 			'/option',
 			array('option' => array('value' => '1')),
@@ -958,7 +1135,6 @@ class FormTest extends \lithium\test\Unit {
 	 * Tests that the string template form `Form::field()` can be overridden.
 	 */
 	public function testFieldTemplateOverride() {
-		$result = $this->form->field('name', array('type' => 'text'));
 		$this->form->config(array('templates' => array('field' => '{:label}{:input}{:error}')));
 		$result = $this->form->field('name', array('type' => 'text'));
 		$this->assertTags($result, array(
@@ -1078,6 +1254,152 @@ class FormTest extends \lithium\test\Unit {
 		$this->assertTags($this->form->label('user.name'), array(
 			'label' => array('for' => 'UserName'), 'User Name', '/label'
 		));
+	}
+
+	/**
+	 * Test that field already defined template strings with special types (e.g. radio, checkbox,
+	 * etc.) and passed customize template, and the template must apply.
+	 */
+	public function testRadioTypeFieldWithCustomTemplate() {
+		$result = $this->form->field('name', array(
+			'template' => '<span{:wrap}>{:label}: {:input}{:error}</span>',
+			'type' => 'radio'
+		));
+		$this->assertTags($result, array(
+			'span' => array(),
+			'label' => array('for' => 'Name'), 'Name', '/label', ':',
+			'input' => array('type' => 'radio', 'name' => 'name', 'id' => 'Name', 'value' => '1')
+		));
+	}
+
+	public function testFormCreationMultipleBindings() {
+		$record1 = new Record(array('model' => $this->_model, 'data' => array(
+			'author_id' => '2',
+			'title' => 'New post',
+			'body' => 'New post body'
+		)));
+		$record2 = new Record(array('model' => $this->_model2, 'data' => array(
+			'section' => 'New post section',
+			'notes' => 'New post notes'
+		)));
+
+		$result = $this->form->create(array(
+			'MockFormPost' => $record1,
+			'MockFormPostInfo' => $record2
+		));
+		$this->assertTags($result, array(
+			'form' => array('action' => "{$this->base}posts", 'method' => 'post')
+		));
+
+		$result = $this->form->text('title');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'title',
+			'value' => 'New post', 'id' => 'MockFormPostTitle'
+		)));
+
+		$result = $this->form->text('MockFormPost.title');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'MockFormPost[title]',
+			'value' => 'New post', 'id' => 'MockFormPostTitle'
+		)));
+
+		$result = $this->form->text('body');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'body',
+			'value' => 'New post body', 'id' => 'MockFormPostBody'
+		)));
+
+		$result = $this->form->text('MockFormPostInfo.section');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'MockFormPostInfo[section]',
+			'value' => 'New post section', 'id' => 'MockFormPostInfoSection'
+		)));
+
+		$result = $this->form->end();
+		$this->assertTags($result, array('/form'));
+
+		$result = $this->form->create(array('a' => $record1, 'b' => $record2));
+		$this->assertTags($result, array(
+			'form' => array('action' => "{$this->base}posts", 'method' => 'post')
+		));
+
+		$result = $this->form->text('title');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'title',
+			'value' => 'New post', 'id' => 'MockFormPostTitle'
+		)));
+
+		$result = $this->form->text('a.title');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'a[title]',
+			'value' => 'New post', 'id' => 'MockFormPostTitle'
+		)));
+
+		$result = $this->form->text('body');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'body',
+			'value' => 'New post body', 'id' => 'MockFormPostBody'
+		)));
+
+		$result = $this->form->text('b.section');
+		$this->assertTags($result, array('input' => array(
+			'type' => 'text', 'name' => 'b[section]',
+			'value' => 'New post section', 'id' => 'MockFormPostInfoSection'
+		)));
+
+		$result = $this->form->end();
+		$this->assertTags($result, array('/form'));
+	}
+
+	public function testFormErrorMultipleBindings() {
+		$record1 = new Record(array('model' => $this->_model, 'data' => array(
+			'author_id' => '2',
+			'title' => 'New post',
+			'body' => 'New post body'
+		)));
+		$record2 = new Record(array('model' => $this->_model2, 'data' => array(
+			'section' => 'New post section',
+			'notes' => 'New post notes'
+		)));
+
+		$record1->errors(array('title' => 'Not a cool title'));
+		$record2->errors(array('section' => 'Not a cool section'));
+
+		$this->form->create(compact('record1', 'record2'));
+
+		$result = $this->form->error('title');
+		$this->assertTags($result, array(
+			'div' => array('class' => 'error'), 'Not a cool title', '/div'
+		));
+
+		$result = $this->form->error('body');
+		$this->assertTrue(empty($result));
+
+		$result = $this->form->error('record1.title');
+		$this->assertTags($result, array(
+			'div' => array('class' => 'error'), 'Not a cool title', '/div'
+		));
+
+		$result = $this->form->error('record2.section');
+		$this->assertTags($result, array(
+			'div' => array('class' => 'error'), 'Not a cool section', '/div'
+		));
+	}
+
+	public function testBindingByName() {
+		$post = new Record(array('model' => $this->_model, 'data' => array(
+			'author_id' => '2',
+			'title' => 'New post',
+			'body' => 'New post body'
+		)));
+		$info = new Record(array('model' => $this->_model2, 'data' => array(
+			'section' => 'New post section',
+			'notes' => 'New post notes'
+		)));
+
+		$this->form->create(compact('post', 'info'));
+		$this->assertEqual($post, $this->form->binding('post'));
+		$this->assertEqual($info, $this->form->binding('info'));
 	}
 }
 

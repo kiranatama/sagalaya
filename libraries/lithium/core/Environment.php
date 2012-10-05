@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -283,7 +283,7 @@ class Environment {
 					return $request->env;
 				case ($request->command == 'test'):
 					return 'test';
-				case ($request->env('TERM')):
+				case ($request->env('PLATFORM') == 'CLI'):
 					return 'development';
 				case (preg_match('/^test\//', $request->url) && $isLocal):
 					return 'test';

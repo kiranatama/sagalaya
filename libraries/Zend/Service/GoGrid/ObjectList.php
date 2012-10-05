@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend\Service
  * @subpackage GoGrid
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\GoGrid;
 
 use Zend\Service\GoGrid\Object;
@@ -29,15 +26,10 @@ use Zend\Service\GoGrid\Object;
 /**
  * List of servers retrived from the GoGrid web service
  *
- * @uses       ArrayAccess
- * @uses       Countable
- * @uses       Iterator
- * @uses       OutOfBoundsException
- * @uses       Zend_Service_GoGrid_Object
  * @category   Zend
  * @package    Zend_Service
  * @subpackage GoGrid
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class ObjectList implements \Countable, \Iterator, \ArrayAccess

@@ -14,22 +14,18 @@
  *
  * @category  Zend
  * @package   Zend_TimeSync
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\TimeSync;
 
 /**
  * SNTP Protocol handling class
  *
- * @uses      \Zend\TimeSync\Protocol
  * @category  Zend
  * @package   Zend_TimeSync
- * @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Sntp extends Protocol

@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Fonts
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\Resource\Font\CidFont;
 use Zend\Pdf\BinaryParser\Font\OpenType as OpenTypeFontParser;
 use Zend\Pdf\Resource\Font as FontResource;
@@ -38,14 +35,9 @@ use Zend\Pdf;
  * contains a 'cmap' table that provides mappings directly from character codes to
  * glyph indices for one or more predefined encodings.
  *
- * @uses       \Zend\Pdf\InternalType\NameObject
- * @uses       \Zend\Pdf\Font
- * @uses       \Zend\Pdf\Resource\Font\CidFont\AbstractCidFont
- * @uses       \Zend\Pdf\Resource\Font\FontDescriptor
- * @uses       \Zend\Pdf\BinaryParser\Font\OpenType\TrueType
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Fonts
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class TrueType extends AbstractCidFont
@@ -58,7 +50,7 @@ class TrueType extends AbstractCidFont
      * @param \Zend\Pdf\BinaryParser\Font\OpenType\TrueType $fontParser Font parser
      *   object containing parsed TrueType file.
      * @param integer $embeddingOptions Options for font embedding.
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public function __construct(OpenTypeFontParser\TrueType $fontParser, $embeddingOptions)
     {

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright	 Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright	 Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license	   http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -12,6 +12,7 @@ use stdClass;
 use SplFileInfo;
 use lithium\util\Inflector;
 use lithium\core\Libraries;
+use lithium\template\view\adapter\Simple;
 
 class LibrariesTest extends \lithium\test\Unit {
 
@@ -20,23 +21,28 @@ class LibrariesTest extends \lithium\test\Unit {
 	public function setUp() {
 		$this->_cache = Libraries::cache();
 		Libraries::cache(false);
+		$this->hasApp = preg_match('/app$/', LITHIUM_APP_PATH);
 	}
 
 	public function tearDown() {
 		Libraries::cache(false);
 		Libraries::cache($this->_cache);
+		unset($this->hasApp);
 	}
 
 	public function testNamespaceToFileTranslation() {
+		$ds = DIRECTORY_SEPARATOR;
+		$invalidDS = $ds == '/' ? '\\' : '/';
+
 		$result = Libraries::path('\lithium\core\Libraries');
-		$this->assertTrue(strpos($result, '/lithium/core/Libraries.php'));
+		$this->assertTrue(strpos($result, "${ds}lithium${ds}core${ds}Libraries.php"));
 		$this->assertTrue(file_exists($result));
-		$this->assertFalse(strpos($result, '\\'));
+		$this->assertFalse(strpos($result, $invalidDS));
 
 		$result = Libraries::path('lithium\core\Libraries');
-		$this->assertTrue(strpos($result, '/lithium/core/Libraries.php'));
+		$this->assertTrue(strpos($result, "${ds}lithium${ds}core${ds}Libraries.php"));
 		$this->assertTrue(file_exists($result));
-		$this->assertFalse(strpos($result, '\\'));
+		$this->assertFalse(strpos($result, $invalidDS));
 	}
 
 	public function testPathTemplate() {
@@ -86,9 +92,11 @@ class LibrariesTest extends \lithium\test\Unit {
 		$result = array_values(preg_grep('/^lithium\\\\tests\\\\cases\\\\/', $all));
 		$this->assertIdentical($tests, $result);
 
-		$tests = Libraries::find('app', array('recursive' => true, 'path' => '/tests/cases'));
-		$result = preg_grep('/^app\\\\tests\\\\cases\\\\/', $tests);
-		$this->assertIdentical($tests, $result);
+		if ($this->hasApp) {
+			$tests = Libraries::find('app', array('recursive' => true, 'path' => '/tests/cases'));
+			$result = preg_grep('/^app\\\\tests\\\\cases\\\\/', $tests);
+			$this->assertIdentical($tests, $result);
+		}
 	}
 
 	/**
@@ -110,13 +118,21 @@ class LibrariesTest extends \lithium\test\Unit {
 			'default' => false
 		);
 
+		if (!$this->hasApp) {
+			$expected['resources'] = sys_get_temp_dir();
+			$expected['default'] = true;
+		}
+
 		$this->assertEqual($expected, $result);
 		$this->assertNull(Libraries::get('foo'));
 
 		$result = Libraries::get();
 		$this->assertTrue(isset($result['lithium']));
-		$this->assertTrue(isset($result['app']));
 		$this->assertEqual($expected, $result['lithium']);
+
+		if ($this->hasApp) {
+			$this->assertTrue(isset($result['app']));
+		}
 	}
 
 	/**
@@ -168,7 +184,7 @@ class LibrariesTest extends \lithium\test\Unit {
 		$fakeDir = $tmpDir . '/fake';
 		$fake = "<?php class Fake {} ?>";
 		$fakeFilename = $fakeDir . '/fake.php';
-		mkdir($fakeDir);
+		mkdir($fakeDir, 0777, true);
 		file_put_contents($fakeFilename, $fake);
 
 		Libraries::add('bad', array(
@@ -287,11 +303,12 @@ class LibrariesTest extends \lithium\test\Unit {
 	}
 
 	public function testFindingClassesAndNamespaces() {
-		$result = Libraries::find('app', array('namespaces' => true));
-		$this->assertTrue(in_array('app\config', $result));
-		$this->assertTrue(in_array('app\controllers', $result));
-		$this->assertTrue(in_array('app\models', $result));
-		$this->assertFalse(in_array('app\index', $result));
+		$result = Libraries::find('lithium', array('namespaces' => true));
+		$this->assertTrue(in_array('lithium\net', $result));
+		$this->assertTrue(in_array('lithium\test', $result));
+		$this->assertTrue(in_array('lithium\util', $result));
+		$this->assertFalse(in_array('lithium\readme', $result));
+		$this->assertFalse(in_array('lithium\readme.wiki', $result));
 	}
 
 	public function testFindingClassesWithExclude() {
@@ -338,7 +355,7 @@ class LibrariesTest extends \lithium\test\Unit {
 
 	public function testServiceLocateInstantiation() {
 		$result = Libraries::instance('adapter.template.view', 'Simple');
-		$this->assertTrue(is_a($result, 'lithium\template\view\adapter\Simple'));
+		$this->assertTrue($result instanceof Simple);
 		$this->expectException("Class `Foo` of type `adapter.template.view` not found.");
 		$result = Libraries::instance('adapter.template.view', 'Foo');
 	}
@@ -388,6 +405,7 @@ class LibrariesTest extends \lithium\test\Unit {
 	}
 
 	public function testServiceLocateApp() {
+		$this->skipIf(!$this->hasApp, 'Running in standalone mode.');
 		$result = Libraries::locate('controllers', 'HelloWorld');
 		$expected = 'app\controllers\HelloWorldController';
 		$this->assertEqual($expected, $result);
@@ -408,7 +426,7 @@ class LibrariesTest extends \lithium\test\Unit {
 		$library = Libraries::get('lithium');
 		$base = $library['path'] . '/';
 
-		$expected = $base . 'template/View.php';
+		$expected = realpath($base . 'template/View.php');
 
 		$result = Libraries::path('\lithium\template\View');
 		$this->assertEqual($expected, $result);
@@ -416,7 +434,7 @@ class LibrariesTest extends \lithium\test\Unit {
 		$result = Libraries::path('lithium\template\View');
 		$this->assertEqual($expected, $result);
 
-		$expected = $base . 'template/view';
+		$expected = realpath($base . 'template/view');
 
 		$result = Libraries::path('\lithium\template\view', array('dirs' => true));
 		$this->assertEqual($expected, $result);
@@ -430,7 +448,7 @@ class LibrariesTest extends \lithium\test\Unit {
 		$base = $library['path'] . '/';
 
 		$result = Libraries::path('lithium\template\View', array('dirs' => true));
-		$expected = $base . 'template/View.php';
+		$expected = realpath($base . 'template/View.php');
 		$this->assertEqual($expected, $result);
 
 		$result = Libraries::path('lithium\template\views', array('dirs' => true));
@@ -487,8 +505,8 @@ class LibrariesTest extends \lithium\test\Unit {
 	}
 
 	public function testLocateWithDotSyntax() {
-		$expected = 'app\controllers\PagesController';
-		$result = Libraries::locate('controllers', 'app.Pages');
+		$expected = 'lithium\template\helper\Html';
+		$result = Libraries::locate('helper', 'lithium.Html');
 		$this->assertEqual($expected, $result);
 	}
 
@@ -547,7 +565,7 @@ class LibrariesTest extends \lithium\test\Unit {
 
 	public function testLocateWithTestAppLibrary() {
 		$testApp = Libraries::get(true, 'resources') . '/tmp/tests/test_app';
-		mkdir($testApp);
+		mkdir($testApp, 0777, true);
 		Libraries::add('test_app', array('path' => $testApp));
 
 		mkdir($testApp . '/tests/cases/models', 0777, true);
@@ -573,7 +591,7 @@ class LibrariesTest extends \lithium\test\Unit {
 	 */
 	public function testPathsInPharArchives() {
 		$base = Libraries::get('lithium', 'path');
-		$path = "{$base}/console/command/create/template/app.phar.gz";
+		$path = realpath("{$base}/console/command/create/template/app.phar.gz");
 
 		$expected = "phar://{$path}/controllers/HelloWorldController.php";
 		$result = Libraries::realPath($expected);
@@ -607,6 +625,71 @@ class LibrariesTest extends \lithium\test\Unit {
 		    $result = get_class($instance);
 		    $this->assertEqual($expected, $result, "{$path} did not work");
 		}
+
+		$this->_cleanUp();
+	}
+
+	/**
+	 * Tests that `Libraries::map()` and `Libraries::unmap()`
+	 *
+	 */
+	public function testMapUnmap() {
+		$testApp = Libraries::get(true, 'resources') . '/tmp/tests/test_app';
+		mkdir($testApp, 0777, true);
+		Libraries::add('test_app', array('path' => $testApp));
+
+		mkdir($testApp. '/lib', 0777);
+		mkdir($testApp. '/_patch', 0777);
+
+		file_put_contents($testApp . '/lib/LibTest.php',
+		"<?php namespace test_app\\lib;\n
+			class LibTest{ public function testMe() {
+				return 'core class';
+			}}"
+		);
+
+		file_put_contents($testApp . '/_patch/PatchedLibTest.php',
+		"<?php namespace test_app\\lib;\n
+			class LibTest{ public function testMe() {
+				return 'patched class';
+			}}"
+		);
+
+		$expected = $result = Libraries::realPath($testApp . '/lib/LibTest.php');
+		$result = Libraries::path('test_app\\lib\\LibTest');
+
+		$this->assertEqual($expected, $result);
+
+		Libraries::map(array(
+			'test_app\\lib\\LibTest' => $testApp . '/_patch/PatchedLibTest.php'
+		));
+
+		$expected = $result = Libraries::realPath($testApp . '/_patch/PatchedLibTest.php');
+		$result = Libraries::path('test_app\\lib\\LibTest');
+
+		Libraries::unmap(array('test_app\\lib\\LibTest'));
+
+		$expected = $result = Libraries::realPath($testApp . '/lib/LibTest.php');
+		$result = Libraries::path('test_app\\lib\\LibTest');
+
+		$this->assertEqual($expected, $result);
+
+		Libraries::map(array(
+			'test_app\\lib\\LibTest' => $testApp . '/_patch/PatchedLibTest.php'
+		));
+		Libraries::unmap('test_app\\lib\\LibTest');
+
+		$expected = $result = Libraries::realPath($testApp . '/lib/LibTest.php');
+		$result = Libraries::path('test_app\\lib\\LibTest');
+
+		Libraries::map(array(
+			'test_app\\lib\\LibTest' => $testApp . '/_patch/PatchedLibTest.php'
+		));
+
+		$object = new \test_app\lib\LibTest();
+
+		$result = $object->testMe();
+		$this->assertEqual('patched class', $result);
 
 		$this->_cleanUp();
 	}

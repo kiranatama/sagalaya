@@ -1,327 +1,524 @@
-<div class="ym-grid">	
-	<h2>Basic Tutorial</h2>
-	<p>This is basic tutorial, not all covered on this tutorial. This purpose just to make you has overview what this framework can do.</p>
-	<p>Before we start to coding, we need to include li3 command to PATH, because it will frequently use when we code</p>
-	<pre class="brush: bash">$> export PATH=$PATH:/to/project/libraries/lithium/bin</pre>
-	
-	<div class="jquery_tabs">
-		<h4>Working with Database</h4>
-		<div class="text">
-			<div class="ym-grid">				
-				<div class="ym-g20 ym-gl">
-					<div class="ym-gbox">
-						<div class="ym-vlist">
-							<h6>Chapter Index</h6>
-							<ul>
-								<li><a href="#configuration">Configuration</a></li>
-								<li><a href="#initialization">Building Model</a></li>
-								<li><a href="#generator">Using XML Generator</a></li>
-								<li><a href="#database-scheme">Generate Database Scheme</a></li>
-								<li><a href="#migrations">Generate Migrations</a></li>
-							</ul>
-						</div>
-					</div>
-				</div>
-				
-				<div class="ym-g80 ym-gr">
-					<div class="ym-gbox">
-					
-						<!-- Connection Configuration -->
-						<h5 id="configuration">Configuration</h5>
-						<p>You can set a connection configuration at <code>app/config/bootstrap/connections.php</code></p>
-					
-						<!-- Building Model -->
-						<h5 id="initialization">Building Model</h5>
-						<p>In sagalaya we define model using {{ this.html.link('Doctrine Annotation Driver', 'http://www.doctrine-project.org/docs/orm/2.1/en/reference/annotations-reference.html') }}. 
-						Every model in app/models folder must be inherited <code>app\extensions\data\Model</code> class. Below is the code example.</p> 
-						<pre class="brush: php">								
-							namespace app\models;
-							
-							/**
-							 * @Entity(repositoryClass="app\resources\repository\UserRepository")
-							 * @HasLifecycleCallbacks
-							 * @Table(name="users")
-							 */
-							class User extends \app\extensions\data\Model {
-							    
-							    /** @Id @Column(type="integer") @GeneratedValue */
-							    protected $id = null;
-							
-							    /** @Column(type="string", length=64) */
-							    protected $fullname = null;
-							
-							    /** @Column(type="string", length=64) */
-							    protected $email = null;
-							    
-							} 				
-						</pre>
-						
-						<!-- Using Generator -->
-						<h5 id="generator">Using XML Generator</h5>
-						<p>When build an application, we frequently doing some repetitive task, like create model, controller, view, test.</p>
-						<p>So to make faster creating starting code, sagalaya provide generator. Generator will read xml files from <code>app/config/design</code> folder.
-						Every xml file will parsed by generator to create model, controller, view, model test, controller test, and repository.</p>
-						<p>You can see a sample xml file {{ this.html.link('here', '/files/samples/user.xml') }}. To generate all you just need to call generator in console at project folder.</p>
-						<pre class="brush: bash">$> li3 generator</pre>
-						 
-						<!-- Generate Database Scheme -->
-						<h5 id="database-scheme">Generate Database Scheme</h5>
-						
-						<p>After we crated the class model, we need to create schema database, we can using doctrine command line.</p>
-						<pre class="brush: bash">$> li3 doctrine orm:schema-tool:create</pre>
-						
-						<p>If you already has a schema from previous created schema, and you need to update schema because some changes on model file.
-						You can call this command.</p>
-						<pre class="brush: bash">$> li3 doctrine orm:schema-tool:update</pre>
-						
-						<!-- Generate Migrations -->
-						<h5 id="migrations">Generate Migrations</h5>
-						<p>When we build an app, sometime we need a dummy data. To create that we can using migrations feature in doctrine.</p>
-						<pre class="brush: bash">$> li3 doctrine migrations:generate</pre>
-						
-						<p>This command will generate php file in <code>app/migrations</code> folder that we can fill php code in up() method to create some data</p>
-						<pre class="brush: php">
-							$type = new UserType(array('type' => 'Administrator'));
-							$type->save();
-						</pre>
-						
-						<p>Then you can call up() from migrations from console</p>
-						<pre class="brush: bash">$> li3 doctrine migrations:migrate</pre>
-						
-						<p>There is also down() method, in case you want to revert the migrations. You can write like this.</p>
-						<pre class="brush: php">
-							$type = UserType::findOneBy(array('type' => 'Administrator'));
-							$type->delete();
-						</pre>
-						<p>To revert migrations you can use this command</p>
-						<pre class="brush: bash">$> li3 doctrine migrations:migrate :revision-number</pre>
-						
-					</div>
-				</div>
-			</div>																															
-		</div>
-		
-		<h4>Model Use-Case</h4>
-		<div class="text">
-			<div class="ym-grid">
-				
-				<div class="ym-g20 ym-gl">
-					<div class="ym-gbox">
-						<div class="ym-vlist">
-							<h6>Chapter Index</h6>
-							<ul>
-								<li><a href="#crud">Create-Update-Delete</a></li>
-								<li><a href="#querying">Querying Model</a></li>
-								<li><a href="#model-repository">Model Repository</a></li>
-							</ul>
-						</div>
-					</div>
-				</div>
-				
-				<div class="ym-g80 ym-gr">
-					<div class="ym-gbox">
 
-						<!-- CRUD -->
-						<h5 id="crud">Create-Update-Delete</h5>
-						<p>CRUD is the basic use-case for model, because it will be routine task, we must simplify this process.
-						Below is the sample of basic use-case for model</p>
-						<pre class="brush: php">
-							    public function create()
-							    {
-							        if ($this->request->data) {
-							        	$user = new User($this->request->data);
-							
-							        	if($user->save()) {
-							        		$this->message('Successfully to create User');
-							        		$this->redirect('Users::index');
-							        	} else {
-							        		$this->message('Failed to create User, please check the error');
-							        		$errors = $user->getErrors();        		
-							        	}
-							
-							        }
-							
-							        return compact('user', 'errors');
-							    }
-						</pre>
-						<p>To <strong>create new object</strong>, we need to declared new Object() with params is the default value for object. 
-						Usually this is provided from html form data. The important thing is the params must associated with model properties.
-						e.g : <code>new User(array('email' => 'some@example.com'))</code>. After initialize value we can call <code>save()</code>
-						method to make persistent to database.</p>
+{{this.html.script(['syntax/shCore', 'syntax/shLegacy', 
+					'syntax/shAutoloader', 
+    				'syntax/shBrushPhp', 'syntax/shBrushBash'])}}
+{{this.html.style(['syntax/shCore', 'syntax/shThemeDefault'])}}
+
+<div class="span12">
+	<h2>Basic Tutorial</h2>
+	<p>This is basic tutorial, not all covered on this tutorial. This
+		purpose just to make you has overview what this framework can do.</p>
+	<p>Before we start to coding, we need to include li3 command to PATH,
+		because it will frequently use when we code</p>
+	<pre class="brush: bash">$> export PATH=$PATH:/to/project/libraries/lithium/console</pre>
+		
+	<div class="tabs">	
+		
+		<ul class="nav nav-tabs">
+			<li class="active"><a data-toggle="tab" href="#working-with-database">Model</a></li>
+			<li><a href="#model-use-case" data-toggle="tab">Model Use Case</a></li>
+			<li><a href="#working-with-controller" data-toggle="tab">Controller</a></li>
+			<li><a href="#working-with-view" data-toggle="tab">View</a></li>
+			<li><a href="#testing" data-toggle="tab">Testing</a></li>
+			<li><a href="#best-practice" data-toggle="tab">Best Practice</a></li>
+		</ul>
+		
+		<div class="tab-content">
+			<div class="tab-pane active" id="working-with-database">
+				<div class="span2">
+					<h6>Chapter Index</h6>
+					<ul>
+						<li><a href="#configuration">Configuration</a></li>
+						<li><a href="#initialization">Building Model</a></li>
+						<li><a href="#generator">Using Code Generator</a></li>
+						<li><a href="#database-scheme">Generate Database Scheme</a></li>
+						<li><a href="#migrations">Generate Migrations</a></li>
+					</ul>
+				</div>
+				<div class="span8">
+		
+					<!-- Connection Configuration -->
+					<h3 id="configuration">Configuration</h3>
+					<p>You can set a connection configuration at <code>app/config/bootstrap/connections.php</code></p>
+				
+					<!-- Building Model -->
+					<h3 id="initialization">Building Model</h3>
+					<p>In sagalaya we define model using {{ this.html.link('Doctrine Annotation Driver', 'http://www.doctrine-project.org/docs/orm/2.1/en/reference/annotations-reference.html') }}. 
+					Every model in app/models folder must be inherited <code>app\extensions\data\Model</code> class. Below is the code example.</p> 
+					<pre class="brush: php">								
+						namespace app\models;
 						
-						<pre class="brush: php">							
-							    public function edit()
-							    {
-							        if ($this->request->id) {
-							
-							        	$user = User::get($this->request->id);
-							        	$user->properties = $this->request->data;
-							
-							        	if($user->save()) {
-							        		$this->message('Successfully to update User');
-							        		$this->redirect('Users::index');
-							        	} else {
-							        		$this->message('Failed to update User, please check the error');
-							        		$errors = $user->getErrors();
-							        	}
-							
-							        }
-							
-							        return compact('user', 'errors');
-							    }						
-						</pre>
-						<p><strong>To update model</strong>, the first thing we must do is calling the model from database with <code>get()</code>.
-						This mean, persistent data from database convert to object. After that, we can set <code>$object->properties</code> with new value.
-						actually there's no <strong>'properties'</strong> property on object, this is just flag to indicate that we want to update the field.
-						e.g : <code>$user->properties = array('email' => 'new@email.com', 'fullname' => 'New Fullname')</code> </p>
+						/**
+						 * @Entity(repositoryClass="app\resources\repository\UserRepository")
+						 * @HasLifecycleCallbacks
+						 * @Table(name="users")
+						 */
+						class User extends \app\extensions\data\Model {
+						    
+						    /** @Id @Column(type="integer") @GeneratedValue */
+						    protected $id = null;
 						
-						<!-- Querying Model -->
-						<h5 id="querying">Querying Model</h5>
-						<p>Doctrine support {{ this.html.link('DQL','http://www.doctrine-project.org/docs/orm/2.1/en/reference/dql-doctrine-query-language.html') }} 
-						or {{ this.html.link('Native SQL','http://www.doctrine-project.org/docs/orm/2.1/en/reference/native-sql.html') }}, 
-						but using that methods will break the intuitiveness of ORM. So we provide the powerfull <code>findAll()</code> method, 
-						besides the existing <code>findOne</code>, <code>findOneBy</code> methods ({{ this.html.link('see here', 'http://www.doctrine-project.org/docs/orm/2.1/en/reference/working-with-objects.html#querying') }}).</p>
+						    /** @Column(type="string", length=64) */
+						    protected $fullname = null;
 						
-						<p>But for <code>findAll()</code> method, we create more features than findAll Doctrine has created. The input for method is array that provide this params : 
-						<code>-where and, -where or, '-leftJoin', '-innerJoin', '-orderBy', '-groupBy', '-limit', '-offset'</code>. Below is the code examples.</p>
+						    /** @Column(type="string", length=64) */
+						    protected $email = null;
+						    
+						} 				
+					</pre>
+					
+					<!-- Using Generator -->
+					<h3 id="generator">Using Code Generator</h3>
+					<p>When build an application, we frequently doing some repetitive task, like create model, controller, view, test.</p>
+					<p>So to make faster creating starting code, sagalaya provide generator. Generator will read xml files from <code>app/config/design</code> folder.
+					Every xml file will parsed by generator to create model, controller, view, model test, controller test, and repository.</p>
+					<p>You can see a sample xml file <strong>{{ this.html.link('HERE', '/files/samples/user.xml') }}</strong>. To generate all you just need to call generator in console at project folder.</p>
+					<pre class="brush: bash">$> li3 generator</pre>
+					 
+					<!-- Generate Database Scheme -->
+					<h3 id="database-scheme">Generate Database Scheme</h3>
+					
+					<p>After we crated the class model, we need to create schema database, we can using doctrine command line.</p>
+					<pre class="brush: bash">$> li3 doctrine orm:schema-tool:create</pre>
+					
+					<p>If you already has a schema from previous created schema, and you need to update schema because some changes on model file.
+					You can call this command.</p>
+					<pre class="brush: bash">$> li3 doctrine orm:schema-tool:update</pre>
+					
+					<!-- Generate Migrations -->
+					<h3 id="migrations">Generate Migrations</h3>
+					<p>When we build an app, sometime we need a dummy data. To create that we can using migrations feature in doctrine.</p>
+					<pre class="brush: bash">$> li3 doctrine migrations:generate</pre>
+					
+					<p>This command will generate php file in <code>app/migrations</code> folder that we can fill php code in up() method to create some data</p>
+					<pre class="brush: php">
+						$type = new UserType(array('type' => 'Administrator'));
+						$type->save();
+					</pre>
+					
+					<p>Then you can call up() from migrations from console</p>
+					<pre class="brush: bash">$> li3 doctrine migrations:migrate</pre>
+					
+					<p>There is also down() method, in case you want to revert the migrations. You can write like this.</p>
+					<pre class="brush: php">
+						$type = UserType::findOneBy(array('type' => 'Administrator'));
+						$type->delete();
 						
-						<pre class="brush: php">
-							$users = User::findAll(array(
-								'where' => array(
-									'and' => array(
-										array('fullname' => array('eq' => 'someone')),
-										array('email' => array('nlike' => '%@gmail.com%'))
+						// it will have same effect with the code below
+						$type = UserType::findOneByType('Administrator');
+						$type->delete();
+					</pre>
+					<p>To revert migrations you can use this command</p>
+					<pre class="brush: bash">$> li3 doctrine migrations:migrate :revision-number</pre>								
+				</div>
+			</div>
+					
+			<div class="tab-pane" id="model-use-case">				
+					
+					<div class="span2">
+						<h6>Chapter Index</h6>
+						<ul>
+							<li><a href="#crud">Create-Update-Delete</a></li>
+							<li><a href="#querying">Querying Model</a></li>
+							<li><a href="#model-repository">Model Repository</a></li>	
+							<li><a href="#model-validation">Model Validation</a></li>							
+						</ul>
+					</div>
+					
+					<div class="span8">						
+	
+							<!-- CRUD -->
+							<h3 id="crud">Create-Update-Delete</h3>
+							<p>CRUD is the basic use-case for model, because it will be routine task, we must simplify this process.
+							Below is the sample of basic use-case for model</p>
+							<pre class="brush: php">
+								    public function create()
+								    {
+								        if ($this->request->data) {
+								        	$user = new User($this->request->data);
+								
+								        	if($user->save()) {
+								        		$this->message('Successfully to create User');
+								        		$this->redirect('Users::index');
+								        	} else {
+								        		$this->message('Failed to create User, please check the error');
+								        		$errors = $user->getErrors();        		
+								        	}
+								
+								        }
+								
+								        return compact('user', 'errors');
+								    }
+							</pre>
+							<p>To <strong>create new object</strong>, we need to declared new Object() with params is the default value for object. 
+							Usually this is provided from html form data. The important thing is the params must associated with model properties.
+							e.g : <code>new User(array('email' => 'some@example.com'))</code>. After initialize value we can call <code>save()</code>
+							method to make persistent to database.</p>
+							
+							<pre class="brush: php">							
+								    public function edit()
+								    {
+								        if ($this->request->id) {
+								
+								        	$user = User::get($this->request->id);
+								        	$user->properties = $this->request->data;
+								
+								        	if($user->save()) {
+								        		$this->message('Successfully to update User');
+								        		$this->redirect('Users::index');
+								        	} else {
+								        		$this->message('Failed to update User, please check the error');
+								        		$errors = $user->getErrors();
+								        	}
+								
+								        }
+								
+								        return compact('user', 'errors');
+								    }						
+							</pre>
+							<p><strong>To update model</strong>, the first thing we must do is calling the model from database with <code>get()</code>.
+							This mean, persistent data from database convert to object. After that, we can set <code>$object->properties</code> with new value.
+							actually there's no <strong>'properties'</strong> property on object, this is just flag to indicate that we want to update the field.
+							e.g : <code>$user->properties = array('email' => 'new@email.com', 'fullname' => 'New Fullname')</code> </p>
+							
+							<!-- Querying Model -->
+							<h3 id="querying">Querying Model</h3>
+							<p>Doctrine support {{ this.html.link('DQL','http://www.doctrine-project.org/docs/orm/2.1/en/reference/dql-doctrine-query-language.html') }} 
+							or {{ this.html.link('Native SQL','http://www.doctrine-project.org/docs/orm/2.1/en/reference/native-sql.html') }}, 
+							but using that methods will break the intuitiveness of ORM. So we provide the powerfull <code>findAll()</code> method, 
+							besides the existing <code>findOne</code>, <code>findOneBy</code> methods ({{ this.html.link('see here', 'http://www.doctrine-project.org/docs/orm/2.1/en/reference/working-with-objects.html#querying') }}).</p>
+							
+							<p>But for <code>findAll()</code> method, we create more features than findAll Doctrine has created. The input for method is array that provide this params : 
+							<code>-where and, -where or, '-leftJoin', '-innerJoin', '-orderBy', '-groupBy', '-limit', '-offset'</code>. Below is the code examples.</p>
+							
+							<pre class="brush: php">
+								$users = User::findAll(array(
+									'where' => array(
+										'and' => array(
+											array('fullname' => array('eq' => 'someone')),
+											array('email' => array('nlike' => '%@gmail.com%'))
+										),
+										'or' => array(
+											array('active' => array('eq' => true))
+										)
 									),
-									'or' => array(
-										array('active' => array('eq' => true))
-									)
-								),
-								'leftJoin' => array(
-									array(
-										'field' => 'type'
-										'where' => array(
-											array('type' => array('eq' => 'Administrator'))
+									'leftJoin' => array(
+										array(
+											'field' => 'type'
+											'where' => array(
+												array('type' => array('eq' => 'Administrator'))
+											)
 										)
 									)
-								)
-							));
-						</pre>
-						<p>For <code>leftJoin</code> or <code>innerJoin</code> param, you can set nested leftJoin/innerJoin, and adding condition for every join.</p>
-						
-						<!-- Model Repository -->
-						<h5 id="model-repository">Model Repository</h5>
-						<p>A Repository is a mechanism for encapsulating storage, retrieval, and search behavior which emulates a collection of objects.</p>
-						
-						<p>As default, every model has basic repository methods like <code>find, findOne, findOneBy, findAll</code>. But you can extends function of your models with adding 
-						more function to model repository. As default repository placed at <code>app/resources/repository</code>, this path is defined at model class.</p>
-						
-						<pre class="brush: php">
-							/**
-							 * @Entity(repositoryClass="app\resources\repository\UserRepository")
-							 * @HasLifecycleCallbacks
-							 * @Table(name="users")
-							 */
-							class User extends \app\extensions\data\Model
-						</pre>
-						<p>On repository class you can adding more function.</p>
-						<pre class="brush: php">
-							class UserRepository extends \Doctrine\ORM\EntityRepository
-							{							
-								public function getLastRegisterUser() {
-									// doing something
+								));
+							</pre>
+							<p>For <code>leftJoin</code> or <code>innerJoin</code> param, you can set nested leftJoin/innerJoin, and adding condition for every join.</p>
+							
+							<!-- Model Repository -->
+							<h3 id="model-repository">Model Repository</h3>
+							<p>A Repository is a mechanism for encapsulating storage, retrieval, and search behavior which emulates a collection of objects.</p>
+							
+							<p>As default, every model has basic repository methods like <code>find, findOne, findOneBy, findAll</code>. But you can extends function of your models with adding 
+							more function to model repository. As default repository placed at <code>app/resources/repository</code>, this path is defined at model class.</p>
+							
+							<pre class="brush: php">
+								/**
+								 * @Entity(repositoryClass="app\resources\repository\UserRepository")
+								 * @HasLifecycleCallbacks
+								 * @Table(name="users")
+								 */
+								class User extends \app\extensions\data\Model
+							</pre>
+							<p>On repository class you can adding more function.</p>
+							<pre class="brush: php">
+								class UserRepository extends \Doctrine\ORM\EntityRepository
+								{							
+									public function getLastRegisterUser() {
+										// doing something
+									}
 								}
-							}
-						</pre>
-						<p>You can call this function using static method in object</p>
-						<pre class="brush: php">$lastRegistered = User::getlastRegisterUser();</pre> 
-						
+							</pre>
+							<p>You can call this function using static method in object</p>
+							<pre class="brush: php">$lastRegistered = User::getlastRegisterUser();</pre> 
+							
+							<!-- Model Validation -->
+							<h3 id="model-validation">Model Validation</h3>
+							<p>To define validations on model we declare <code>$validations</code> property, below is the code examples.</p>
+							
+							<pre class="brush: php">
+								protected $validations = array(
+									'fullname' => array(
+										array('notEmpty', 'message' => 'Fullname can\'t be empty'),
+										array('custom', 'message' => 'message' => 'Fullname can\'t be George Bush', 
+												'function' => 'return strcasecmp($object->fullname, "George Bush") != 0;')
+									),
+									'email' => array(
+										array('notEmpty', 'message' => 'Email can\'t be empty'),
+										array('unique', 'message' => 'Email has been used, try another!')
+									)
+								);							
+							</pre>						
+							<br />
+							<table class="table table-striped">
+								<caption>Validation types</caption>
+								<thead>
+									<tr>
+										<th>Type</th>
+										<th>Format</th>
+										<th>Description</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>notEmpty</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a string contains at least one non-whitespace character.</td>
+									</tr>
+									<tr>
+										<td>alphaNumeric</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a string contains only integer or letters.</td>
+									</tr>
+									<tr>
+										<td>lengthBetween</td>
+										<td>'type', 'message', 'min', 'max'</td>
+										<td>Checks that a string length is within a specified range. Spaces are included in the character count.</td>
+									</tr>
+									<tr>
+										<td>blank</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a field is left blank **OR** only whitespace characters are present in its value. Whitespace characters include spaces, tabs, carriage returns and newlines.</td>
+									</tr>
+									<tr>
+										<td>creditCard</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is a valid credit card number.</td>
+									</tr>
+									<tr>
+										<td>date</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is a valid date that complies with one or more formats.</td>
+									</tr>
+									<tr>
+										<td>time</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is a valid time. Validates time as 24hr (HH:MM) or am/pm ([ H]H:MM[a|p]m). Does not allow / validate seconds.</td>
+									</tr>
+									<tr>
+										<td>boolean</td>
+										<td>'type', 'message'</td>
+										<td>Checks that the value is or looks like a boolean value. The following types of values are interpreted as boolean and will pass the check.</td>
+									</tr>
+									<tr>
+										<td>decimal</td>
+										<td>'type', 'message', 'precission'</td>
+										<td>Checks that a value is a valid decimal.</td>
+									</tr>
+									<tr>
+										<td>email</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is (probably) a valid email address.</td>
+									</tr>
+									<tr>
+										<td>ip</td>
+										<td>'type', 'message'</td>
+										<td>Validates a string as a valid IPv4 or IPv6 address.</td>
+									</tr>
+									<tr>
+										<td>money</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is a valid monetary amount.</td>
+									</tr>
+									<tr>
+										<td>numeric</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is numeric.</td>
+									</tr>
+									<tr>
+										<td>phone</td>
+										<td>'type', 'message'</td>
+										<td>Check that a value is a valid phone number, non-locale-specific phone number.</td>
+									</tr>
+									<tr>
+										<td>postalCode</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a given value is a valid US postal code.</td>
+									</tr>
+									<tr>
+										<td>inRange</td>
+										<td>'type', 'message', 'upper', 'lower'</td>
+										<td>Checks that a numeric value is within a specified range.</td>
+									</tr>
+									<tr>
+										<td>url</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is a valid URL according to [RFC 2395](http://www.faqs.org/rfcs/rfc2396.html).</td>
+									</tr>
+									<tr>
+										<td>luhn</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is a valid credit card number according to the [Luhn algorithm](http://en.wikipedia.org/wiki/Luhn_algorithm).</td>
+									</tr>
+									<tr>
+										<td>inList</td>
+										<td>'type', 'message', 'list'</td>
+										<td>Checks that a value is in a pre-defined list of values.</td>
+									</tr>
+									<tr>
+										<td>regex</td>
+										<td>'type', 'message', 'value'</td>
+										<td>Checks that a value appears to be a valid regular expression, possibly containing PCRE-compatible options flags.</td>
+									</tr>
+									<tr>
+										<td>uuid</td>
+										<td>'type', 'message'</td>
+										<td>Checks that a value is a valid UUID.</td>
+									</tr>
+									<tr>
+										<td>unique</td>
+										<td>'type', 'message'</td>
+										<td>Check if the value of field is unique on database.</td>
+									</tr>
+									<tr>
+										<td>equalWith</td>
+										<td>'type', 'message', 'with'</td>
+										<td>Check if the value one of field is same with other field.</td>
+									</tr>
+									<tr>
+										<td>custom</td>
+										<td>'type', 'message', 'function'</td>
+										<td>Adding custom rule for the object, with function can access $object for the current instance.</td>
+									</tr>
+								</tbody>
+							</table>					
+												
 					</div>
-				</div>
-				
-			</div>	
-		</div>
-		
-		<h4>Working with Controller</h4>
-		<div class="text">
-			<div class="ym-grid">
-				
-				<div class="ym-g20 ym-gl">
-					<div class="ym-gbox">
-						<div class="ym-vlist">
-							<h6>Chapter Index</h6>
-							<ul>
-								<li><a href="#default-routing">Default Routing</a></li>
-								<li><a href="#action-configuration">Action Configuration</a></li>
-								<li><a href="#redirecting">Redirecting</a></li>								
-							</ul>
-						</div>
-					</div>
-				</div>
-				
-				<div class="ym-g80 ym-gr">
-					<div class="ym-gbox">
+									
+			</div>
 					
-						<!-- Default Routing -->
-						<h5 id="default-routing">Default Routing</h5>
+			<div class="tab-pane" id="working-with-controller">
+							
+					<div class="span2">
 						
-						<!-- Action Configuration -->
-						<h5 id="action-configuration">Action Configuration</h5>
-						
-						<!-- Redirecting -->
-						<h5 id="redirecting">Redirecting</h5>
-						
+							<div class="ym-vlist">
+								<h6>Chapter Index</h6>
+								<ul>
+									<li><a href="#default-routing">Default Routing</a></li>
+									<li><a href="#action-configuration">Action Configuration</a></li>
+									<li><a href="#redirecting">Redirecting</a></li>								
+								</ul>
+							</div>
 						
 					</div>
-				</div>
-				
-			</div>	
-		</div>
-		
-		<h4>Working with View</h4>
-		<div class="text">
-			<div class="ym-grid">
-				
-				<div class="ym-g20 ym-gl">
-					<div class="ym-gbox">
-						<div class="ym-vlist">
-							<h6>Chapter Index</h6>
-							<ul>
-								<li><a href="#twig-templating">Twig Templating</a></li>
-								<li><a href="#layout">Element and Layout</a></li>
-								<li><a href="#view-helper">View Helper</a></li>
-							</ul>
-						</div>
+					
+					<div class="span8">
+												
+							<!-- Default Routing -->
+							<h3 id="default-routing">Default Routing</h3>
+							<p>Routing rules is placed at <code>app/config/routes.php</code></p>
+							
+							<!-- Action Configuration -->
+							<h3 id="action-configuration">Action Configuration</h3>
+							
+							<!-- Redirecting -->
+							<h3 id="redirecting">Redirecting</h3>
+																			
 					</div>
-				</div>
-				
-				<div class="ym-g80 ym-gr">
-					<div class="ym-gbox">
-						
+								
+			</div>
+					
+			<div class="tab-pane" id="working-with-view">								
+					<div class="span2">												
+						<h6>Chapter Index</h6>
+						<ul>
+							<li><a href="#twig-templating">Twig Templating</a></li>
+							<li><a href="#layout">Element and Layout</a></li>
+							<li><a href="#view-helper">View Helper</a></li>
+						</ul>						
+					</div>
+					
+					<div class="span8">													
+							<!-- Twig Templating -->
+							<h3 id="twig-templating">Twig Templating</h3>
+							<span>For documentation you can click {{ this.html.link('here', 'http://twig.sensiolabs.org/doc/templates.html') }},
+							below is example on form view (e.g : create.html.twig)</span>
+							<pre class="brush: php">
+								{% raw %}
+								
+										{% macro errors(input) %}
+												{% for error in input %}
+												<div class="warning">{{error}}</div>
+												{% endfor %}
+										{% endmacro %}
+										
+										{{ this.form.create() }}
+										
+												{{ this.form.field('username',{'value':user.username})}}
+												{{ _self.errors(errors.username) }}
+												
+												{{ this.form.submit('Create',{'class':'btn-submit'}) }}
+										
+										{{ this.form.end() }}
+								{% endraw %}
+							</pre>
+							
+							<!-- Element and Layout -->
+							<h3 id="layout">Element and Layout</h3>
+							
+							<!-- View Helper -->
+							<h3 id="view-helper">View Helper</h3>													
+					</div>								
+			</div>		
+			
+			<div class="tab-pane" id="testing">							
+					<div class="span2">
+						<h6>Chapter Index</h6>
+						<ul>
+							<li><a href="#unit-testing">Unit Testing</a></li>
+							<li><a href="#integration-testing">Integration Testing</a></li>
+							<li><a href="#code-quality">Code Quality Assurance</a></li>
+						</ul>
+					</div>
+					
+					<div class="span8">											
 						<!-- Twig Templating -->
-						<h5 id="twig-templating">Twig Templating</h5>
+						<h3 id="twig-templating">Unit Testing</h3>
 						
 						<!-- Element and Layout -->
-						<h5 id="layout">Element and Layout</h5>
+						<h3 id="layout">Integration Testing</h3>
 						
 						<!-- View Helper -->
-						<h5 id="view-helper">View Helper</h5>
-						
-					</div>
+						<h3 id="code-quality">Code Quality Assurance</h3>												
+					</div>							
+			</div>
+			
+			<div class="tab-pane" id="best-practice">
+				<div class="span2">
+						<h6>Chapter Index</h6>
+						<ul>
+							<li><a href="#add-business-layer">MVC + Business Layer</a></li>
+							<li><a href="#domain-repository">Domain Repository</a></li>
+							<li><a href="#thin-controller">Thin Controller</a></li>
+						</ul>				
 				</div>
 				
-			</div>			
+				<div class="span8">
+					<!-- MVC + Business Layer -->
+					<h3 id="add-business-layer">MVC + Business Layer</h3>
+					
+					<!-- Domain Repository -->
+					<h3 id="domain-repository">Domain Repository</h3>
+					
+					<!-- Thin Controller -->
+					<h3 id="think-controller">Thin Controller</h3>
+					
+				</div>
+			</div>
 		</div>
-		
-	</div>								 
+										 
+	</div>
+	
 </div>
-
 <script type="text/javascript">
-	SyntaxHighlighter.all();
-    $(document).ready(function(){
-        $('.jquery_tabs').accessibleTabs({
-            tabbody:'.text',
-            currentInfoText:'',
-            fx:"show",
-            fxspeed:null});
-	});
+	SyntaxHighlighter.all();	
 </script>

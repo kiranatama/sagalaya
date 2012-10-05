@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -71,7 +71,16 @@ class ResponseTest extends \lithium\test\Unit {
 
 		$this->response->body = 'Created';
 		$this->response->status(201);
-		$this->response->cache(false);
+		$result = $this->response->cache(false);
+
+		$expected = array(
+			'Expires: Mon, 26 Jul 1997 05:00:00 GMT',
+			'Cache-Control: no-store, no-cache, must-revalidate',
+			'Cache-Control: post-check=0, pre-check=0',
+			'Cache-Control: max-age=0',
+			'Pragma: no-cache'
+		);
+		$this->assertEqual($expected, $result);
 
 		ob_start();
 		$this->response->render();
@@ -89,9 +98,6 @@ class ResponseTest extends \lithium\test\Unit {
 			'Pragma: no-cache'
 		);
 		$this->assertEqual($headers, $this->response->testHeaders);
-
-		$this->expectException('/^`Request::disableCache\(\)`.+`Request::cache\(false\)`/');
-		$this->response->disableCache();
 	}
 
 	/**

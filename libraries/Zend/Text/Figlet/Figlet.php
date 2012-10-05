@@ -1,37 +1,23 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category  Zend
- * @package   Zend_Text_Figlet
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Text
  */
 
-/**
- * @namespace
- */
 namespace Zend\Text\Figlet;
-use Zend\Config;
+
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
 
 /**
- * Zend_Text_Figlet is a PHP implementation of FIGlet
+ * Zend\Text\Figlet is a PHP implementation of FIGlet
  *
- * @uses      \Zend\Text\Figlet\Exception\InvalidArgumentException
  * @category  Zend
  * @package   Zend_Text_Figlet
- * @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Figlet
 {
@@ -161,7 +147,7 @@ class Figlet
      * Justification for the text, according to $_outputWidth
      *
      * For using font default, this parameter should be null, else one of
-     * the values of Zend_Text_Figlet::JUSTIFICATION_*
+     * the values of Zend\Text\Figlet::JUSTIFICATION_*
      *
      * @var integer
      */
@@ -171,7 +157,7 @@ class Figlet
      * Direction of text-writing, namely right to left
      *
      * For using font default, this parameter should be null, else one of
-     * the values of Zend_Text_Figlet::DIRECTION_*
+     * the values of Zend\Text\Figlet::DIRECTION_*
      *
      * @var integer
      */
@@ -277,15 +263,16 @@ class Figlet
      * the $options variable, which can either be an array or an instance of
      * Zend_Config.
      *
-     * @param array|\Zend\Config\Config $options Options for the output
+     * @param array|Traversable $options Options for the output
      */
     public function __construct($options = null)
     {
         // Set options
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
+        }
         if (is_array($options)) {
             $this->setOptions($options);
-        } else if ($options instanceof Config\Config) {
-            $this->setConfig($options);
         }
 
         // If no font was defined, load default font
@@ -297,8 +284,8 @@ class Figlet
     /**
      * Set options from array
      *
-     * @param  array $options Configuration for \Zend\Text\Figlet\Figlet
-     * @return \Zend\Text\Figlet\Figlet
+     * @param  array $options Configuration for Figlet
+     * @return Figlet
      */
     public function setOptions(array $options)
     {
@@ -316,21 +303,10 @@ class Figlet
     }
 
     /**
-     * Set options from config object
-     *
-     * @param  Zend_Config $config Configuration for \Zend\Text\Figlet\Figlet
-     * @return \Zend\Text\Figlet\Figlet
-     */
-    public function setConfig(Config\Config $config)
-    {
-        return $this->setOptions($config->toArray());
-    }
-
-    /**
      * Set a font to use
      *
      * @param  string $font Path to the font
-     * @return \Zend\Text\Figlet\Figlet
+     * @return Figlet
      */
     public function setFont($font)
     {
@@ -342,7 +318,7 @@ class Figlet
      * Set handling of paragraphs
      *
      * @param  boolean $handleParagraphs Wether to handle paragraphs or not
-     * @return \Zend\Text\Figlet\Figlet
+     * @return Figlet
      */
     public function setHandleParagraphs($handleParagraphs)
     {
@@ -355,7 +331,7 @@ class Figlet
      * for right aligned.
      *
      * @param  integer $justification Justification of the output text
-     * @return \Zend\Text\Figlet\Figlet
+     * @return Figlet
      */
     public function setJustification($justification)
     {
@@ -368,7 +344,7 @@ class Figlet
      *
      * @param  integer $outputWidth Output with which should be used for word
      *                              wrapping and justification
-     * @return \Zend\Text\Figlet\Figlet
+     * @return Figlet
      */
     public function setOutputWidth($outputWidth)
     {
@@ -378,11 +354,11 @@ class Figlet
 
     /**
      * Set right to left mode. For writing from left to right, use
-     * Zend_Text_Figlet::DIRECTION_LEFT_TO_RIGHT. For writing from right to left,
-     * use Zend_Text_Figlet::DIRECTION_RIGHT_TO_LEFT.
+     * Zend\Text\Figlet::DIRECTION_LEFT_TO_RIGHT. For writing from right to left,
+     * use Zend\Text\Figlet::DIRECTION_RIGHT_TO_LEFT.
      *
      * @param  integer $rightToLeft Right-to-left mode
-     * @return \Zend\Text\Figlet\Figlet
+     * @return Figlet
      */
     public function setRightToLeft($rightToLeft)
     {
@@ -393,10 +369,10 @@ class Figlet
     /**
      * Set the smush mode.
      *
-     * Use one of the constants of Zend_Text_Figlet::SM_*, you may combine them.
+     * Use one of the constants of Zend\Text\Figlet::SM_*, you may combine them.
      *
      * @param  integer $smushMode Smush mode to use for generating text
-     * @return \Zend\Text\Figlet\Figlet
+     * @return Figlet
      */
     public function setSmushMode($smushMode)
     {
@@ -407,7 +383,7 @@ class Figlet
         } else {
             if ($smushMode === 0) {
                 $this->_userSmush = self::SM_KERN;
-            } else if ($smushMode === -1) {
+            } elseif ($smushMode === -1) {
                 $this->_userSmush = 0;
             } else {
                 $this->_userSmush = (($smushMode & 63) | self::SM_SMUSH);
@@ -426,8 +402,8 @@ class Figlet
      *
      * @param  string $text     Text to convert to a figlet text
      * @param  string $encoding Encoding of the input string
-     * @throws \Zend\Text\Figlet\Exception\InvalidArgumentException When $text is not a string
-     * @throws \Zend\Text\Figlet\Exception\UnexpectedValueException When $text it not properly encoded
+     * @throws Exception\InvalidArgumentException When $text is not a string
+     * @throws Exception\UnexpectedValueException When $text it not properly encoded
      * @return string
      */
     public function render($text, $encoding = 'UTF-8')
@@ -490,7 +466,7 @@ class Figlet
                 if ($wordBreakMode === -1) {
                     if ($char === ' ') {
                         break;
-                    } else if ($char === "\n") {
+                    } elseif ($char === "\n") {
                         $wordBreakMode = 0;
                         break;
                     }
@@ -501,13 +477,13 @@ class Figlet
                 if ($char === "\n") {
                     $this->_appendLine();
                     $wordBreakMode = false;
-                } else if ($this->_addChar($char)) {
+                } elseif ($this->_addChar($char)) {
                     if ($char !== ' ') {
                         $wordBreakMode = ($wordBreakMode >= 2) ? 3: 1;
                     } else {
                         $wordBreakMode = ($wordBreakMode > 0) ? 2: 0;
                     }
-                } else if ($this->_outlineLength === 0) {
+                } elseif ($this->_outlineLength === 0) {
                     for ($i = 0; $i < $this->_charHeight; $i++) {
                         if ($this->_rightToLeft === 1 && $this->_outputWidth > 1) {
                             $offset = (strlen($this->_currentChar[$i]) - $this->_outlineLengthLimit);
@@ -518,7 +494,7 @@ class Figlet
                     }
 
                     $wordBreakMode = -1;
-                } else if ($char === ' ') {
+                } elseif ($char === ' ') {
                     if ($wordBreakMode === 2) {
                         $this->_splitLine();
                     } else {
@@ -813,7 +789,7 @@ class Figlet
 
             if (empty($leftChar) || $leftChar === ' ') {
                 $amount++;
-            } else if (!empty($rightChar)) {
+            } elseif (!empty($rightChar)) {
                 if ($this->_smushem($leftChar, $rightChar) !== null) {
                     $amount++;
                 }
@@ -869,13 +845,13 @@ class Figlet
             // This is smushing by universal overlapping
             if ($leftChar === ' ') {
                 return $rightChar;
-            } else if ($rightChar === ' ') {
+            } elseif ($rightChar === ' ') {
                 return $leftChar;
-            } else if ($leftChar === $this->_hardBlank) {
+            } elseif ($leftChar === $this->_hardBlank) {
                 return $rightChar;
-            } else if ($rightChar === $this->_hardBlank) {
+            } elseif ($rightChar === $this->_hardBlank) {
                 return $rightChar;
-            } else if ($this->_rightToLeft === 1) {
+            } elseif ($this->_rightToLeft === 1) {
                 return $leftChar;
             } else {
                 // Occurs in the absence of above exceptions
@@ -902,7 +878,7 @@ class Figlet
         if (($this->_smushMode & self::SM_LOWLINE) > 0) {
             if ($leftChar === '_' && strchr('|/\\[]{}()<>', $rightChar) !== false) {
                 return $rightChar;
-            } else if ($rightChar === '_' && strchr('|/\\[]{}()<>', $leftChar) !== false) {
+            } elseif ($rightChar === '_' && strchr('|/\\[]{}()<>', $leftChar) !== false) {
                 return $leftChar;
             }
         }
@@ -910,23 +886,23 @@ class Figlet
         if (($this->_smushMode & self::SM_HIERARCHY) > 0) {
             if ($leftChar === '|' && strchr('/\\[]{}()<>', $rightChar) !== false) {
                 return $rightChar;
-            } else if ($rightChar === '|' && strchr('/\\[]{}()<>', $leftChar) !== false) {
+            } elseif ($rightChar === '|' && strchr('/\\[]{}()<>', $leftChar) !== false) {
                 return $leftChar;
-            } else if (strchr('/\\', $leftChar) && strchr('[]{}()<>', $rightChar) !== false) {
+            } elseif (strchr('/\\', $leftChar) && strchr('[]{}()<>', $rightChar) !== false) {
                 return $rightChar;
-            } else if (strchr('/\\', $rightChar) && strchr('[]{}()<>', $leftChar) !== false) {
+            } elseif (strchr('/\\', $rightChar) && strchr('[]{}()<>', $leftChar) !== false) {
                 return $leftChar;
-            } else if (strchr('[]', $leftChar) && strchr('{}()<>', $rightChar) !== false) {
+            } elseif (strchr('[]', $leftChar) && strchr('{}()<>', $rightChar) !== false) {
                 return $rightChar;
-            } else if (strchr('[]', $rightChar) && strchr('{}()<>', $leftChar) !== false) {
+            } elseif (strchr('[]', $rightChar) && strchr('{}()<>', $leftChar) !== false) {
                 return $leftChar;
-            } else if (strchr('{}', $leftChar) && strchr('()<>', $rightChar) !== false) {
+            } elseif (strchr('{}', $leftChar) && strchr('()<>', $rightChar) !== false) {
                 return $rightChar;
-            } else if (strchr('{}', $rightChar) && strchr('()<>', $leftChar) !== false) {
+            } elseif (strchr('{}', $rightChar) && strchr('()<>', $leftChar) !== false) {
                 return $leftChar;
-            } else if (strchr('()', $leftChar) && strchr('<>', $rightChar) !== false) {
+            } elseif (strchr('()', $leftChar) && strchr('<>', $rightChar) !== false) {
                 return $rightChar;
-            } else if (strchr('()', $rightChar) && strchr('<>', $leftChar) !== false) {
+            } elseif (strchr('()', $rightChar) && strchr('<>', $leftChar) !== false) {
                 return $leftChar;
             }
         }
@@ -934,15 +910,15 @@ class Figlet
         if (($this->_smushMode & self::SM_PAIR) > 0) {
             if ($leftChar === '[' && $rightChar === ']') {
                 return '|';
-            } else if ($rightChar === '[' && $leftChar === ']') {
+            } elseif ($rightChar === '[' && $leftChar === ']') {
                 return '|';
-            } else if ($leftChar === '{' && $rightChar === '}') {
+            } elseif ($leftChar === '{' && $rightChar === '}') {
                 return '|';
-            } else if ($rightChar === '{' && $leftChar === '}') {
+            } elseif ($rightChar === '{' && $leftChar === '}') {
                 return '|';
-            } else if ($leftChar === '(' && $rightChar === ')') {
+            } elseif ($leftChar === '(' && $rightChar === ')') {
                 return '|';
-            } else if ($rightChar === '(' && $leftChar === ')') {
+            } elseif ($rightChar === '(' && $leftChar === ')') {
                 return '|';
             }
         }
@@ -950,9 +926,9 @@ class Figlet
         if (($this->_smushMode & self::SM_BIGX) > 0) {
             if ($leftChar === '/' && $rightChar === '\\') {
                 return '|';
-            } else if ($rightChar === '/' && $leftChar === '\\') {
+            } elseif ($rightChar === '/' && $leftChar === '\\') {
                 return 'Y';
-            } else if ($leftChar === '>' && $rightChar === '<') {
+            } elseif ($leftChar === '>' && $rightChar === '<') {
                 return 'X';
             }
         }
@@ -964,10 +940,10 @@ class Figlet
      * Load the specified font
      *
      * @param  string $fontFile Font file to load
-     * @throws \Zend\Text\Figlet\Exception\RuntimeException When font file was not found
-     * @throws \Zend\Text\Figlet\Exception\RuntimeException When GZIP library is required but not found
-     * @throws \Zend\Text\Figlet\Exception\RuntimeException When font file is not readable
-     * @throws \Zend\Text\Figlet\Exception\UnexpectedValueException When font file is not a FIGlet 2 font file
+     * @throws Exception\RuntimeException When font file was not found
+     * @throws Exception\RuntimeException When GZIP library is required but not found
+     * @throws Exception\RuntimeException When font file is not readable
+     * @throws Exception\UnexpectedValueException When font file is not a FIGlet 2 font file
      * @return void
      */
     protected function _loadFont($fontFile)
@@ -1028,7 +1004,7 @@ class Figlet
         if ($numsRead < 7) {
             if ($smush === 2) {
                 $this->_fontSmush = self::SM_KERN;
-            } else if ($smush < 0) {
+            } elseif ($smush < 0) {
                 $this->_fontSmush = 0;
             } else {
                 $this->_fontSmush = (($smush & 31) | self::SM_SMUSH);
@@ -1091,7 +1067,7 @@ class Figlet
             // Convert it if required
             if (substr($uniCode, 0, 2) === '0x') {
                 $uniCode = hexdec(substr($uniCode, 2));
-            } else if (substr($uniCode, 0, 1) === '0' and
+            } elseif (substr($uniCode, 0, 1) === '0' and
                        $uniCode !== '0' or
                        substr($uniCode, 0, 2) === '-0') {
                 $uniCode = octdec($uniCode);
@@ -1125,9 +1101,9 @@ class Figlet
     {
         if ($this->_smushOverride === self::SMO_NO) {
             $this->_smushMode = $this->_fontSmush;
-        } else if ($this->_smushOverride === self::SMO_YES) {
+        } elseif ($this->_smushOverride === self::SMO_YES) {
             $this->_smushMode = $this->_userSmush;
-        } else if ($this->_smushOverride === self::SMO_FORCE) {
+        } elseif ($this->_smushOverride === self::SMO_FORCE) {
             $this->_smushMode = ($this->_fontSmush | $this->_userSmush);
         }
     }
@@ -1216,13 +1192,13 @@ class Figlet
 
         if ($h <= 0x7F) {
             $ord = $h;
-        } else if ($h < 0xC2) {
+        } elseif ($h < 0xC2) {
             $ord = 0;
-        } else if ($h <= 0xDF) {
+        } elseif ($h <= 0xDF) {
             $ord = (($h & 0x1F) << 6 | (ord($c[1]) & 0x3F));
-        } else if ($h <= 0xEF) {
+        } elseif ($h <= 0xEF) {
             $ord = (($h & 0x0F) << 12 | (ord($c[1]) & 0x3F) << 6 | (ord($c[2]) & 0x3F));
-        } else if ($h <= 0xF4) {
+        } elseif ($h <= 0xF4) {
             $ord = (($h & 0x0F) << 18 | (ord($c[1]) & 0x3F) << 12 |
                    (ord($c[2]) & 0x3F) << 6 | (ord($c[3]) & 0x3F));
         } else {

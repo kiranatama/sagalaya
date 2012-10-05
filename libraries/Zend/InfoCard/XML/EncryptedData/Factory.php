@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\InfoCard\XML\EncryptedData;
 use Zend\InfoCard\XML;
 
@@ -29,12 +26,10 @@ use Zend\InfoCard\XML;
  * A factory class for producing Zend_InfoCard_Xml_EncryptedData objects based on
  * the type of XML document provided
  *
- * @uses       \Zend\InfoCard\XML\EncryptedData\XMLEnc
- * @uses       \Zend\InfoCard\XML\Exception
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 final class Factory
@@ -42,7 +37,6 @@ final class Factory
     /**
      * Constructor (disabled)
      *
-     * @return void
      */
     private function __construct()
     {
@@ -53,7 +47,7 @@ final class Factory
      *
      * @param string $xmlData The XML EncryptedData String
      * @return \Zend\InfoCard\XML\EncryptedData\AbstractEncryptedData
-     * @throws \Zend\InfoCard\XML\Exception
+     * @throws XML\Exception\InvalidArgumentException
      */
     static public function getInstance($xmlData)
     {

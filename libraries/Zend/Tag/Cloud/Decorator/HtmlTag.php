@@ -1,44 +1,25 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Tag
- * @subpackage Cloud
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Tag
  */
 
-/**
- * @namespace
- */
 namespace Zend\Tag\Cloud\Decorator;
 
-use Zend\Tag\Cloud\Decorator\Exception\InvalidArgumentException,
-    Zend\Tag\ItemList;
+use Zend\Tag\Cloud\Decorator\Exception\InvalidArgumentException;
+use Zend\Tag\ItemList;
 
 /**
  * Simple HTML decorator for tags
  *
- * @uses      \Zend\Tag\Cloud\Decorator\Exception\InvalidArgumentException
- * @uses      \Zend\Tag\Cloud\Decorator\Tag
  * @category  Zend
  * @package   Zend_Tag
- * @uses      \Zend\Tag\Cloud\Decorator\Tag
- * @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
-class HtmlTag extends Tag
+class HtmlTag extends AbstractTag
 {
     /**
      * List of tags which get assigned to the inner element instead of
@@ -94,9 +75,9 @@ class HtmlTag extends Tag
      * Set a list of classes to use instead of fontsizes
      *
      * @param  array $classList
-     * @throws \Zend\Tag\Cloud\Decorator\Exception\InvalidArgumentException When the classlist is empty
-     * @throws \Zend\Tag\Cloud\Decorator\Exception\InvalidArgumentException When the classlist contains an invalid classname
-     * @return \Zend\Tag\Cloud\Decorator\HTMLTag
+     * @throws InvalidArgumentException When the classlist is empty
+     * @throws InvalidArgumentException When the classlist contains an invalid classname
+     * @return HTMLTag
      */
     public function setClassList(array $classList = null)
     {
@@ -140,7 +121,7 @@ class HtmlTag extends Tag
      * Set encoding
      *
      * @param  string $value
-     * @return \Zend\Tag\Cloud\Decorator\HTMLTag
+     * @return HTMLTag
      */
     public function setEncoding($value)
     {
@@ -154,8 +135,8 @@ class HtmlTag extends Tag
      * Possible values are: em, ex, px, in, cm, mm, pt, pc and %
      *
      * @param  string $fontSizeUnit
-     * @throws \Zend\Tag\Cloud\Decorator\Exception\InvalidArgumentException When an invalid fontsize unit is specified
-     * @return \Zend\Tag\Cloud\Decorator\HTMLTag
+     * @throws InvalidArgumentException When an invalid fontsize unit is specified
+     * @return HTMLTag
      */
     public function setFontSizeUnit($fontSizeUnit)
     {
@@ -181,7 +162,7 @@ class HtmlTag extends Tag
      * Set the HTML tags surrounding the <a> element
      *
      * @param  array $htmlTags
-     * @return \Zend\Tag\Cloud\Decorator\HTMLTag
+     * @return HTMLTag
      */
     public function setHTMLTags(array $htmlTags)
     {
@@ -203,8 +184,8 @@ class HtmlTag extends Tag
      * Set maximum font size
      *
      * @param  integer $maxFontSize
-     * @throws \Zend\Tag\Cloud\Decorator\Exception\InvalidArgumentException When fontsize is not numeric
-     * @return \Zend\Tag\Cloud\Decorator\HTMLTag
+     * @throws InvalidArgumentException When fontsize is not numeric
+     * @return HTMLTag
      */
     public function setMaxFontSize($maxFontSize)
     {
@@ -231,8 +212,8 @@ class HtmlTag extends Tag
      * Set minimum font size
      *
      * @param  int $minFontSize
-     * @throws \Zend\Tag\Cloud\Decorator\Exception\InvalidArgumentException When fontsize is not numeric
-     * @return \Zend\Tag\Cloud\Decorator\HTMLTag
+     * @throws InvalidArgumentException When fontsize is not numeric
+     * @return HTMLTag
      */
     public function setMinFontSize($minFontSize)
     {
@@ -256,15 +237,16 @@ class HtmlTag extends Tag
     }
 
     /**
-     * Defined by Zend\Tag\Cloud\Decorator\Tag
+     * Defined by Tag
      *
-     * @param  \Zend\Tag\ItemList $tags
+     * @param  ItemList $tags
+     * @throws InvalidArgumentException
      * @return array
      */
     public function render($tags)
     {
         if (!$tags instanceof ItemList) {
-            throw new Exception(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'HtmlTag::render() expects a Zend\Tag\ItemList argument; received "%s"',
                 (is_object($tags) ? get_class($tags) : gettype($tags))
             ));

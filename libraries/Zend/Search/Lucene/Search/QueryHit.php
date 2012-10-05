@@ -15,31 +15,26 @@
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Search\Lucene\Search;
 use Zend\Search\Lucene;
 use Zend\Search\Lucene\Document;
 
 /**
- * @uses       \Zend\Search\Lucene\SearchIndex
- * @uses       \Zend\Search\Lucene\Document
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class QueryHit
 {
     /**
      * Object handle of the index
-     * @var \Zend\Search\Lucene\SearchIndex
+     * @var \Zend\Search\Lucene\SearchIndexInterface
      */
     protected $_index = null;
 
@@ -50,10 +45,16 @@ class QueryHit
     protected $_document = null;
 
     /**
-     * Number of the document in the index
+     * Unique hit id
      * @var integer
      */
     public $id;
+    
+    /**
+     * Number of the document in the index
+     * @var integer
+     */
+    public $document_id;
 
     /**
      * Score of the hit
@@ -66,14 +67,25 @@ class QueryHit
      * Constructor - pass object handle of Zend_Search_Lucene_Interface index that produced
      * the hit so the document can be retrieved easily from the hit.
      *
-     * @param \Zend\Search\Lucene\SearchIndex $index
+     * @param \Zend\Search\Lucene\SearchIndexInterface $index
      */
 
-    public function __construct(Lucene\SearchIndex $index)
+    public function __construct(Lucene\SearchIndexInterface $index)
     {
         $this->_index = $index;
     }
-
+    
+    /**
+     * Magic method for checking the existence of a field
+     *
+     * @param string $offset
+     * @return boolean TRUE if the field exists else FALSE
+     */
+    public function __isset($offset)
+    {
+        return isset($this->getDocument()->$offset);
+    }
+    
 
     /**
      * Convenience function for getting fields from the document
@@ -96,7 +108,7 @@ class QueryHit
     public function getDocument()
     {
         if (!$this->_document instanceof Document) {
-            $this->_document = $this->_index->getDocument($this->id);
+            $this->_document = $this->_index->getDocument($this->document_id);
         }
 
         return $this->_document;
@@ -106,7 +118,7 @@ class QueryHit
     /**
      * Return the index object for this hit
      *
-     * @return \Zend\Search\Lucene\SearchIndex
+     * @return \Zend\Search\Lucene\SearchIndexInterface
      */
     public function getIndex()
     {

@@ -1,14 +1,18 @@
-<nav id="nav">
-	<div class="ym-wrapper">
-		<div class="ym-hlist">
-			<ul>
-				<li>{{ this.html.link('Homepage', '/') }}</li>
-				<li>{{ this.html.link('Basic Tutorial', '/pages/tutorial') }}</li>						
-			</ul>
-			<form class="ym-searchform">
-				<input class="ym-searchfield" type="search" placeholder="Search..." />
-				<input class="ym-searchbutton" type="submit" value="Search" />
-			</form>
-		</div>
+<div class="navbar navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<a class="btn btn-navbar" data-toggle="collapse"
+				data-target=".nav-collapse"> <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Sagalaya</a>
+          <div class="nav-collapse">
+            <ul class="nav">								            	
+              <li {{ (this.request.url == '/') ? ' class="active"' : "" }}>{{ this.html.link('Homepage','/') }}</li>
+              <li {{ (this.request.url == 'pages/tutorial') ? 'class="active"' : "" }}>{{ this.html.link('Tutorial',{'controller':'pages','action':'tutorial'}) }}</li>                       
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
 	</div>
-</nav>
+</div>

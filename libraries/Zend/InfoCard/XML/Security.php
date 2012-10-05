@@ -15,22 +15,17 @@
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml_Security
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\InfoCard\XML;
 
 /**
- * @uses       \Zend\InfoCard\XML\Security\Exception
- * @uses       \Zend\InfoCard\XML\Security\Transform\TransformChain
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml_Security
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Security
@@ -73,7 +68,6 @@ class Security
     /**
      * Constructor  (disabled)
      *
-     * @return void
      */
     private function __construct()
     {
@@ -84,7 +78,7 @@ class Security
      *
      * @param  string $strXMLInput An XML block containing a Signature
      * @return bool True if the signature validated, false otherwise
-     * @throws \Zend\InfoCard\XML\Security\Exception
+     * @throws Security\Exception\ExceptionInterface
      */
     static public function validateXMLSignature($strXMLInput)
     {
@@ -248,7 +242,7 @@ class Security
      * @param string $data The data to encode
      * @param const $type The encoding format constant
      * @return string The encoded value
-     * @throws \Zend\InfoCard\XML\Security\Exception
+     * @throws Security\Exception\RuntimeException
      */
     static protected function _encodeValue($data, $type)
     {
@@ -274,7 +268,6 @@ class Security
                 throw new Security\Exception\RuntimeException("Could not encode value");
         }
 
-        throw new Security\Exception\RuntimeException("Invalid code path");
     }
 
     /**

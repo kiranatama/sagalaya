@@ -14,27 +14,23 @@
  *
  * @category   Zend
  * @package    Zend_OAuth
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\OAuth\Signature;
 
-use Zend\OAuth\Signature as OAuthSignature,
-    Zend\OAuth\Http\Utility as HTTPUtility,
-    Zend\OAuth\Exception as OAuthException,
+use Zend\OAuth\Http\Utility as HTTPUtility,
+    Zend\OAuth\Exception,
     Zend\Uri;
 
 /**
  * @category   Zend
  * @package    Zend_OAuth
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-abstract class AbstractSignature implements OAuthSignature
+abstract class AbstractSignature implements SignatureInterface
 {
     /**
      * Hash algorithm to use when generating signature
@@ -85,6 +81,7 @@ abstract class AbstractSignature implements OAuthSignature
      * 
      * @param  string $url 
      * @return string
+     * @throws Exception\InvalidArgumentException
      */
     public function normaliseBaseSignatureUrl($url)
     {
@@ -95,7 +92,7 @@ abstract class AbstractSignature implements OAuthSignature
         } elseif ($uri->getScheme() == 'https' && $uri->getPort() == '443') {
             $uri->setPort('');
         } elseif (!in_array($uri->getScheme(), array('http', 'https'))) {
-            throw new OAuthException('Invalid URL provided; must be an HTTP or HTTPS scheme');
+            throw new Exception\InvalidArgumentException('Invalid URL provided; must be an HTTP or HTTPS scheme');
         }
         $uri->setQuery('');
         $uri->setFragment('');

@@ -15,20 +15,18 @@
  * @category   Zend
  * @package    Zend_Translator
  * @subpackage Zend_Translator_Adapter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Translator\Adapter;
 
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
 use RecursiveDirectoryIterator,
     RecursiveIteratorIterator,
     RecursiveRegexIterator,
-    Zend\Cache,
-    Zend\Config\Config,
+    Zend\Cache\Storage\Adapter\AdapterInterface as CacheAdapter,
     Zend\Log,
     Zend\Locale,
     Zend\Translator,
@@ -41,7 +39,7 @@ use RecursiveDirectoryIterator,
  * @category   Zend
  * @package    Zend_Translator
  * @subpackage Zend_Translator_Adapter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractAdapter
@@ -60,7 +58,7 @@ abstract class AbstractAdapter
 
     /**
      * Internal cache for all adapters
-     * @var \Zend\Cache\Frontend
+     * @var CacheAdapter
      */
     protected static $_cache     = null;
 
@@ -128,14 +126,13 @@ abstract class AbstractAdapter
     /**
      * Generates the adapter
      *
-     * @param  array|Zend_Config $options Translation options for this adapter
+     * @param  array|Traversable $options Translation options for this adapter
      * @throws \Zend\Translator\Exception\InvalidArgumentException
-     * @return void
      */
     public function __construct($options = array())
     {
-        if ($options instanceof Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         } else if (func_num_args() > 1) {
             $args               = func_get_args();
             $options            = array();
@@ -160,7 +157,7 @@ abstract class AbstractAdapter
 
         if (isset(self::$_cache)) {
             $id = 'Zend_Translator_' . $this->toString() . '_Options';
-            $result = self::$_cache->load($id);
+            $result = self::$_cache->getItem($id);
             if ($result) {
                 $this->_options = $result;
             }
@@ -218,14 +215,14 @@ abstract class AbstractAdapter
      * If the key 'clear' is true, then translations for the specified
      * language will be replaced and added otherwise
      *
-     * @param  array|Zend_Config $options Options and translations to be added
+     * @param  array|Traversable $options Options and translations to be added
      * @throws \Zend\Translator\Exception\InvalidArgumentException
      * @return \Zend\Translator\Adapter\AbstractAdapter Provides fluent interface
      */
     public function addTranslation($options = array())
     {
-        if ($options instanceof Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         } else if (func_num_args() > 1) {
             $args = func_get_args();
             $options            = array();
@@ -267,7 +264,7 @@ abstract class AbstractAdapter
                 $originate = (string) $this->_options['locale'];
                 $options['locale'] = $options['content']->getLocale();
             }
-        } catch (Locale\Exception $e) {
+        } catch (Locale\Exception\ExceptionInterface $e) {
             throw new Exception\InvalidArgumentException("The given Language '{$options['locale']}' does not exist", 0, $e);
         }
 
@@ -505,7 +502,7 @@ abstract class AbstractAdapter
 
         try {
             $locale = Locale\Locale::findLocale($locale);
-        } catch (Locale\Exception $e) {
+        } catch (Locale\Exception\ExceptionInterface $e) {
             throw new Exception\InvalidArgumentException("The given Language ({$locale}) does not exist", 0, $e);
         }
 
@@ -522,7 +519,7 @@ abstract class AbstractAdapter
                     return $this->setLocale($this->_options['route'][$temp[0]]);
                 } else if (!$this->_options['disableNotices']) {
                     if ($this->_options['log']) {
-                        $this->_options['log']->log("The language '{$locale}' has to be added before it can be used.", $this->_options['logPriority']);
+                        $this->_options['log']->log($this->_options['logPriority'], "The language '{$locale}' has to be added before it can be used.");
                     } else {
                         trigger_error("The language '{$locale}' has to be added before it can be used.", E_USER_NOTICE);
                     }
@@ -535,7 +532,7 @@ abstract class AbstractAdapter
         if (empty($this->_translate[$locale])) {
             if (!$this->_options['disableNotices']) {
                 if ($this->_options['log']) {
-                    $this->_options['log']->log("No translation for the language '{$locale}' available.", $this->_options['logPriority']);
+                    $this->_options['log']->log($this->_options['logPriority'], "No translation for the language '{$locale}' available.");
                 } else {
                     trigger_error("No translation for the language '{$locale}' available.", E_USER_NOTICE);
                 }
@@ -653,14 +650,14 @@ abstract class AbstractAdapter
      * language is replaced and added otherwise
      *
      * @see    Zend_Locale
-     * @param  array|\Zend\Config $content Translation data to add
+     * @param  array|Traversable $options Translation data to add
      * @throws \Zend\Translator\Exception\InvalidArgumentException
      * @return \Zend\Translator\Adapter\AbstractAdapter Provides fluent interface
      */
     private function _addTranslationData($options = array())
     {
-        if ($options instanceof Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         } else if (func_num_args() > 1) {
             $args = func_get_args();
             $options['content'] = array_shift($args);
@@ -694,8 +691,8 @@ abstract class AbstractAdapter
 
         try {
             $options['locale'] = Locale\Locale::findLocale($options['locale']);
-        } catch (Locale\Exception $e) {
-            throw new Exception\InvalidArgumentException("The given Language '{$locale}' does not exist", 0, $e);
+        } catch (Locale\Exception\ExceptionInterface $e) {
+            throw new Exception\InvalidArgumentException("The given Language '{$options['locale']}' does not exist", 0, $e);
         }
 
         if ($options['clear'] || !isset($this->_translate[$options['locale']])) {
@@ -705,7 +702,7 @@ abstract class AbstractAdapter
         $read = true;
         if (isset(self::$_cache)) {
             $id = 'Zend_Translator_' . md5(serialize($options['content'])) . '_' . $this->toString();
-            $temp = self::$_cache->load($id);
+            $temp = self::$_cache->getItem($id);
             if ($temp) {
                 $read = false;
             }
@@ -918,7 +915,7 @@ abstract class AbstractAdapter
             $message = str_replace('%message%', $message, $this->_options['logMessage']);
             $message = str_replace('%locale%', $locale, $message);
             if ($this->_options['log']) {
-                $this->_options['log']->log($message, $this->_options['logPriority']);
+                $this->_options['log']->log($this->_options['logPriority'], $message);
             } else {
                 trigger_error($message, E_USER_NOTICE);
             }
@@ -992,7 +989,7 @@ abstract class AbstractAdapter
     /**
      * Returns the set cache
      *
-     * @return \Zend\Cache\Frontend\Core The set cache
+     * @return CacheAdapter The set cache
      */
     public static function getCache()
     {
@@ -1002,9 +999,9 @@ abstract class AbstractAdapter
     /**
      * Sets a cache for all Zend_Translator_Adapter's
      *
-     * @param \Zend\Cache\Frontend $cache Cache to store to
+     * @param CacheAdapter $cache Cache to store to
      */
-    public static function setCache(Cache\Frontend $cache)
+    public static function setCache(CacheAdapter $cache)
     {
         self::$_cache = $cache;
         self::_getTagSupportForCache();
@@ -1047,9 +1044,9 @@ abstract class AbstractAdapter
                 $tag = 'Zend_Translator';
             }
 
-            self::$_cache->clean(Cache\Cache::CLEANING_MODE_MATCHING_TAG, array($tag));
+            self::$_cache->clear(CacheAdapter::MATCH_TAGS_OR, array('tags' => array($tag)));
         } else {
-            self::$_cache->clean(Cache\Cache::CLEANING_MODE_ALL);
+            self::$_cache->clear(CacheAdapter::MATCH_ALL);
         }
     }
 
@@ -1064,21 +1061,21 @@ abstract class AbstractAdapter
     protected function saveCache($data, $id)
     {
         if (self::$_cacheTags) {
-            self::$_cache->save($data, $id, array($this->_options['tag']));
+            self::$_cache->setItem($id, $data, array('tags' => array($this->_options['tag'])));
         } else {
-            self::$_cache->save($data, $id);
+            self::$_cache->setItem($id, $data);
         }
 
-        if (!self::$_cache->test($id)) {
+        if (!self::$_cache->hasItem($id)) {
             if (!$this->_options['disableNotices']) {
                 if ($this->_options['log']) {
-                    $this->_options['log']->log("Writing to cache failed.", $this->_options['logPriority']);
+                    $this->_options['log']->log($this->_options['logPriority'], "Writing to cache failed.");
                 } else {
                     trigger_error("Writing to cache failed.", E_USER_NOTICE);
                 }
             }
 
-            self::$_cache->remove($id);
+            self::$_cache->removeItem($id);
             return false;
         }
 
@@ -1095,18 +1092,15 @@ abstract class AbstractAdapter
     /**
      * Internal method to check if the given cache supports tags
      *
-     * @param Zend_Cache $cache
+     * @return void
      */
     private static function _getTagSupportForCache()
     {
-        $backend = self::$_cache->getBackend();
-        if ($backend instanceof Cache\Backend\ExtendedInterface) {
-            $cacheOptions = $backend->getCapabilities();
-            self::$_cacheTags = $cacheOptions['tags'];
-        } else {
+        if (!self::$_cache instanceof CacheAdapter) {
             self::$_cacheTags = false;
+            return false;
         }
-
-        return self::$_cacheTags;
+        self::$_cacheTags = true;
+        return true;
     }
 }

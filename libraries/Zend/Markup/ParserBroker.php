@@ -14,7 +14,7 @@
  *
  * @category   Zend
  * @package    Zend_Markup
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -27,7 +27,7 @@ use Zend\Loader\PluginBroker;
  *
  * @category   Zend
  * @package    Zend_Markup
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class ParserBroker extends PluginBroker
@@ -42,12 +42,14 @@ class ParserBroker extends PluginBroker
      * 
      * @param  mixed $plugin 
      * @return true
-     * @throws Exception
+     * @throws Exception\InvalidArgumentException
      */
     protected function validatePlugin($plugin)
     {
-        if (!$plugin instanceof Parser) {
-            throw new Exception('Markup parsers must implement Zend\Markup\Parser');
+        if (!$plugin instanceof Parser\ParserInterface) {
+            throw new Exception\InvalidArgumentException(
+                'Markup parsers must implement Zend\Markup\Parser\ParserInterface'
+            );
         }
         return true;
     }

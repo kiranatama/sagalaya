@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -19,7 +19,12 @@ class MockPostForValidates extends \lithium\data\Model {
 		'email' => array(
 			array('notEmpty', 'message' => 'email is empty'),
 			array('email', 'message' => 'email is not valid'),
-			array('modelIsSet', 'required' => false, 'message' => 'model is not set')
+			array('modelIsSet', 'required' => false, 'message' => 'model is not set'),
+			array('inList', 'list' => array('something@test.com','foo@bar.com'),
+				'on' => 'custom_event', 'message' => 'email is not in 1st list'),
+			array('inList', 'list' => array(
+				'something@test.com'),
+				'on' => 'another_custom_event', 'message' => 'email is not in 2nd list')
 		)
 	);
 

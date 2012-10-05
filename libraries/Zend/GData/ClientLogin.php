@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gdata
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData;
 
 /**
@@ -29,15 +26,10 @@ namespace Zend\GData;
  * for Installed Applications" also known as "ClientLogin".
  * @see http://code.google.com/apis/accounts/AuthForInstalledApps.html
  *
- * @uses       \Zend\GData\App\AuthException
- * @uses       \Zend\GData\App\CaptchaRequiredException
- * @uses       \Zend\GData\App\HttpException
- * @uses       \Zend\GData\HttpClient
- * @uses       \Zend\Version
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gdata
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class ClientLogin
@@ -92,9 +84,7 @@ class ClientLogin
 
         if ($client == null) {
             $client = new HttpClient();
-        }
-        
-        if (!$client instanceof \Zend\Http\Client) {
+        } elseif (!$client instanceof \Zend\Http\Client) {
             throw new App\HttpException(
                     'Client is not an instance of Zend\Http\Client.');
         }
@@ -103,7 +93,7 @@ class ClientLogin
         $client->setUri($loginUri);
         $client->setMethod('POST');
         $useragent = $source . ' Zend_Framework_Gdata/' . \Zend\Version::VERSION;
-        $client->setConfig(array(
+        $client->setOptions(array(
                 'maxredirects'    => 0,
                 'strictredirects' => true,
                 'useragent' => $useragent
@@ -137,7 +127,7 @@ class ClientLogin
         ob_start();
         try {
             $response = $client->send();
-        } catch (\Zend\Http\Client\Exception $e) {
+        } catch (\Zend\Http\Client\Exception\ExceptionInterface $e) {
             throw new App\HttpException($e->getMessage(), $e);
         }
         ob_end_clean();
@@ -155,7 +145,7 @@ class ClientLogin
         if ($response->getStatusCode() == 200) {
             $client->setClientLoginToken($goog_resp['Auth']);
             $useragent = $source . ' Zend_Framework_Gdata/' . \Zend\Version::VERSION;
-            $client->setConfig(array(
+            $client->setOptions(array(
                     'strictredirects' => true,
                     'useragent' => $useragent
                 )

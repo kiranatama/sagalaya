@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -18,7 +18,7 @@ class MockSource extends \lithium\data\Source {
 		'relationship' => 'lithium\data\model\Relationship'
 	);
 
-	private $_mockPosts = array(
+	protected $_mockPosts = array(
 		'id' => array('type' => 'int', 'length' => '10', 'null' => false, 'default' => null),
 		'user_id' => array(
 			'type' => 'int', 'length' => '10', 'null' => true, 'default' => null
@@ -40,7 +40,7 @@ class MockSource extends \lithium\data\Source {
 		)
 	);
 
-	private $_mockComments = array(
+	protected $_mockComments = array(
 		'id' => array(
 			'type' => 'int', 'length' => '10', 'null' => false, 'default' => null
 		),
@@ -70,7 +70,7 @@ class MockSource extends \lithium\data\Source {
 		)
 	);
 
-	private $_mockTags = array(
+	protected $_mockTags = array(
 		'id' => array(
 			'type' => 'int', 'length' => '10', 'null' => false, 'default' => null
 		),

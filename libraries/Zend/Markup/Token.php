@@ -1,35 +1,18 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Markup
- * @subpackage Parser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Markup
  */
 
-/**
- * @namespace
- */
 namespace Zend\Markup;
 
 /**
- * @uses       \Zend\Markup\TokenList
  * @category   Zend
  * @package    Zend_Markup
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Token
 {
@@ -94,7 +77,6 @@ class Token
      * @param  string $name
      * @param  array $attributes
      * @param  \Zend\Markup\Token $parent
-     * @return void
      */
     public function __construct(
         $content,
@@ -202,7 +184,9 @@ class Token
     /**
      * Add an attribute
      *
-     * @return \Zend\Markup\Token
+     * @param string $name
+     * @param $value
+     * @return Token
      */
     public function addAttribute($name, $value)
     {
@@ -228,6 +212,7 @@ class Token
     /**
      * Add a child token
      *
+     * @param Token $child
      * @return void
      */
     public function addChild(Token $child)
@@ -260,7 +245,7 @@ class Token
         return $this->_children;
     }
 
-	/**
+    /**
      * Does this token have any children
      *
      * @return bool

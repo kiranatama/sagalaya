@@ -5,7 +5,7 @@ namespace lithium\tests\mocks\storage\session\adapter;
 class MockPhp extends \lithium\storage\session\adapter\Php {
 
 	/**
-	 * Overriden method for testing.
+	 * Overridden method for testing.
 	 *
 	 * @return boolean false.
 	 */
@@ -18,7 +18,7 @@ class MockPhp extends \lithium\storage\session\adapter\Php {
 	 *
 	 * @return boolean false.
 	 */
-	protected static function _startup() {
+	protected static function _start() {
 		return false;
 	}
 }

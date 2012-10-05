@@ -1,0 +1,14 @@
+{% set title =  this.title('Your page is not found') %}
+{{ this.html.style(['lithium']) }}
+
+<h1>Hmmm....i'm tired to explain many times</h1>
+<div class="center">
+<span>This is not error, this is just...........<strong>404</strong></span>
+<br />
+<span>
+	I don't know why are you trying to access
+	<strong>{{ this.request.url }}</strong> page, 
+	do you know that <strong>{{ this.request.url }}</strong> page is not exists?
+</span>
+
+</div> 

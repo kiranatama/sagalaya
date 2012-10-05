@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage YouTube
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\YouTube;
 
 use Zend\GData\YouTube,
@@ -30,17 +27,10 @@ use Zend\GData\YouTube,
 /**
  * Represents the YouTube message flavor of an Atom entry
  *
- * @uses       \Zend\GData\App\VersionException
- * @uses       \Zend\GData\Extension\Comments
- * @uses       \Zend\GData\Extension\Rating
- * @uses       \Zend\GData\Media\Entry
- * @uses       \Zend\GData\YouTube
- * @uses       \Zend\GData\YouTube\Extension\Description
- * @uses       \Zend\GData\YouTube\Extension\Statistics
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage YouTube
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class InboxEntry extends \Zend\GData\Media\Entry

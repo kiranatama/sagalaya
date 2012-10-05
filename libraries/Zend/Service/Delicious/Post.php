@@ -15,27 +15,20 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Delicious
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Delicious;
 use \Zend\Date\Date;
 
 /**
  * Zend_Service_Delicious_Post represents a post of a user that can be edited
  *
- * @uses       Zend_Date
- * @uses       Zend_Service_Delicious
- * @uses       Zend_Service_Delicious_Exception
- * @uses       Zend_Service_Delicious_SimplePost
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Delicious
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Post extends SimplePost

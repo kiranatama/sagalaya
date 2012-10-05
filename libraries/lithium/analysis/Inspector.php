@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -12,6 +12,7 @@ use Exception;
 use ReflectionClass;
 use ReflectionProperty;
 use ReflectionException;
+use SplFileObject;
 use lithium\core\Libraries;
 
 /**
@@ -29,7 +30,7 @@ class Inspector extends \lithium\core\StaticObject {
 	 * @var array
 	 */
 	protected static $_classes = array(
-		'collection' => '\lithium\util\Collection'
+		'collection' => 'lithium\util\Collection'
 	);
 
 	/**
@@ -175,8 +176,11 @@ class Inspector extends \lithium\core\StaticObject {
 	 */
 	public static function executable($class, array $options = array()) {
 		$defaults = array(
-			'self' => true, 'filter' => true, 'methods' => array(),
-			'empty' => array(' ', "\t", '}', ')', ';'), 'pattern' => null,
+			'self' => true,
+			'filter' => true,
+			'methods' => array(),
+			'empty' => array(' ', "\t", '}', ')', ';'),
+			'pattern' => null,
 			'blockOpeners' => array('switch (', 'try {', '} else {', 'do {', '} while')
 		);
 		$options += $defaults;
@@ -201,12 +205,32 @@ class Inspector extends \lithium\core\StaticObject {
 		$options += array('group' => false);
 		$result = array_filter(static::methods($class, 'ranges', $options));
 
-		if ($options['filter'] && $class->getFileName()) {
-			$file = explode("\n", "\n" . file_get_contents($class->getFileName()));
-			$lines = array_intersect_key($file, array_flip($result));
+		if ($options['filter'] && $class->getFileName() && $result) {
+			$lines = static::lines($class->getFileName(), $result);
+			$start = key($lines);
+
+			$code = implode("\n", $lines);
+			$tokens = token_get_all('<' . '?php' . $code);
+			$tmp = array();
+
+			foreach ($tokens as $token) {
+				if (is_array($token)) {
+					if (!in_array($token[0], array(T_COMMENT, T_DOC_COMMENT, T_WHITESPACE))) {
+						$tmp[] = $token[2];
+					}
+				}
+			}
+
+			$filteredLines = array_values(array_map(
+				function($ln) use ($start) { return $ln + $start - 1; },
+				array_unique($tmp))
+			);
+
+			$lines = array_intersect_key($lines, array_flip($filteredLines));
+
 			$result = array_keys(array_filter($lines, function($line) use ($options) {
 				$line = trim($line);
-				$empty = (strpos($line, '//') === 0 || preg_match($options['pattern'], $line));
+				$empty = preg_match($options['pattern'], $line);
 				return $empty ? false : (str_replace($options['empty'], '', $line) != '');
 			}));
 		}
@@ -335,16 +359,23 @@ class Inspector extends \lithium\core\StaticObject {
 	 * @todo Add an $options parameter with a 'context' flag, to pull in n lines of context.
 	 */
 	public static function lines($data, $lines) {
-		if (!strpos($data, PHP_EOL)) {
+		$c = array();
+
+		if (strpos($data, PHP_EOL) !== false) {
+			$c = explode(PHP_EOL, PHP_EOL . $data);
+		} else {
 			if (!file_exists($data)) {
 				$data = Libraries::path($data);
 				if (!file_exists($data)) {
 					return null;
 				}
 			}
-			$data = PHP_EOL . file_get_contents($data);
+
+			$file = new SplFileObject($data);
+			foreach ($file as $current) {
+				$c[$file->key()+1] = rtrim($file->current());
+			}
 		}
-		$c = explode(PHP_EOL, $data);
 
 		if (!count($c) || !count($lines)) {
 			return null;

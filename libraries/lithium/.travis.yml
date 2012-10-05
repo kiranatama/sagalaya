@@ -1,0 +1,16 @@
+language: php
+
+env:
+  - OPCODE_CACHE=apc
+ #- OPCODE_CACHE=xcache
+
+php:
+  - 5.3
+  - 5.4
+
+before_script: php tests/ci_depends.php $OPCODE_CACHE
+
+script: console/li3 test --filters=Profiler tests/cases
+
+notifications:
+    irc: "irc.freenode.org#li3-core"

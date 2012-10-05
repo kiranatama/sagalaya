@@ -1,7 +1,0 @@
-<?php
-
-goto test;
-
-test:
-
-?>

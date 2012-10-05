@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -13,14 +13,14 @@ use ReflectionProperty;
 
 /**
  * Base message class for any URI based request/response.
+ *
  * @see http://tools.ietf.org/html/rfc3986#section-1.1.1
  * @see http://en.wikipedia.org/wiki/URI_scheme#Generic_syntax
- *
  */
 class Message extends \lithium\core\Object {
 
 	/**
-	 * The uri scheme
+	 * The URI scheme.
 	 *
 	 * @var string
 	 */
@@ -34,7 +34,7 @@ class Message extends \lithium\core\Object {
 	public $host = 'localhost';
 
 	/**
-	 * The port
+	 * The port for this endpoint.
 	 *
 	 * @var string
 	 */
@@ -48,14 +48,14 @@ class Message extends \lithium\core\Object {
 	public $path = null;
 
 	/**
-	 * The username
+	 * The username for this endpoint.
 	 *
 	 * @var string
 	 */
 	public $username = null;
 
 	/**
-	 * Absolute path of the request.
+	 * The password for this endpoint.
 	 *
 	 * @var string
 	 */

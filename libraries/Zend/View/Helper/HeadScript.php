@@ -1,44 +1,25 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_View
- * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_View
  */
 
-/**
- * @namespace
- */
 namespace Zend\View\Helper;
+
 use Zend\View;
+use Zend\View\Exception;
 
 /**
  * Helper for setting and retrieving script elements for HTML head section
  *
- * @uses       stdClass
- * @uses       \Zend\View\Exception
- * @uses       \Zend\View\Helper\Placeholder\Container\AbstractContainer
- * @uses       \Zend\View\Helper\Placeholder\Container\Exception
- * @uses       \Zend\View\Helper\Placeholder\Container\Standalone
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class HeadScript extends Placeholder\Container\Standalone
+class HeadScript extends Placeholder\Container\AbstractStandalone
 {
     /**#@+
      * Script type contants
@@ -145,13 +126,12 @@ class HeadScript extends Placeholder\Container\Standalone
      * @param  string $type        Type of script
      * @param  array  $attrs       Attributes of capture
      * @return void
+     * @throws Exception\RuntimeException
      */
     public function captureStart($captureType = Placeholder\Container\AbstractContainer::APPEND, $type = 'text/javascript', $attrs = array())
     {
         if ($this->_captureLock) {
-            $e = new Placeholder\Container\Exception('Cannot nest headScript captures');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\RuntimeException('Cannot nest headScript captures');
         }
 
         $this->_captureLock        = true;
@@ -204,15 +184,16 @@ class HeadScript extends Placeholder\Container\Standalone
      * @param  string $method Method to call
      * @param  array  $args   Arguments of method
      * @return \Zend\View\Helper\HeadScript
-     * @throws \Zend\View\Exception if too few arguments or invalid method
+     * @throws Exception\BadMethodCallException if too few arguments or invalid method
      */
     public function __call($method, $args)
     {
         if (preg_match('/^(?P<action>set|(ap|pre)pend|offsetSet)(?P<mode>File|Script)$/', $method, $matches)) {
             if (1 > count($args)) {
-                $e = new View\Exception(sprintf('Method "%s" requires at least one argument', $method));
-                $e->setView($this->view);
-                throw $e;
+                throw new Exception\BadMethodCallException(sprintf(
+                    'Method "%s" requires at least one argument',
+                    $method
+                ));
             }
 
             $action  = $matches['action'];
@@ -223,9 +204,10 @@ class HeadScript extends Placeholder\Container\Standalone
             if ('offsetSet' == $action) {
                 $index = array_shift($args);
                 if (1 > count($args)) {
-                    $e = new View\Exception(sprintf('Method "%s" requires at least two arguments, an index and source', $method));
-                    $e->setView($this->view);
-                    throw $e;
+                    throw new Exception\BadMethodCallException(sprintf(
+                        'Method "%s" requires at least two arguments, an index and source',
+                        $method
+                    ));
                 }
             }
 
@@ -309,13 +291,14 @@ class HeadScript extends Placeholder\Container\Standalone
      *
      * @param  string $value Append script or file
      * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function append($value)
     {
         if (!$this->_isValid($value)) {
-            $e = new View\Exception('Invalid argument passed to append(); please use one of the helper methods, appendScript() or appendFile()');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException(
+                'Invalid argument passed to append(); please use one of the helper methods, appendScript() or appendFile()'
+            );
         }
 
         return $this->getContainer()->append($value);
@@ -326,13 +309,14 @@ class HeadScript extends Placeholder\Container\Standalone
      *
      * @param  string $value Prepend script or file
      * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function prepend($value)
     {
         if (!$this->_isValid($value)) {
-            $e = new View\Exception('Invalid argument passed to prepend(); please use one of the helper methods, prependScript() or prependFile()');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException(
+                'Invalid argument passed to prepend(); please use one of the helper methods, prependScript() or prependFile()'
+            );
         }
 
         return $this->getContainer()->prepend($value);
@@ -343,13 +327,14 @@ class HeadScript extends Placeholder\Container\Standalone
      *
      * @param  string $value Set script or file
      * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function set($value)
     {
         if (!$this->_isValid($value)) {
-            $e = new View\Exception('Invalid argument passed to set(); please use one of the helper methods, setScript() or setFile()');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException(
+                'Invalid argument passed to set(); please use one of the helper methods, setScript() or setFile()'
+            );
         }
 
         return $this->getContainer()->set($value);
@@ -361,16 +346,16 @@ class HeadScript extends Placeholder\Container\Standalone
      * @param  string|int $index Set script of file offset
      * @param  mixed      $value
      * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function offsetSet($index, $value)
     {
         if (!$this->_isValid($value)) {
-            $e = new View\Exception('Invalid argument passed to offsetSet(); please use one of the helper methods, offsetSetScript() or offsetSetFile()');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException(
+                'Invalid argument passed to offsetSet(); please use one of the helper methods, offsetSetScript() or offsetSetFile()'
+            );
         }
 
-        $this->_isValid($value);
         return $this->getContainer()->offsetSet($index, $value);
     }
 
@@ -410,8 +395,8 @@ class HeadScript extends Placeholder\Container\Standalone
         $attrString = '';
         if (!empty($item->attributes)) {
             foreach ($item->attributes as $key => $value) {
-                if (!$this->arbitraryAttributesAllowed()
-                    && !in_array($key, $this->_optionalAttributes))
+                if ((!$this->arbitraryAttributesAllowed() && !in_array($key, $this->_optionalAttributes))
+                    || in_array($key, array('conditional', 'noescape')))
                 {
                     continue;
                 }
@@ -422,10 +407,25 @@ class HeadScript extends Placeholder\Container\Standalone
             }
         }
 
+
+        $addScriptEscape = !(isset($item->attributes['noescape']) && filter_var($item->attributes['noescape'], FILTER_VALIDATE_BOOLEAN));
+
         $type = ($this->_autoEscape) ? $this->_escape($item->type) : $item->type;
         $html  = '<script type="' . $type . '"' . $attrString . '>';
         if (!empty($item->source)) {
-              $html .= PHP_EOL . $indent . '    ' . $escapeStart . PHP_EOL . $item->source . $indent . '    ' . $escapeEnd . PHP_EOL . $indent;
+            $html .= PHP_EOL ;
+
+            if ($addScriptEscape) {
+                $html .= $indent . '    ' . $escapeStart . PHP_EOL;
+            }
+
+            $html .= $indent . '    ' . $item->source;
+
+            if ($addScriptEscape) {
+                $html .= $indent . '    ' . $escapeEnd . PHP_EOL;
+            }
+
+            $html .= $indent;
         }
         $html .= '</script>';
 
@@ -458,8 +458,9 @@ class HeadScript extends Placeholder\Container\Standalone
         } else {
             $useCdata = $this->useCdata ? true : false;
         }
+
         $escapeStart = ($useCdata) ? '//<![CDATA[' : '//<!--';
-        $escapeEnd   = ($useCdata) ? '//]]>'       : '//-->';
+        $escapeEnd   = ($useCdata) ? '//]]>' : '//-->';
 
         $items = array();
         $this->getContainer()->ksort();

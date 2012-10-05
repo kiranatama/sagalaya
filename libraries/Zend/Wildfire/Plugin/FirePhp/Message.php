@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Wildfire
  * @subpackage Plugin
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Wildfire\Plugin\FirePhp;
 use Zend\Wildfire;
 
@@ -29,11 +26,10 @@ use Zend\Wildfire;
  * A message envelope that can be passed to Zend_Wildfire_Plugin_FirePhp to be
  * logged to Firebug instead of a variable.
  *
- * @uses       \Zend\Wildfire\Exception
  * @category   Zend
  * @package    Zend_Wildfire
  * @subpackage Plugin
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Message
@@ -90,7 +86,7 @@ class Message
      * @param mixed $message The message
      * @return void
      */
-    function __construct($style, $message)
+    public function __construct($style, $message)
     {
         $this->_style = $style;
         $this->_message = $message;

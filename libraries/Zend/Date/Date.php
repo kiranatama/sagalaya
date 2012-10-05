@@ -14,29 +14,23 @@
  *
  * @category  Zend
  * @package   Zend_Date
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Date;
-use Zend\TimeSync;
-use Zend\Locale\Locale;
-use Zend\Locale\Format;
-use Zend\Locale\Data\Cldr;
-use Zend\Locale\Math;
+
+use Zend\Cache\Storage\Adapter\AdapterInterface as CacheAdapter,
+    Zend\Locale\Data\Cldr,
+    Zend\Locale\Format,
+    Zend\Locale\Locale,
+    Zend\Locale\Math,
+    Zend\TimeSync;
 
 /**
- * @uses      \Zend\Date\DateObject
- * @uses      \Zend\Date\Exception
- * @uses      \Zend\Locale\Locale
- * @uses      \Zend\Locale\Format
- * @uses      \Zend\Locale\Math
  * @category  Zend
  * @package   Zend_Date
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Date extends DateObject
@@ -271,8 +265,8 @@ class Date extends DateObject
                         if ($value === null) {
                             parent::$_cache = null;
                         } else {
-                            if (!$value instanceof \Zend\Cache\Frontend) {
-                                throw new Exception\InvalidArgumentException("Instance of Zend_Cache expected");
+                            if (!$value instanceof CacheAdapter) {
+                                throw new Exception\InvalidArgumentException("Instance of Zend\Cache\Storage\Adapter\AdapterInterface expected");
                             }
 
                             parent::$_cache     = $value;
@@ -2116,7 +2110,7 @@ class Date extends DateObject
 
                     return $this->_assign($calc, $this->mktime(0, 0, 0, 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime(0, 0, 0, 1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2136,7 +2130,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime(0, 0, 0, 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime(0, 0, 0, 1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2156,7 +2150,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime(0, 0, 0, 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime(0, 0, 0, 1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2176,7 +2170,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime(0, 0, 0, 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime(0, 0, 0, 1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2198,7 +2192,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime(0, 0, 0, 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime(0, 0, 0, 1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2213,7 +2207,7 @@ class Date extends DateObject
                     $parsed = Format::getTime($date, array('locale' => $locale, 'format_type' => 'iso', 'fix_date' => true));
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], $month, $day, $year, true),
                                                  $this->mktime($hour,           $minute,           $second,           $month, $day, $year, true), false);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2234,7 +2228,7 @@ class Date extends DateObject
 
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], $month, $day, $year, true),
                                                  $this->mktime($hour,           $minute,           $second,           $month, $day, $year, true), false);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2250,7 +2244,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], $month, $day, $year, true),
                                                  $this->mktime($hour,           $minute,           $second,           $month, $day, $year, true), false);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2266,7 +2260,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], $month, $day, $year, true),
                                                  $this->mktime($hour,           $minute,           $second,           $month, $day, $year, true), false);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2287,7 +2281,7 @@ class Date extends DateObject
 
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], $month, $day, $year, true),
                                                  $this->mktime($hour,           $minute,           $second,           $month, $day, $year, true), false);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2305,7 +2299,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime($hour,           $minute,           $second,           1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2330,7 +2324,7 @@ class Date extends DateObject
 
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime($hour,           $minute,           $second,           1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2350,7 +2344,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime($hour,           $minute,           $second,           1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2369,7 +2363,7 @@ class Date extends DateObject
                     }
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime($hour,           $minute,           $second,           1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2396,7 +2390,7 @@ class Date extends DateObject
 
                     return $this->_assign($calc, $this->mktime($parsed['hour'], $parsed['minute'], $parsed['second'], 1 + $parsed['month'], 1 + $parsed['day'], 1970 + $parsed['year'], true),
                                                  $this->mktime($hour,           $minute,           $second,           1 + $month,           1 + $day,           1970 + $year,           true), $hour);
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\RuntimeException($e->getMessage());
                 }
                 break;
@@ -2591,7 +2585,7 @@ class Date extends DateObject
                             isset($parsed['day']) ? (1 + $parsed['day']) : 1,
                             isset($parsed['year']) ? (1970 + $parsed['year']) : 1970,
                             false), $this->getUnixTimestamp(), false);
-                    } catch (\Zend\Locale\Exception $e) {
+                    } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                         if (!is_numeric($date)) {
                             throw new Exception\RuntimeException($e->getMessage(), 0, $e);
                         }
@@ -2726,7 +2720,7 @@ class Date extends DateObject
                     }
 
                     $parsed = Format::getTime($time, array('date_format' => $format, 'locale' => $locale, 'format_type' => 'iso'));
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\InvalidArgumentException($e->getMessage(), 0, $e);
                 }
             }
@@ -2888,7 +2882,7 @@ class Date extends DateObject
                     if ((strpos(strtoupper($format), 'YY') !== false) and (strpos(strtoupper($format), 'YYYY') === false)) {
                         $parsed['year'] = self::getFullYear($parsed['year']);
                     }
-                } catch (\Zend\Locale\Exception $e) {
+                } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                     throw new Exception\InvalidArgumentException($e->getMessage(), 0, $e);
                 }
             }
@@ -4612,7 +4606,7 @@ class Date extends DateObject
     {
         try {
             $this->_locale = Locale::findLocale($locale);
-        } catch (\Zend\Locale\Exception $e) {
+        } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
             throw new Exception\InvalidArgumentException($e->getMessage(), 0, $e);
         }
 
@@ -4643,13 +4637,22 @@ class Date extends DateObject
      */
     public static function isDate($date, $format = null, $locale = null)
     {
-        if (!is_string($date) && !is_numeric($date) && !($date instanceof Date) &&
-            !is_array($date)) {
+        if (!is_string($date) 
+            && !is_numeric($date) 
+            && !($date instanceof Date) 
+            && !is_array($date)
+        ) {
             return false;
         }
 
-        if (($format !== null) && ($format != 'ee') && ($format != 'ss') && ($format != 'GG') && ($format != 'MM') && ($format != 'EE') && ($format != 'TT')
-            && (Locale::isLocale($format))
+        if (($format !== null) 
+            && ($format != 'ee') 
+            && ($format != 'ss') 
+            && ($format != 'GG') 
+            && ($format != 'MM') 
+            && ($format != 'EE') 
+            && ($format != 'TT')
+            && Locale::isLocale($format)
         ) {
             $locale = $format;
             $format = null;
@@ -4659,17 +4662,22 @@ class Date extends DateObject
 
         if ($format === null) {
             $format = Format::getDateFormat($locale);
-        } else if ((self::$_options['format_type'] == 'php') && !defined($format)) {
+        } elseif ((self::$_options['format_type'] == 'php') && !defined($format)) {
             $format = Format::convertPhpToIsoFormat($format);
         }
 
         $format = self::_getLocalizedToken($format, $locale);
-        if (!is_array($date)) {
+        if ($date instanceof Date) {
+            $parsed = $date->toArray();
+        } elseif (!is_array($date)) {
             try {
-                $parsed = Format::getDate($date, array('locale' => $locale,
-                                                      'date_format' => $format, 'format_type' => 'iso',
-                                                      'fix_date' => false));
-            } catch (\Zend\Locale\Exception $e) {
+                $parsed = Format::getDate($date, array(
+                    'locale'      => $locale,
+                    'date_format' => $format,
+                    'format_type' => 'iso',
+                    'fix_date'    => false,
+                ));
+            } catch (\Zend\Locale\Exception\ExceptionInterface $e) {
                 // Date can not be parsed
                 return false;
             }
@@ -4677,34 +4685,36 @@ class Date extends DateObject
             $parsed = $date;
         }
 
-        if (((strpos($format, 'Y') !== false) or (strpos($format, 'y') !== false)) and
-            (!isset($parsed['year']))) {
+        if (((strpos($format, 'Y') !== false) || (strpos($format, 'y') !== false)) 
+            && !isset($parsed['year'])
+        ) {
             // Year expected but not found
                 return false;
         }
 
-        if ((strpos($format, 'M') !== false) and (!isset($parsed['month']))) {
+        if ((strpos($format, 'M') !== false) && (!isset($parsed['month']))) {
             // Month expected but not found
             return false;
         }
 
-        if ((strpos($format, 'd') !== false) and (!isset($parsed['day']))) {
+        if ((strpos($format, 'd') !== false) && (!isset($parsed['day']))) {
             // Day expected but not found
             return false;
         }
 
-        if (((strpos($format, 'H') !== false) or (strpos($format, 'h') !== false)) and
-            (!isset($parsed['hour']))) {
+        if (((strpos($format, 'H') !== false) || (strpos($format, 'h') !== false)) 
+            && !isset($parsed['hour'])
+        ) {
             // Hour expected but not found
                 return false;
         }
 
-        if ((strpos($format, 'm') !== false) and (!isset($parsed['minute']))) {
+        if ((strpos($format, 'm') !== false) && (!isset($parsed['minute']))) {
             // Minute expected but not found
             return false;
         }
 
-        if ((strpos($format, 's') !== false) and (!isset($parsed['second']))) {
+        if ((strpos($format, 's') !== false) && (!isset($parsed['second']))) {
             // Second expected  but not found
             return false;
         }

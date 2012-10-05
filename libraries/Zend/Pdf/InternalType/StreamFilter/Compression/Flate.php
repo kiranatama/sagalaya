@@ -15,25 +15,21 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Internal
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\InternalType\StreamFilter\Compression;
-use Zend\Pdf\Exception;
-use Zend\Pdf;
+
+use Zend\Pdf\Exception,
+    Zend\Pdf;
 
 /**
  * Flate stream filter
  *
- * @uses       \Zend\Pdf\Exception
- * @uses       \Zend\Pdf\InternalType\StreamFilter\Compression\AbstractCompression
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Internal
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Flate extends AbstractCompression
@@ -44,7 +40,7 @@ class Flate extends AbstractCompression
      * @param string $data
      * @param array $params
      * @return string
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public static function encode($data, $params = null)
     {
@@ -80,7 +76,7 @@ class Flate extends AbstractCompression
      * @param string $data
      * @param array $params
      * @return string
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public static function decode($data, $params = null)
     {

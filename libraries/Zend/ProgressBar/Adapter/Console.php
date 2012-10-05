@@ -1,39 +1,23 @@
 <?php
 /**
- * LICENSE
+ * Zend Framework (http://framework.zend.com/)
  *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_ProgressBar
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_ProgressBar
  */
 
-/**
- * @namespace
- */
 namespace Zend\ProgressBar\Adapter;
+
 use Zend\ProgressBar\Adapter\Exception;
 
 /**
  * Zend_ProgressBar_Adapter_Console offers a text-based progressbar for console
  * applications
  *
- * @uses      \Zend\ProgressBar\Adapter\Adapter
- * @uses      \Zend\ProgressBar\Adapter\Exception
- * @uses      \Zend\Text\MultiByte
  * @category  Zend
  * @package   Zend_ProgressBar
- * @uses      Zend_ProgressBar_Adapter_Interface
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Console extends AbstractAdapter
 {
@@ -154,7 +138,7 @@ class Console extends AbstractAdapter
     /**
      * Defined by Zend_ProgressBar_Adapter
      *
-     * @param null|array|\Zend\Config\Config $options
+     * @param  array|\Traversable $options
      */
     public function __construct($options = null)
     {
@@ -238,7 +222,7 @@ class Console extends AbstractAdapter
                 // Try to determine the width through stty
                 if (preg_match('#\d+ (\d+)#', @shell_exec('stty size'), $match) === 1) {
                     $this->_width = (int) $match[1];
-                } else if (preg_match('#columns = (\d+);#', @shell_exec('stty'), $match) === 1) {
+                } elseif (preg_match('#columns = (\d+);#', @shell_exec('stty'), $match) === 1) {
                     $this->_width = (int) $match[1];
                 }
             }
@@ -373,7 +357,7 @@ class Console extends AbstractAdapter
     }
 
     /**
-     * Defined by Zend_ProgressBar_Adapter_Interface
+     * Defined by Zend\ProgressBar\Adapter\AbstractAdapter
      *
      * @param  float   $current       Current progress value
      * @param  float   $max           Max progress value
@@ -460,7 +444,7 @@ class Console extends AbstractAdapter
     }
 
     /**
-     * Defined by Zend_ProgressBar_Adapter_Interface
+     * Defined by Zend\ProgressBar\Adapter\AbstractAdapter
      *
      * @return void
      */

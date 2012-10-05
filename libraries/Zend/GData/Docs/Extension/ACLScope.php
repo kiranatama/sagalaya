@@ -16,14 +16,11 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gapps
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @version    $Id: EmailList.php 20096 2010-01-06 02:05:09Z bkarwin $
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Docs\Extension;
 
 /**
@@ -32,7 +29,7 @@ namespace Zend\GData\Docs\Extension;
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gapps
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class ACLScope extends \Zend\GData\Extension
@@ -56,7 +53,7 @@ class ACLScope extends \Zend\GData\Extension
     protected $_value = null;
 
     /**
-     * Constructs a new \Zend\Gdata\Docs\Extension\ACLScope object.
+     * Constructs a new \Zend\GData\Docs\Extension\ACLScope object.
      *
      * @param string $type The type of entity to share with
      * @param string $value the entity to share with (usually email address)
@@ -128,7 +125,7 @@ class ACLScope extends \Zend\GData\Extension
     /**
      * Set the value for this element's type attribute.
      * @param string $value The desired value for this attribute.
-     * @return \Zend\Gdata\Docs\Extension\ACLScope The element being modified.
+     * @return \Zend\GData\Docs\Extension\ACLScope The element being modified.
      */
     public function setType($value)
     {
@@ -151,7 +148,7 @@ class ACLScope extends \Zend\GData\Extension
      * Set the value for this element's value attribute.
      *
      * @param string $value The desired value for this attribute.
-     * @return \Zend\Gdata\Docs\Extension\ACLScope The element being modified.
+     * @return \Zend\GData\Docs\Extension\ACLScope The element being modified.
      */
     public function setValue($value)
     {

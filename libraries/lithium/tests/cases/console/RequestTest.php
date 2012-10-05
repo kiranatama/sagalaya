@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -54,7 +54,7 @@ class RequestTest extends \lithium\test\Unit {
 
 	public function testEnvWorking() {
 		$base = Libraries::get(true, 'resources') . '/tmp/tests';
-		$this->skipIf(!is_readable($base), "{$base} is not readable.");
+		$this->skipIf(!is_readable($base), "Path `{$base}` is not readable.");
 
 		chdir(Libraries::get(true, 'resources') . '/tmp/tests');
 		$request = new Request();
@@ -118,7 +118,7 @@ class RequestTest extends \lithium\test\Unit {
 
 	public function testConstructWithEnv() {
 		$base = Libraries::get(true, 'resources') . '/tmp/tests';
-		$this->skipIf(!is_readable($base), "{$base} is not writable.");
+		$this->skipIf(!is_readable($base), "Path `{$base}` is not readable.");
 
 		chdir(Libraries::get(true, 'resources') . '/tmp');
 		$request = new Request(array('env' => array('working' => '/some/other/path')));

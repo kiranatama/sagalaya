@@ -217,7 +217,16 @@ class ObjectHydrator extends AbstractHydrator
         $className = $this->_rsm->aliasMap[$dqlAlias];
 
         if (isset($this->_rsm->discriminatorColumns[$dqlAlias])) {
+
+            if ( ! isset($this->_rsm->metaMappings[$this->_rsm->discriminatorColumns[$dqlAlias]])) {
+                throw HydrationException::missingDiscriminatorMetaMappingColumn($className, $this->_rsm->discriminatorColumns[$dqlAlias], $dqlAlias);
+            }
+
             $discrColumn = $this->_rsm->metaMappings[$this->_rsm->discriminatorColumns[$dqlAlias]];
+
+            if ( ! isset($data[$discrColumn])) {
+                throw HydrationException::missingDiscriminatorColumn($className, $discrColumn, $dqlAlias);
+            }
 
             if ($data[$discrColumn] === "") {
                 throw HydrationException::emptyDiscriminatorValue($dqlAlias);
@@ -234,20 +243,7 @@ class ObjectHydrator extends AbstractHydrator
 
         $this->_hints['fetchAlias'] = $dqlAlias;
 
-        $entity = $this->_uow->createEntity($className, $data, $this->_hints);
-
-        //TODO: These should be invoked later, after hydration, because associations may not yet be loaded here.
-        if (isset($this->_ce[$className]->lifecycleCallbacks[Events::postLoad])) {
-            $this->_ce[$className]->invokeLifecycleCallbacks(Events::postLoad, $entity);
-        }
-
-        $evm = $this->_em->getEventManager();
-
-        if ($evm->hasListeners(Events::postLoad)) {
-            $evm->dispatchEvent(Events::postLoad, new LifecycleEventArgs($entity, $this->_em));
-        }
-
-        return $entity;
+        return $this->_uow->createEntity($className, $data, $this->_hints);
     }
 
     private function _getEntityFromIdentityMap($className, array $data)
@@ -343,7 +339,7 @@ class ObjectHydrator extends AbstractHydrator
                 $path = $parentAlias . '.' . $dqlAlias;
 
                 // We have a RIGHT JOIN result here. Doctrine cannot hydrate RIGHT JOIN Object-Graphs
-                if (!isset($nonemptyComponents[$parentAlias])) {
+                if ( ! isset($nonemptyComponents[$parentAlias])) {
                     // TODO: Add special case code where we hydrate the right join objects into identity map at least
                     continue;
                 }
@@ -359,7 +355,6 @@ class ObjectHydrator extends AbstractHydrator
                     continue;
                 }
 
-
                 $parentClass = $this->_ce[$this->_rsm->aliasMap[$parentAlias]];
                 $oid = spl_object_hash($parentObject);
                 $relationField = $this->_rsm->relationMap[$dqlAlias];
@@ -368,6 +363,7 @@ class ObjectHydrator extends AbstractHydrator
 
                 // Check the type of the relation (many or single-valued)
                 if ( ! ($relation['type'] & ClassMetadata::TO_ONE)) {
+                    $reflFieldValue = $reflField->getValue($parentObject);
                     // PATH A: Collection-valued association
                     if (isset($nonemptyComponents[$dqlAlias])) {
                         $collKey = $oid . $relationField;
@@ -408,9 +404,12 @@ class ObjectHydrator extends AbstractHydrator
                             // Update result pointer
                             $this->_resultPointers[$dqlAlias] = $reflFieldValue[$index];
                         }
-                    } else if ( ! $reflField->getValue($parentObject)) {
+                    } else if ( ! $reflFieldValue) {
                         $reflFieldValue = $this->_initRelatedCollection($parentObject, $parentClass, $relationField, $parentAlias);
+                    } else if ($reflFieldValue instanceof PersistentCollection && $reflFieldValue->isInitialized() === false) {
+                        $reflFieldValue->setInitialized(true);
                     }
+
                 } else {
                     // PATH B: Single-valued association
                     $reflFieldValue = $reflField->getValue($parentObject);

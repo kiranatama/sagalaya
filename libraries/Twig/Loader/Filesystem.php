@@ -119,7 +119,7 @@ class Twig_Loader_Filesystem implements Twig_LoaderInterface
         }
 
         $this->validateName($name);
-		
+
         foreach ($this->paths as $path) {
             if (is_file($path.'/'.$name)) {
                 return $this->cache[$name] = $path.'/'.$name;

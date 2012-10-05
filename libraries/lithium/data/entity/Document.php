@@ -2,12 +2,13 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
 namespace lithium\data\entity;
 
+use RuntimeException;
 use UnexpectedValueException;
 
 /**
@@ -110,10 +111,7 @@ class Document extends \lithium\data\Entity implements \Iterator, \ArrayAccess {
 		}
 
 		if (isset($this->_embedded[$name]) && !isset($this->_relationships[$name])) {
-			$item = isset($this->_data[$name]) ? $this->_data[$name] : array();
-			var_dump($this->_relationships[$name]);
-			die('#WINNING');
-			// $this->_relationships[$name] = $this->_relate($this->_embedded[$name], $item);
+			throw new RuntimeException("Not implemented.");
 		}
 		$result = parent::__get($name);
 
@@ -139,7 +137,7 @@ class Document extends \lithium\data\Entity implements \Iterator, \ArrayAccess {
 
 	public function export() {
 		foreach ($this->_updated as $key => $val) {
-			if (is_a($val, __CLASS__)) {
+			if ($val instanceof self) {
 				$path = $this->_pathKey ? "{$this->_pathKey}." : '';
 				$this->_updated[$key]->_pathKey = "{$path}{$key}";
 			}
@@ -152,7 +150,7 @@ class Document extends \lithium\data\Entity implements \Iterator, \ArrayAccess {
 	 *
 	 * @param mixed $id
 	 * @param array $data
-	 * @param array Options when calling this method:
+	 * @param array $options Options when calling this method:
 	 *              - `'recursive'` _boolean_: If `true` attempts to sync nested objects as well.
 	 *                Otherwise, only syncs the current object. Defaults to `true`.
 	 * @return void
@@ -304,7 +302,7 @@ class Document extends \lithium\data\Entity implements \Iterator, \ArrayAccess {
 		}
 
 		foreach ($data as $key => $value) {
-			if (is_a($value, __CLASS__)) {
+			if ($value instanceof self) {
 				if (!$options['init']) {
 					$value->_exists = false;
 				}

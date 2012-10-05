@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -55,7 +55,7 @@ class Form extends \lithium\template\Helper {
 		'legend'         => '<legend>{:content}</legend>',
 		'option-group'   => '<optgroup label="{:label}"{:options}>{:raw}</optgroup>',
 		'password'       => '<input type="password" name="{:name}"{:options} />',
-		'radio'          => '<input type="radio" name="{:name}" {:options} />',
+		'radio'          => '<input type="radio" name="{:name}"{:options} />',
 		'select'         => '<select name="{:name}"{:options}>{:raw}</select>',
 		'select-empty'   => '<option value=""{:options}>&nbsp;</option>',
 		'select-multi'   => '<select name="{:name}[]"{:options}>{:raw}</select>',
@@ -103,7 +103,7 @@ class Form extends \lithium\template\Helper {
 	 *
 	 * - schema(): Returns an array defining the objects fields and their data types.
 	 * - data(): Returns an associative array of the data that this object represents.
-	 * - errors(): Returns an associatie array of validation errors for the current data set, where
+	 * - errors(): Returns an associate array of validation errors for the current data set, where
 	 *             the keys match keys from `schema()`, and the values are either strings (in cases
 	 *             where a field only has one error) or an array (in case of multiple errors),
 	 *
@@ -141,8 +141,9 @@ class Form extends \lithium\template\Helper {
 					if (!$name || ($method == 'hidden' && $name == '_method')) {
 						return;
 					}
-					$id = Inflector::camelize(Inflector::slug($name));
-					$model = ($binding = $self->binding()) ? $binding->model() : null;
+					$info = $self->binding($name);
+					$model = $info->class;
+					$id = Inflector::camelize(Inflector::slug($info->name));
 					return $model ? basename(str_replace('\\', '/', $model)) . $id : $id;
 				},
 				'name' => function($method, $name, $options) {
@@ -153,7 +154,21 @@ class Form extends \lithium\template\Helper {
 					$first = array_shift($name);
 					return $first . '[' . join('][', $name) . ']';
 				}
-			)
+			),
+			'binding' => function($object, $name = null) {
+				$result = compact('name') + array(
+					'data' => null, 'errors' => null, 'class' => null
+				);
+
+				if (is_object($object)) {
+					$result = compact('name') + array(
+						'data'   => $object->data($name),
+						'errors' => $object->errors($name),
+						'class'  => $object->model()
+					);
+				}
+				return (object) $result;
+			}
 		);
 		parent::__construct(Set::merge($defaults, $config));
 	}
@@ -183,7 +198,7 @@ class Form extends \lithium\template\Helper {
 	 * $this->form->config(array('label' => array('class' => 'foo')));
 	 * }}}
 	 *
-	 * Note that this can be overridden on a case-by-case basis, and when overridding, values are
+	 * Note that this can be overridden on a case-by-case basis, and when overriding, values are
 	 * not merged or combined. Therefore, if you wanted a particular `<label />` to have both `foo`
 	 * and `bar` as classes, you would have to specify `'class' => 'foo bar'`.
 	 *
@@ -234,8 +249,8 @@ class Form extends \lithium\template\Helper {
 	 *
 	 * @see lithium\template\helper\Form::$_binding
 	 * @see lithium\data\Entity
-	 * @param object $binding The object to bind the form to. This is usually an instance of
-	 *               `Record` or `Document`, or some other class that extends
+	 * @param mixed $bindings List of objects, or the object to bind the form to. This is usually an
+	 *               instance of `Record` or `Document`, or some other class that extends
 	 *               `lithium\data\Entity`.
 	 * @param array $options Other parameters for creating the form. Available options are:
 	 *              - `'url'` _mixed_: A string URL or URL array parameters defining where in the
@@ -255,8 +270,9 @@ class Form extends \lithium\template\Helper {
 	 *         attributes passed in `$options`.
 	 * @filter
 	 */
-	public function create($binding = null, array $options = array()) {
+	public function create($bindings = null, array $options = array()) {
 		$request = $this->_context ? $this->_context->request() : null;
+		$binding = is_array($bindings) ? reset($bindings) : $bindings;
 
 		$defaults = array(
 			'url' => $request ? $request->params : array(),
@@ -270,13 +286,13 @@ class Form extends \lithium\template\Helper {
 
 		$_binding =& $this->_binding;
 		$_options =& $this->_bindingOptions;
-		$params = compact('scope', 'options', 'binding');
+		$params = compact('scope', 'options', 'bindings');
 		$extra = array('method' => __METHOD__) + compact('tpl', 'defaults');
 
 		$filter = function($self, $params) use ($extra, &$_binding, &$_options) {
 			$scope = $params['scope'];
 			$options = $params['options'];
-			$_binding = $params['binding'];
+			$_binding = $params['bindings'];
 			$append = null;
 			$scope['method'] = strtolower($scope['method']);
 
@@ -312,12 +328,10 @@ class Form extends \lithium\template\Helper {
 	public function end() {
 		list(, $options, $template) = $this->_defaults(__FUNCTION__, null, array());
 		$params = compact('options', 'template');
-		$_binding =& $this->_binding;
 		$_context =& $this->_context;
 		$_options =& $this->_bindingOptions;
 
-		$filter = function($self, $params) use (&$_binding, &$_context, &$_options, $template) {
-			unset($_binding);
+		$filter = function($self, $params) use (&$_context, &$_options, $template) {
 			$_options = array();
 			return $self->invokeMethod('_render', array('end', $params['template'], array()));
 		};
@@ -331,10 +345,35 @@ class Form extends \lithium\template\Helper {
 	 * Returns the entity that the `Form` helper is currently bound to.
 	 *
 	 * @see lithium\template\helper\Form::$_binding
+	 * @param string $name If specified, match this field name against the list of bindings
+	 * @param string $key If $name specified, where to store relevant $_binding key
 	 * @return object Returns an object, usually an instance of `lithium\data\Entity`.
 	 */
-	public function binding() {
-		return $this->_binding;
+	public function binding($name = null) {
+		if (!$this->_binding) {
+			return $this->_config['binding'](null, $name);
+		}
+
+		$binding = $this->_binding;
+		$model = null;
+		$key = $name;
+
+		if (is_array($binding)) {
+			switch (true) {
+				case strpos($name, '.'):
+					list($model, $key) = explode('.', $name, 2);
+					$binding = isset($binding[$model]) ? $binding[$model] : reset($binding);
+				break;
+				case isset($binding[$name]):
+					$binding = $binding[$name];
+					$key = null;
+				break;
+				default:
+					$binding = reset($binding);
+				break;
+			}
+		}
+		return $key ? $this->_config['binding']($binding, $key) : $binding;
 	}
 
 	/**
@@ -379,7 +418,7 @@ class Form extends \lithium\template\Helper {
 	 *                parameters. By default, the label text is a human-friendly version of `$name`.
 	 *                However, you can specify the label manually as a string, or both the label
 	 *                text and options as an array, i.e.:
-	 *                `array('label text' => array('class' => 'foo', 'any' => 'other options'))`.
+	 *                `array('Your Label Title' => array('class' => 'foo', 'other' => 'options'))`.
 	 *              - `'type'` _string_: The type of form field to render. Available default options
 	 *                are: `'text'`, `'textarea'`, `'select'`, `'checkbox'`, `'password'` or
 	 *                `'hidden'`, as well as any arbitrary type (i.e. HTML5 form fields).
@@ -398,30 +437,26 @@ class Form extends \lithium\template\Helper {
 		if (is_array($name)) {
 			return $this->_fields($name, $options);
 		}
+		list(, $options, $template) = $this->_defaults(__FUNCTION__, $name, $options);
 		$defaults = array(
 			'label' => null,
 			'type' => isset($options['list']) ? 'select' : 'text',
-			'template' => 'field',
+			'template' => $template,
 			'wrap' => array(),
 			'list' => null
 		);
-		$type = isset($options['type']) ? $options['type'] : $defaults['type'];
-
-		if ($this->_context->strings('field-' . $type)) {
-			$options['template'] = 'field-' . $type;
-		}
-		list(, $options, $template) = $this->_defaults(__FUNCTION__, $name, $options);
 		list($options, $field) = $this->_options($defaults, $options);
 
-		if ($options['template'] != $defaults['template']) {
-			$template = $options['template'];
-		}
-
+		$label = $input = null;
 		$wrap = $options['wrap'];
 		$type = $options['type'];
 		$list = $options['list'];
-		$label = $input = null;
+		$template = $options['template'];
+		$notText = $template == 'field' && $type != 'text';
 
+		if ($notText && $this->_context->strings('field-' . $type)) {
+			$template = 'field-' . $type;
+		}
 		if (($options['label'] === null || $options['label']) && $options['type'] != 'hidden') {
 			if (!$options['label']) {
 				$options['label'] = Inflector::humanize(preg_replace('/[\[\]\.]/', '_', $name));
@@ -562,7 +597,8 @@ class Form extends \lithium\template\Helper {
 			}
 			$selected = (
 				(is_array($scope['value']) && in_array($value, $scope['value'])) ||
-				($scope['value'] == $value)
+				($scope['empty'] && empty($scope['value']) && $value === '') ||
+				(is_scalar($scope['value']) && ((string) $scope['value'] === (string) $value))
 			);
 			$options = $selected ? array('selected' => true) : array();
 			$params = compact('value', 'title', 'options');
@@ -578,7 +614,7 @@ class Form extends \lithium\template\Helper {
 	 * @param array $options Options to be used when generating the checkbox `<input />` element:
 	 *              - `'checked'` _boolean_: Whether or not the field should be checked by default.
 	 *              - `'value'` _mixed_: if specified, it will be used as the 'value' html
-	 *                attribute and no hidden input field will be added
+	 *                attribute and no hidden input field will be added.
 	 *              - Any other options specified are rendered as HTML attributes of the element.
 	 * @return string Returns a `<input />` tag with the given name and HTML attributes.
 	 */
@@ -586,21 +622,47 @@ class Form extends \lithium\template\Helper {
 		$defaults = array('value' => '1', 'hidden' => true);
 		$options += $defaults;
 		$default = $options['value'];
+		$key = $name;
 		$out = '';
 
 		list($name, $options, $template) = $this->_defaults(__FUNCTION__, $name, $options);
 		list($scope, $options) = $this->_options($defaults, $options);
 
-		if (!isset($options['checked'])) {
-			if ($this->_binding && $bound = $this->_binding->data($name)) {
-				$options['checked'] = ($bound == $default);
-			}
+		if (!isset($options['checked']) && ($bound = $this->binding($key)->data)) {
+			$options['checked'] = ($bound == $default);
 		}
 		if ($scope['hidden']) {
 			$out = $this->hidden($name, array('value' => '', 'id' => false));
 		}
 		$options['value'] = $scope['value'];
 		return $out . $this->_render(__METHOD__, $template, compact('name', 'options'));
+	}
+
+	/**
+	 * Generates an HTML `<input type="radio" />` object.
+	 *
+	 * @param string $name The name of the field
+	 * @param array $options All options to be used when generating the radio `<input />` element:
+	 *              - `'checked'` _boolean_: Whether or not the field should be selected by default.
+	 *              - `'value'` _mixed_: if specified, it will be used as the 'value' html
+	 *                attribute. Defaults to `1`
+	 *              - Any other options specified are rendered as HTML attributes of the element.
+	 * @return string Returns a `<input />` tag with the given name and attributes
+	 */
+	public function radio($name, array $options = array()) {
+		$defaults = array('value' => '1');
+		$options += $defaults;
+		$default = $options['value'];
+
+		list($name, $options, $template) = $this->_defaults(__FUNCTION__, $name, $options);
+		list($scope, $options) = $this->_options($defaults, $options);
+
+		if (!isset($options['checked']) && ($bound = $this->binding($name)->data)) {
+			$options['checked'] = ($bound == $default);
+		}
+
+		$options['value'] = $scope['value'];
+		return $this->_render(__METHOD__, $template, compact('name', 'options'));
 	}
 
 	/**
@@ -672,18 +734,16 @@ class Form extends \lithium\template\Helper {
 		$defaults = array('class' => 'error');
 		list(, $options, $template) = $this->_defaults(__FUNCTION__, $name, $options);
 		$options += $defaults;
-
-		$_binding =& $this->_binding;
 		$params = compact('name', 'key', 'options', 'template');
 
-		return $this->_filter(__METHOD__, $params, function($self, $params) use (&$_binding) {
+		return $this->_filter(__METHOD__, $params, function($self, $params) {
 			$options = $params['options'];
 			$template = $params['template'];
 
 			if (isset($options['value'])) {
 				unset($options['value']);
 			}
-			if (!$_binding || !$content = $_binding->errors($params['name'])) {
+			if (!$content = $self->binding($params['name'])->errors) {
 				return null;
 			}
 			$result = '';
@@ -724,12 +784,16 @@ class Form extends \lithium\template\Helper {
 
 		$hasValue = (
 			(!isset($options['value']) || $options['value'] === null) &&
-			$name && $this->_binding && $value = $this->_binding->data($name)
+			$name && $value = $this->binding($name)->data
 		);
-		if ($hasValue) {
+		$isZero = (isset($value) && ($value === 0 || $value === "0"));
+		if ($hasValue || $isZero) {
 			$options['value'] = $value;
 		}
-		if (isset($options['default']) && empty($options['value'])) {
+		if (isset($options['value']) && !$isZero) {
+			$isZero = ($options['value'] === 0 || $options['value'] === "0");
+		}
+		if (isset($options['default']) && empty($options['value']) && !$isZero) {
 			$options['value'] = $options['default'];
 		}
 		unset($options['default']);

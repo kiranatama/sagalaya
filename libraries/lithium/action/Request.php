@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -136,7 +136,11 @@ class Request extends \lithium\net\http\Request {
 	protected $_locale = null;
 
 	/**
-	 * Pulls request data from superglobals.
+	 * Initialize request object, pulling request data from superglobals.
+	 *
+	 * Defines an artificial `'PLATFORM'` environment variable as either
+	 * `'IIS'`, `'CGI'` or `null` to allow checking for the SAPI in a
+	 * normalized way.
 	 *
 	 * @return void
 	 */
@@ -241,8 +245,13 @@ class Request extends \lithium\net\http\Request {
 		$val = array_key_exists($key, $this->_env) ? $this->_env[$key] : getenv($key);
 		$this->_env[$key] = $val;
 
-		if ($key == 'REMOTE_ADDR' && $val == $this->env('SERVER_ADDR')) {
-			$val = ($addr = $this->env('HTTP_PC_REMOTE_ADDR')) ? $addr : $val;
+		if ($key == 'REMOTE_ADDR') {
+			foreach (array('HTTP_X_FORWARDED_FOR', 'HTTP_PC_REMOTE_ADDR') as $altKey) {
+				if ($addr = $this->env($altKey)) {
+					$val = $addr;
+					break;
+				}
+			}
 		}
 
 		if ($val !== null && $val !== false && $key !== 'HTTPS') {
@@ -258,6 +267,11 @@ class Request extends \lithium\net\http\Request {
 					return (!empty($this->_env['HTTPS']) && $this->_env['HTTPS'] !== 'off');
 				}
 				return false;
+			case 'SERVER_ADDR':
+				if (empty($this->_env['SERVER_ADDR']) && !empty($this->_env['LOCAL_ADDR'])) {
+					return $this->_env['LOCAL_ADDR'];
+				}
+				return $this->_env['SERVER_ADDR'];
 			case 'SCRIPT_FILENAME':
 				if ($this->_env['PLATFORM'] == 'IIS') {
 					return str_replace('\\\\', '\\', $this->env('PATH_TRANSLATED'));
@@ -354,7 +368,7 @@ class Request extends \lithium\net\http\Request {
 	 * @see lithium\action\Request::env()
 	 * @see lithium\net\http\Media::type()
 	 * @see lithium\net\http\Router
-	 * @param string $key A prefixed key indiciating what part of the request data the requested
+	 * @param string $key A prefixed key indicating what part of the request data the requested
 	 *               value should come from, and the name of the value to retrieve, in lower case.
 	 * @return string Returns the value of a GET, POST, routing or environment variable, or an
 	 *         HTTP header or method name.
@@ -440,7 +454,7 @@ class Request extends \lithium\net\http\Request {
 
 	/**
 	 * Sets/Gets the content type. If `'type'` is null, the method will attempt to determine the
-	 * type first, from the params, then from the environment setting
+	 * type from the params, then from the environment setting
 	 *
 	 * @param string $type a full content type i.e. `'application/json'` or simple name `'json'`
 	 * @return string A simple content type name, i.e. `'html'`, `'xml'`, `'json'`, etc., depending
@@ -520,8 +534,7 @@ class Request extends \lithium\net\http\Request {
 		$defaults = array(
 			'scheme' => $this->env('HTTPS') ? 'https' : 'http',
 			'host' => $this->env('HTTP_HOST'),
-			'path' => $this->_base . $this->url,
-			'query' => $this->query
+			'path' => $this->_base . '/' . $this->url
 		);
 		return parent::to($format, $options + $defaults);
 	}
@@ -573,7 +586,9 @@ class Request extends \lithium\net\http\Request {
 			return rtrim($_GET['url'], '/');
 		}
 		if ($uri = $this->env('REQUEST_URI')) {
-			return str_replace($this->env('base'), '/', parse_url($uri, PHP_URL_PATH));
+			return trim(preg_replace(
+				'/^' . preg_quote($this->env('base'), '/') . '/', '', parse_url($uri, PHP_URL_PATH)
+			), '/') ?: '/';
 		}
 		return '/';
 	}

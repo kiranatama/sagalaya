@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Annotation
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\Annotation;
 use Zend\Pdf\Exception;
 use Zend\Pdf;
@@ -30,17 +27,9 @@ use Zend\Pdf\InternalType;
 /**
  * A markup annotation
  *
- * @uses       \Zend\Pdf\Annotation\AbstractAnnotation
- * @uses       \Zend\Pdf\InternalType\AbstractTypeObject
- * @uses       \Zend\Pdf\InternalType\ArrayObject
- * @uses       \Zend\Pdf\InternalType\DictionaryObject
- * @uses       \Zend\Pdf\InternalType\NameObject
- * @uses       \Zend\Pdf\InternalType\NumericObject
- * @uses       \Zend\Pdf\InternalType\StringObject
- * @uses       \Zend\Pdf\Exception
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Annotation
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Markup extends AbstractAnnotation
@@ -56,7 +45,7 @@ class Markup extends AbstractAnnotation
     /**
      * Annotation object constructor
      *
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public function __construct(InternalType\AbstractTypeObject $annotationDictionary)
     {
@@ -110,7 +99,7 @@ class Markup extends AbstractAnnotation
      * @param string $subType
      * @param array $quadPoints  [x1 y1 x2 y2 x3 y3 x4 y4]
      * @return \Zend\Pdf\Annotation\Markup
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public static function create($x1, $y1, $x2, $y2, $text, $subType, $quadPoints)
     {

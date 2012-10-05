@@ -15,16 +15,13 @@
  * @category   Zend
  * @package    Zend_Service_Amazon
  * @subpackage SimpleDb
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Amazon\SimpleDb;
 
-use Zend\Crypt,
+use Zend\Crypt\Hmac,
     Zend\Http,
     Zend\Uri;
 
@@ -32,7 +29,7 @@ use Zend\Crypt,
  * @category   Zend
  * @package    Zend_Service_Amazon
  * @subpackage SimpleDb
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class SimpleDb extends \Zend\Service\Amazon\AbstractAmazon
@@ -158,7 +155,7 @@ class SimpleDb extends \Zend\Service\Amazon\AbstractAmazon
      *
      * @param  string $domainName
      * @param  string $itemName
-     * @param  array|Traverable $attributes
+     * @param  array|\Traverable $attributes
      * @param  array $replace
      * @return void
      */
@@ -327,7 +324,7 @@ class SimpleDb extends \Zend\Service\Amazon\AbstractAmazon
 	    $params['Action']     = 'CreateDomain';
 	    $params['DomainName'] = $domainName;
         $response             = $this->_sendRequest($params);
-        return $response->getHttpResponse()->isSuccessful();
+        return $response->getHttpResponse()->isSuccess();
     }
 
     /**
@@ -435,19 +432,22 @@ class SimpleDb extends \Zend\Service\Amazon\AbstractAmazon
             $request = self::getHttpClient();
             $request->resetParameters();
 
-            $request->setConfig(array(
+            $request->setOptions(array(
                 'timeout' => $this->_httpTimeout
             ));
 
 
             $request->setUri($this->getEndpoint());
-            $request->setMethod(Http\Client::POST);
+            $request->setMethod('POST');
+            $request->setParameterPost($params);
+            /*
             foreach ($params as $key => $value) {
                 $params_out[] = rawurlencode($key)."=".rawurlencode($value);
             }
             $request->setRawData(implode('&', $params_out), Http\Client::ENC_URLENCODED);
-            $httpResponse = $request->request();
-        } catch (Http\Client\Exception $zhce) {
+             */
+            $httpResponse = $request->send();
+        } catch (Http\Client\Exception\ExceptionInterface $zhce) {
             $message = 'Error in request to AWS service: ' . $zhce->getMessage();
             throw new Exception\RuntimeException($message, $zhce->getCode(), $zhce);
         } 
@@ -527,7 +527,7 @@ class SimpleDb extends \Zend\Service\Amazon\AbstractAmazon
 
         $data .= implode('&', $arrData);
 
-        $hmac = Crypt\Hmac::compute($this->_getSecretKey(), 'SHA256', $data, Crypt\Hmac::BINARY);
+        $hmac = Hmac::compute($this->_getSecretKey(), 'SHA256', $data, Hmac::BINARY);
 
         return base64_encode($hmac);
     }

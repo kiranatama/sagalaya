@@ -1,39 +1,37 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Paginator
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Paginator
  */
 
-/**
- * @namespace
- */
 namespace Zend\Paginator;
 
-use Zend\Controller\Front as FrontController,
-    Zend\View,
-    Zend\Json\Json;
+use ArrayIterator;
+use Countable;
+use Iterator;
+use IteratorAggregate;
+use Traversable;
+use Zend\Cache\Storage\IteratorInterface as CacheIterator;
+use Zend\Cache\Storage\StorageInterface as CacheStorage;
+use Zend\Db\Sql;
+use Zend\Db\Table\AbstractRowset as DbAbstractRowset;
+use Zend\Db\Table\Select as DbTableSelect;
+use Zend\Filter\FilterInterface;
+use Zend\Json\Json;
+use Zend\Paginator\Adapter\AdapterInterface;
+use Zend\Paginator\ScrollingStyle\ScrollingStyleInterface;
+use Zend\Stdlib\ArrayUtils;
+use Zend\View;
 
 /**
  * @category   Zend
  * @package    Zend_Paginator
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Paginator implements \Countable, \IteratorAggregate
+class Paginator implements Countable, IteratorAggregate
 {
     /**
      * Specifies that the factory should try to detect the proper adapter type first
@@ -49,16 +47,16 @@ class Paginator implements \Countable, \IteratorAggregate
     const CACHE_TAG_PREFIX = 'Zend_Paginator_';
 
     /**
-     * Adapter broker
+     * Adapter plugin manager
      *
-     * @var AdapterBroker
+     * @var AdapterPluginManager
      */
-    protected static $_adapterBroker = null;
+    protected static $_adapters = null;
 
     /**
      * Configuration file
      *
-     * @var \Zend\Config\Config
+     * @var array|null
      */
     protected static $_config = null;
 
@@ -77,21 +75,21 @@ class Paginator implements \Countable, \IteratorAggregate
     protected static $_defaultItemCountPerPage = 10;
 
     /**
-     * Scrolling style plugin loader
+     * Scrolling style plugin manager
      *
-     * @var ScrollingStyleBroker
+     * @var ScrollingStylePluginManager
      */
-    protected static $_scrollingStyleBroker = null;
+    protected static $_scrollingStyles = null;
 
     /**
      * Cache object
      *
-     * @var \Zend\Cache\Frontend\Core
+     * @var CacheStorage
      */
     protected static $_cache;
 
     /**
-     * Enable or desable the cache by Zend_Paginator instance
+     * Enable or disable the cache by Zend\Paginator\Paginator instance
      *
      * @var bool
      */
@@ -100,7 +98,7 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Adapter
      *
-     * @var \Zend\Paginator\Adapter
+     * @var AdapterInterface
      */
     protected $_adapter = null;
 
@@ -128,7 +126,7 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Result filter
      *
-     * @var \Zend\Filter\Filter
+     * @var FilterInterface
      */
     protected $_filter = null;
 
@@ -164,35 +162,34 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * View instance used for self rendering
      *
-     * @var \Zend\View\Renderer
+     * @var \Zend\View\Renderer\RendererInterface
      */
     protected $_view = null;
 
     /**
      * Factory.
      *
-     * @param  mixed $data
+     * @param  mixed  $data
      * @param  string $adapter
-     * @param  array $prefixPaths
-     * @return \Zend\Paginator\Paginator
+     * @throws Exception\InvalidArgumentException
+     * @return Paginator
      */
-    public static function factory($data, $adapter = self::INTERNAL_ADAPTER,
-                                   array $prefixPaths = null)
+    public static function factory($data, $adapter = self::INTERNAL_ADAPTER)
     {
-        if ($data instanceof AdapterAggregate) {
+        if ($data instanceof AdapterAggregateInterface) {
             return new self($data->getPaginatorAdapter());
         }
 
         if ($adapter == self::INTERNAL_ADAPTER) {
             if (is_array($data)) {
                 $adapter = 'array';
-            } else if ($data instanceof \Zend\Db\Table\Select) {
+            } elseif ($data instanceof DbTableSelect) {
                 $adapter = 'db_table_select';
-            } else if ($data instanceof \Zend\Db\Select) {
+            } elseif ($data instanceof DbSelect) {
                 $adapter = 'db_select';
-            } else if ($data instanceof \Iterator) {
+            } elseif ($data instanceof Iterator) {
                 $adapter = 'iterator';
-            } else if (is_integer($data)) {
+            } elseif (is_integer($data)) {
                 $adapter = 'null';
             } else {
                 $type = (is_object($data)) ? get_class($data) : gettype($data);
@@ -200,69 +197,81 @@ class Paginator implements \Countable, \IteratorAggregate
             }
         }
 
-        $broker  = self::getAdapterBroker();
-        $adapter = $broker->load($adapter, array($data));
+        $adapters = self::getAdapterPluginManager();
+        $adapter  = $adapters->get($adapter, $data);
         return new self($adapter);
     }
 
     /**
-     * Set the adapter broker
-     * 
-     * @param  Broker $broker 
-     * @return void
+     * Set the adapter plugin manager
+     *
+     * @param string|AdapterPluginManager $adapters
+     * @throws Exception\InvalidArgumentException
      */
-    public static function setAdapterBroker($broker)
+    public static function setAdapterPluginManager($adapters)
     {
-        if (is_string($broker)) {
-            if (!class_exists($broker)) {
+        if (is_string($adapters)) {
+            if (!class_exists($adapters)) {
                 throw new Exception\InvalidArgumentException(sprintf(
-                    'Unable to locate adapter broker of class "%s"',
-                    $broker
+                    'Unable to locate adapter plugin manager with class "%s"; class not found',
+                    $adapters
                 ));
             }
-            $broker = new $broker();
+            $adapters = new $adapters();
         }
-        if (!$broker instanceof AdapterBroker) {
+        if (!$adapters instanceof AdapterPluginManager) {
             throw new Exception\InvalidArgumentException(sprintf(
-                'Pagination adapter broker must extend AdapterBroker; received "%s"',
-                (is_object($broker) ? get_class($broker) : gettype($broker))
+                'Pagination adapter manager must extend AdapterPluginManager; received "%s"',
+                (is_object($adapters) ? get_class($adapters) : gettype($adapters))
             ));
         }
-        self::$_adapterBroker = $broker;
+        self::$_adapters = $adapters;
     }
 
     /**
-     * Returns the adapter broker.  If it doesn't exist it's created.
+     * Returns the adapter plugin manager.  If it doesn't exist it's created.
      *
-     * @return AdapterBroker
+     * @return AdapterPluginManager
      */
-    public static function getAdapterBroker()
+    public static function getAdapterPluginManager()
     {
-        if (self::$_adapterBroker === null) {
-            self::setAdapterBroker(new AdapterBroker());
+        if (self::$_adapters === null) {
+            self::setAdapterPluginManager(new AdapterPluginManager());
         }
 
-        return self::$_adapterBroker;
+        return self::$_adapters;
     }
 
     /**
      * Set a global config
      *
-     * @param \Zend\Config\Config $config
+     * @param array|\Traversable $config
+     * @throws Exception\InvalidArgumentException
      */
-    public static function setConfig(\Zend\Config\Config $config)
+    public static function setOptions($config)
     {
+        if ($config instanceof Traversable) {
+            $config = ArrayUtils::iteratorToArray($config);
+        }
+        if (!is_array($config)) {
+            throw new Exception\InvalidArgumentException(__METHOD__ . ' expects an array or Traversable');
+        }
+
         self::$_config = $config;
 
-        if (null !== ($broker = $config->get('adapter_broker'))) {
-            self::setAdapterBroker($broker);
+        if (isset($config['adapter_plugins'])
+            && null !== ($adapters = $config['adapter_plugins'])
+        ) {
+            self::setAdapterPluginManager($adapters);
         }
 
-        if (null !== ($broker = $config->get('scrolling_style_broker'))) {
-            self::setScrollingStyleBroker($broker);
+        if (isset($config['scrolling_style_plugins'])
+            && null !== ($adapters = $config['scrolling_style_plugins'])
+        ) {
+            self::setScrollingStylePluginManager($adapters);
         }
 
-        $scrollingStyle = $config->get('scrolling_style');
+        $scrollingStyle = isset($config['scrolling_style']) ? $config['scrolling_style'] : null;
 
         if ($scrollingStyle != null) {
             self::setDefaultScrollingStyle($scrollingStyle);
@@ -302,9 +311,9 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Sets a cache object
      *
-     * @param \Zend\Cache\Frontend\Core $cache
+     * @param CacheStorage $cache
      */
-    public static function setCache(\Zend\Cache\Frontend\Core $cache)
+    public static function setCache(CacheStorage $cache)
     {
         self::$_cache = $cache;
     }
@@ -319,66 +328,68 @@ class Paginator implements \Countable, \IteratorAggregate
         self::$_defaultScrollingStyle = $scrollingStyle;
     }
 
-    public static function setScrollingStyleBroker($broker)
+    public static function setScrollingStylePluginManager($scrollingAdapters)
     {
-        if (is_string($broker)) {
-            if (!class_exists($broker)) {
+        if (is_string($scrollingAdapters)) {
+            if (!class_exists($scrollingAdapters)) {
                 throw new Exception\InvalidArgumentException(sprintf(
-                    'Unable to locate scrolling style broker of class "%s"',
-                    $broker
+                    'Unable to locate scrolling style plugin manager with class "%s"; class not found',
+                    $scrollingAdapters
                 ));
             }
-            $broker = new $broker();
+            $scrollingAdapters = new $scrollingAdapters();
         }
-        if (!$broker instanceof ScrollingStyleBroker) {
+        if (!$scrollingAdapters instanceof ScrollingStylePluginManager) {
             throw new Exception\InvalidArgumentException(sprintf(
-                'Pagination scrolling-style broker must extend ScrollingStyleBroker; received "%s"',
-                (is_object($broker) ? get_class($broker) : gettype($broker))
+                'Pagination scrolling-style manager must extend ScrollingStylePluginManager; received "%s"',
+                (is_object($scrollingAdapters) ? get_class($scrollingAdapters) : gettype($scrollingAdapters))
             ));
         }
-        self::$_scrollingStyleBroker = $broker;
+        self::$_scrollingStyles = $scrollingAdapters;
     }
 
     /**
-     * Returns the scrolling style broker.  If it doesn't exist it's
+     * Returns the scrolling style manager.  If it doesn't exist it's
      * created.
      *
-     * @return ScrollingStyleBroker
+     * @return ScrollingStylePluginManager
      */
-    public static function getScrollingStyleBroker()
+    public static function getScrollingStylePluginManager()
     {
-        if (self::$_scrollingStyleBroker === null) {
-            self::$_scrollingStyleBroker = new ScrollingStyleBroker();
+        if (self::$_scrollingStyles === null) {
+            self::$_scrollingStyles = new ScrollingStylePluginManager();
         }
 
-        return self::$_scrollingStyleBroker;
+        return self::$_scrollingStyles;
     }
 
     /**
      * Constructor.
      *
-     * @param Zend_Paginator_Adapter_Interface|\Zend\Paginator\AdapterAggregate $adapter
+     * @param AdapterInterface|AdapterAggregateInterface $adapter
+     * @throws Exception\InvalidArgumentException
      */
     public function __construct($adapter)
     {
-        if ($adapter instanceof Adapter) {
+        if ($adapter instanceof AdapterInterface) {
             $this->_adapter = $adapter;
-        } else if ($adapter instanceof AdapterAggregate) {
+        } elseif ($adapter instanceof AdapterAggregateInterface) {
             $this->_adapter = $adapter->getPaginatorAdapter();
         } else {
             throw new Exception\InvalidArgumentException(
                 'Zend_Paginator only accepts instances of the type ' .
-                'Zend_Paginator_Adapter_Interface or Zend_Paginator_AdapterAggregate.'
+                'Zend\Paginator\Adapter\AdapterInterface or Zend\Paginator\AdapterAggregateInterface.'
             );
         }
 
         $config = self::$_config;
 
-        if ($config != null) {
+        if (!empty($config)) {
             $setupMethods = array('ItemCountPerPage', 'PageRange');
 
             foreach ($setupMethods as $setupMethod) {
-                $value = $config->get(strtolower($setupMethod));
+                $key   = strtolower($setupMethod);
+                $value = isset($config[$key]) ? $config[$key] : null;
 
                 if ($value != null) {
                     $setupMethod = 'set' . $setupMethod;
@@ -409,7 +420,7 @@ class Paginator implements \Countable, \IteratorAggregate
      * Enables/Disables the cache for this instance
      *
      * @param bool $enable
-     * @return \Zend\Paginator\Paginator
+     * @return Paginator
      */
     public function setCacheEnabled($enable)
     {
@@ -445,7 +456,7 @@ class Paginator implements \Countable, \IteratorAggregate
      * Clear the page item cache.
      *
      * @param int $pageNumber
-     * @return \Zend\Paginator\Paginator
+     * @return Paginator
      */
     public function clearPageItemCache($pageNumber = null)
     {
@@ -454,14 +465,20 @@ class Paginator implements \Countable, \IteratorAggregate
         }
 
         if (null === $pageNumber) {
-            foreach (self::$_cache->getIdsMatchingTags(array($this->_getCacheInternalId())) as $id) {
-                if (preg_match('|'.self::CACHE_TAG_PREFIX."(\d+)_.*|", $id, $page)) {
-                    self::$_cache->remove($this->_getCacheId($page[1]));
+            $prefixLength  = strlen(self::CACHE_TAG_PREFIX);
+            $cacheIterator = self::$_cache->getIterator();
+            $cacheIterator->setMode(CacheIterator::CURRENT_AS_KEY);
+            foreach ($cacheIterator as $key) {
+                $tags = self::$_cache->getTags($key);
+                if ($tags && in_array($this->_getCacheInternalId(), $tags)) {
+                    if (substr($key, 0, $prefixLength) == self::CACHE_TAG_PREFIX) {
+                        self::$_cache->removeItem($this->_getCacheId((int)substr($key, $prefixLength)));
+                    }
                 }
             }
         } else {
             $cleanId = $this->_getCacheId($pageNumber);
-            self::$_cache->remove($cleanId);
+            self::$_cache->removeItem($cleanId);
         }
         return $this;
     }
@@ -489,7 +506,7 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Returns the adapter.
      *
-     * @return \Zend\Paginator\Adapter
+     * @return AdapterInterface
      */
     public function getAdapter()
     {
@@ -538,7 +555,7 @@ class Paginator implements \Countable, \IteratorAggregate
      * Sets the current page number.
      *
      * @param  integer $pageNumber Page number
-     * @return \Zend\Paginator\Paginator $this
+     * @return Paginator $this
      */
     public function setCurrentPageNumber($pageNumber)
     {
@@ -552,7 +569,7 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Get the filter
      *
-     * @return \Zend\Filter\Filter
+     * @return FilterInterface
      */
     public function getFilter()
     {
@@ -562,10 +579,10 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Set a filter chain
      *
-     * @param \Zend\Filter\Filter $filter
-     * @return \Zend\Paginator\Paginator
+     * @param  FilterInterface $filter
+     * @return Paginator
      */
-    public function setFilter(\Zend\Filter\Filter $filter)
+    public function setFilter(FilterInterface $filter)
     {
         $this->_filter = $filter;
 
@@ -574,17 +591,18 @@ class Paginator implements \Countable, \IteratorAggregate
 
     /**
      * Returns an item from a page.  The current page is used if there's no
-     * page sepcified.
+     * page specified.
      *
      * @param  integer $itemNumber Item number (1 to itemCountPerPage)
      * @param  integer $pageNumber
+     * @throws Exception\InvalidArgumentException
      * @return mixed
      */
     public function getItem($itemNumber, $pageNumber = null)
     {
         if ($pageNumber == null) {
             $pageNumber = $this->getCurrentPageNumber();
-        } else if ($pageNumber < 0) {
+        } elseif ($pageNumber < 0) {
             $pageNumber = ($this->count() + 1) + $pageNumber;
         }
 
@@ -627,7 +645,7 @@ class Paginator implements \Countable, \IteratorAggregate
      * Sets the number of items per page.
      *
      * @param  integer $itemCountPerPage
-     * @return \Zend\Paginator\Paginator $this
+     * @return Paginator $this
      */
     public function setItemCountPerPage($itemCountPerPage = -1)
     {
@@ -652,9 +670,9 @@ class Paginator implements \Countable, \IteratorAggregate
     {
         $itemCount = 0;
 
-        if (is_array($items) || $items instanceof \Countable) {
+        if (is_array($items) || $items instanceof Countable) {
             $itemCount = count($items);
-        } else { // $items is something like LimitIterator
+        } elseif($items instanceof Traversable) { // $items is something like LimitIterator
             $itemCount = iterator_count($items);
         }
 
@@ -664,15 +682,16 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Returns the items for a given page.
      *
-     * @return Traversable
+     * @param integer $pageNumber
+     * @return mixed
      */
     public function getItemsByPage($pageNumber)
     {
         $pageNumber = $this->normalizePageNumber($pageNumber);
 
         if ($this->_cacheEnabled()) {
-            $data = self::$_cache->load($this->_getCacheId($pageNumber));
-            if ($data !== false) {
+            $data = self::$_cache->getItem($this->_getCacheId($pageNumber));
+            if ($data) {
                 return $data;
             }
         }
@@ -687,12 +706,14 @@ class Paginator implements \Countable, \IteratorAggregate
             $items = $filter->filter($items);
         }
 
-        if (!$items instanceof \Traversable) {
-            $items = new \ArrayIterator($items);
+        if (!$items instanceof Traversable) {
+            $items = new ArrayIterator($items);
         }
 
         if ($this->_cacheEnabled()) {
-            self::$_cache->save($items, $this->_getCacheId($pageNumber), array($this->_getCacheInternalId()));
+            $cacheId = $this->_getCacheId($pageNumber);
+            self::$_cache->setItem($cacheId, $items);
+            self::$_cache->setTags($cacheId, array($this->_getCacheInternalId()));
         }
 
         return $items;
@@ -701,6 +722,7 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Returns a foreach-compatible iterator.
      *
+     * @throws Exception\RuntimeException
      * @return Traversable
      */
     public function getIterator()
@@ -726,7 +748,7 @@ class Paginator implements \Countable, \IteratorAggregate
      * Sets the page range (see property declaration above).
      *
      * @param  integer $pageRange
-     * @return \Zend\Paginator\Paginator $this
+     * @return Paginator $this
      */
     public function setPageRange($pageRange)
     {
@@ -780,30 +802,32 @@ class Paginator implements \Countable, \IteratorAggregate
     {
         $data = array();
         if ($this->_cacheEnabled()) {
-            foreach (self::$_cache->getIdsMatchingTags(array($this->_getCacheInternalId())) as $id) {
-                    if (preg_match('|'.self::CACHE_TAG_PREFIX."(\d+)_.*|", $id, $page)) {
-                        $data[$page[1]] = self::$_cache->load($this->_getCacheId($page[1]));
+            $prefixLength  = strlen(self::CACHE_TAG_PREFIX);
+            $cacheIterator = self::$_cache->getIterator();
+            $cacheIterator->setMode(CacheIterator::CURRENT_AS_VALUE);
+            foreach ($cacheIterator as $key => $value) {
+                $tags = self::$_cache->getTags($key);
+                if ($tags && in_array($this->_getCacheInternalId(), $tags)) {
+                    if (substr($key, 0, $prefixLength) == self::CACHE_TAG_PREFIX) {
+                        $data[(int)substr($key, $prefixLength)] = $value;
                     }
+                }
             }
         }
         return $data;
     }
 
     /**
-     * Retrieves the view instance.  If none registered, attempts to pull f
-     * rom ViewRenderer.
+     * Retrieves the view instance.
      *
-     * @return \Zend\View\Renderer|null
+     * If none registered, instantiates a PhpRenderer instance.
+     *
+     * @return \Zend\View\Renderer\RendererInterface|null
      */
     public function getView()
     {
         if ($this->_view === null) {
-            $front = FrontController::getInstance();
-            $viewRenderer = $front->getHelperBroker()->load('viewRenderer');
-            if ($viewRenderer->view === null) {
-                $viewRenderer->initView();
-            }
-            $this->_view = $viewRenderer->view;
+            $this->setView(new View\Renderer\PhpRenderer());
         }
 
         return $this->_view;
@@ -812,10 +836,10 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Sets the view object.
      *
-     * @param  \Zend\View\Renderer $view
-     * @return \Zend\Paginator\Paginator
+     * @param  \Zend\View\Renderer\RendererInterface $view
+     * @return Paginator
      */
-    public function setView(View\Renderer $view = null)
+    public function setView(View\Renderer\RendererInterface $view = null)
     {
         $this->_view = $view;
 
@@ -869,10 +893,10 @@ class Paginator implements \Countable, \IteratorAggregate
     /**
      * Renders the paginator.
      *
-     * @param  \Zend\View\Renderer $view
+     * @param  \Zend\View\Renderer\RendererInterface $view
      * @return string
      */
-    public function render(View\Renderer $view = null)
+    public function render(View\Renderer\RendererInterface $view = null)
     {
         if (null !== $view) {
             $this->setView($view);
@@ -892,7 +916,7 @@ class Paginator implements \Countable, \IteratorAggregate
     {
         $currentItems = $this->getCurrentItems();
 
-        if ($currentItems instanceof \Zend\Db\Table\AbstractRowset) {
+        if ($currentItems instanceof DbAbstractRowset) {
             return Json::encode($currentItems->toArray());
         } else {
             return Json::encode($currentItems);
@@ -901,7 +925,7 @@ class Paginator implements \Countable, \IteratorAggregate
 
     /**
      * Tells if there is an active cache object
-     * and if the cache has not been desabled
+     * and if the cache has not been disabled
      *
      * @return bool
      */
@@ -1003,7 +1027,8 @@ class Paginator implements \Countable, \IteratorAggregate
      * Loads a scrolling style.
      *
      * @param string $scrollingStyle
-     * @return \Zend\Paginator\ScrollingStyle
+     * @return ScrollingStyleInterface
+     * @throws Exception\InvalidArgumentException
      */
     protected function _loadScrollingStyle($scrollingStyle = null)
     {
@@ -1013,22 +1038,25 @@ class Paginator implements \Countable, \IteratorAggregate
 
         switch (strtolower(gettype($scrollingStyle))) {
             case 'object':
-                if (!$scrollingStyle instanceof ScrollingStyle) {
-                    throw new View\Exception('Scrolling style must implement ' .
-                        'Zend_Paginator_ScrollingStyle_Interface');
+                if (!$scrollingStyle instanceof ScrollingStyleInterface) {
+                    throw new Exception\InvalidArgumentException(
+                        'Scrolling style must implement Zend\Paginator\ScrollingStyle\ScrollingStyleInterface'
+                    );
                 }
 
                 return $scrollingStyle;
 
             case 'string':
-                return self::getScrollingStyleBroker()->load($scrollingStyle);
+                return self::getScrollingStylePluginManager()->get($scrollingStyle);
 
             case 'null':
                 // Fall through to default case
 
             default:
-                throw new View\Exception('Scrolling style must be a class ' .
-                    'name or object implementing Zend\Paginator\ScrollingStyle');
+                throw new Exception\InvalidArgumentException(
+                    'Scrolling style must be a class ' .
+                    'name or object implementing Zend\Paginator\ScrollingStyle\ScrollingStyleInterface'
+                );
         }
     }
 }

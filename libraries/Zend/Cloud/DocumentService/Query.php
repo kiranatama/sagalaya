@@ -11,19 +11,14 @@
  * to license@zend.com so we can send you a copy immediately.
  *
  * @category   Zend
- * @package    Zend\Cloud
+ * @package    Zend_Cloud
  * @subpackage DocumentService
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * namespace
- */
 namespace Zend\Cloud\DocumentService;
 
-use Zend\Cloud\DocumentService\QueryAdapter,
-    Zend\Cloud\Exception\InvalidArgumentException;
 
 /**
  * Generic query object
@@ -34,11 +29,10 @@ use Zend\Cloud\DocumentService\QueryAdapter,
  * @category   Zend
  * @package    Zend_Cloud
  * @subpackage DocumentService
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Query
-    implements QueryAdapter
+class Query implements QueryAdapter\QueryAdapterInterface
 {
     /**
      * Known query types
@@ -63,11 +57,11 @@ class Query
      * You can use any clause by doing $query->foo('bar')
      * but concrete adapters should be able to recognise it
      *
-     * The call will be iterpreted as clause 'foo' with argument 'bar'
+     * The call will be interpreted as clause 'foo' with argument 'bar'
      *
      * @param  string $name Clause/method name
      * @param  mixed $args
-     * @return Zend_Cloud_DocumentService_Query
+     * @return \Zend\Cloud\DocumentService\Query
      */
     public function __call($name, $args)
     {
@@ -79,7 +73,7 @@ class Query
      * SELECT clause (fields to be selected)
      *
      * @param  null|string|array $select
-     * @return Zend_Cloud_DocumentService_Query
+     * @return \Zend\Cloud\DocumentService\Query
      */
     public function select($select)
     {
@@ -87,7 +81,7 @@ class Query
             return $this;
         }
         if (!is_string($select) && !is_array($select)) {
-            throw new InvalidArgumentException("SELECT argument must be a string or an array of strings");
+            throw new Exception\InvalidArgumentException("SELECT argument must be a string or an array of strings");
         }
         $this->_clauses[] = array(self::QUERY_SELECT, $select);
         return $this;
@@ -97,12 +91,12 @@ class Query
      * FROM clause
      *
      * @param string $name Field names
-     * @return Zend_Cloud_DocumentService_Query
+     * @return \Zend\Cloud\DocumentService\Query
      */
     public function from($name)
     {
         if(!is_string($name)) {
-            throw new InvalidArgumentException("FROM argument must be a string");
+            throw new Exception\InvalidArgumentException("FROM argument must be a string");
         }
         $this->_clauses[] = array(self::QUERY_FROM, $name);
         return $this;
@@ -114,12 +108,12 @@ class Query
      * @param string $cond Condition
      * @param array $args Arguments to substitute instead of ?'s in condition
      * @param string $op relation to other clauses - and/or
-     * @return Zend_Cloud_DocumentService_Query
+     * @return \Zend\Cloud\DocumentService\Query
      */
     public function where($cond, $value = null, $op = 'and')
     {
         if (!is_string($cond)) {
-            throw new InvalidArgumentException("WHERE argument must be a string");
+            throw new Exception\InvalidArgumentException("WHERE argument must be a string");
         }
         $this->_clauses[] = array(self::QUERY_WHERE, array($cond, $value, $op));
         return $this;
@@ -129,12 +123,12 @@ class Query
      * Select record or fields by ID
      *
      * @param  string|int $value Identifier to select by
-     * @return Zend_Cloud_DocumentService_Query
+     * @return \Zend\Cloud\DocumentService\Query
      */
     public function whereId($value)
     {
         if (!is_scalar($value)) {
-            throw new InvalidArgumentException("WHEREID argument must be a scalar");
+            throw new Exception\InvalidArgumentException("WHEREID argument must be a scalar");
         }
         $this->_clauses[] = array(self::QUERY_WHEREID, $value);
         return $this;
@@ -144,12 +138,12 @@ class Query
      * LIMIT clause (how many items to return)
      *
      * @param  int $limit
-     * @return Zend_Cloud_DocumentService_Query
+     * @return \Zend\Cloud\DocumentService\Query
      */
     public function limit($limit)
     {
         if ($limit != (int) $limit) {
-            throw new InvalidArgumentException("LIMIT argument must be an integer");
+            throw new Exception\InvalidArgumentException("LIMIT argument must be an integer");
         }
         $this->_clauses[] = array(self::QUERY_LIMIT, $limit);
         return $this;
@@ -160,7 +154,7 @@ class Query
      *
      * @param  string|int|array $sort
      * @param  string $direction
-     * @return Zend_Cloud_DocumentService_Query
+     * @return \Zend\Cloud\DocumentService\Query
      */
     public function order($sort, $direction = 'asc')
     {

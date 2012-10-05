@@ -80,8 +80,5 @@ require __DIR__ . '/bootstrap/action.php';
  */
  require __DIR__ . '/bootstrap/console.php';
 
- require __DIR__ . '/bootstrap/twig.php';
-
- require __DIR__ . '/bootstrap/doctrine.php';
 
 ?>

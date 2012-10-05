@@ -15,29 +15,19 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Delicious
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Delicious;
 
 /**
  * List of posts retrived from the del.icio.us web service
  *
- * @uses       ArrayAccess
- * @uses       Countable
- * @uses       Iterator
- * @uses       OutOfBoundsException
- * @uses       Zend_Service_Delicious_Exception
- * @uses       Zend_Service_Delicious_Post
- * @uses       Zend_Service_Delicious_SimplePost
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Delicious
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class PostList implements \Countable, \Iterator, \ArrayAccess

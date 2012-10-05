@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -22,7 +22,7 @@ class ControllerTest extends \lithium\test\Unit {
 
 	public function skip() {
 		$this->_testPath = Libraries::get(true, 'resources') . '/tmp/tests';
-		$this->skipIf(!is_writable($this->_testPath), "{$this->_testPath} is not writable.");
+		$this->skipIf(!is_writable($this->_testPath), "Path `{$this->_testPath}` is not writable.");
 	}
 
 	public function setUp() {
@@ -78,7 +78,7 @@ class ControllerTest extends \lithium\test\Unit {
 		));
 		$controller->path = $this->_testPath;
 		$controller->run('controller');
-		$expected = "PostsController created in create_test\\controllers.\n";
+		$expected = "PostsController created in controllers/PostsController.php.\n";
 		$result = $controller->response->output;
 		$this->assertEqual($expected, $result);
 
@@ -106,7 +106,7 @@ class PostsController extends \lithium\action\Controller {
 		$post = Posts::create();
 
 		if (($this->request->data) && $post->save($this->request->data)) {
-			$this->redirect(array('Posts::view', 'args' => array($post->id)));
+			return $this->redirect(array('Posts::view', 'args' => array($post->id)));
 		}
 		return compact('post');
 	}
@@ -115,10 +115,10 @@ class PostsController extends \lithium\action\Controller {
 		$post = Posts::find($this->request->id);
 
 		if (!$post) {
-			$this->redirect('Posts::index');
+			return $this->redirect('Posts::index');
 		}
 		if (($this->request->data) && $post->save($this->request->data)) {
-			$this->redirect(array('Posts::view', 'args' => array($post->id)));
+			return $this->redirect(array('Posts::view', 'args' => array($post->id)));
 		}
 		return compact('post');
 	}
@@ -129,7 +129,7 @@ class PostsController extends \lithium\action\Controller {
 			throw new DispatchException($msg);
 		}
 		Posts::find($this->request->id)->delete();
-		$this->redirect('Posts::index');
+		return $this->redirect('Posts::index');
 	}
 }
 

@@ -15,78 +15,117 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Twitter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
+
+namespace Zend\Service\Twitter;
+
+use Zend\Feed;
+use Zend\Http;
+use Zend\Json;
+use Zend\Rest\Client;
 
 /**
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Twitter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
- 
-/**
- * @namespace
- */
-namespace Zend\Service\Twitter;
-use Zend\Http;
-use Zend\Rest;
-use Zend\Feed;
-use Zend\Json;
-
-class Search extends Rest\Client\RestClient
+class Search extends Client\RestClient
 {
     /**
      * Return Type
-     * @var String
+     *
+     * @var string
      */
-    protected $_responseType = 'json';
+    protected $responseType = 'json';
 
     /**
      * Response Format Types
+     *
      * @var array
      */
-    protected $_responseTypes = array(
+    protected $responseTypes = array(
         'atom',
-        'json'
+        'json',
     );
 
     /**
-     * Uri Compoent
+     * Uri Component
      *
-     * @var Zend_Uri_Http
+     * @var \Zend\Uri\Http
      */
-    protected $_uri;
+    protected $uri;
+
+    /**
+     * Twitter api search options
+     *
+     * @var SearchOptions
+     */
+    protected $options;
 
     /**
      * Constructor
      *
-     * @param  string $returnType
-     * @return void
+     * @param string                           $responseType Return type
+     * @param array|\Traversable|SearchOptions $options
      */
-    public function __construct($responseType = 'json')
+    public function __construct($responseType = 'json', $options = null)
     {
         $this->setResponseType($responseType);
-        $this->setUri("http://search.twitter.com");
+        $this->setUri('http://search.twitter.com');
 
         $this->setHeaders('Accept-Charset', 'ISO-8859-1,utf-8');
+
+        if ($options) {
+            $this->setOptions($options);
+        }
+    }
+
+    /**
+     * Set options.
+     *
+     * @param  array|\Traversable|SearchOptions $options
+     * @return SearchOptions
+     * @see    getOptions()
+     */
+    public function setOptions($options)
+    {
+        if (!$options instanceof SearchOptions) {
+            $options = new SearchOptions($options);
+        }
+        $this->options = $options;
+    }
+
+    /**
+     * Get options.
+     *
+     * @return SearchOptions
+     * @see setOptions()
+     */
+    public function getOptions()
+    {
+        if (!$this->options) {
+            $this->setOptions(new SearchOptions());
+        }
+        return clone $this->options;
     }
 
     /**
      * set responseType
      *
      * @param string $responseType
-     * @throws Zend_Service_Twitter_Exception
-     * @return Zend_Service_Twitter_Search
+     * @throws Exception\UnexpectedValueException
+     * @return Search
      */
     public function setResponseType($responseType = 'json')
     {
-        if(!in_array($responseType, $this->_responseTypes, TRUE)) {
-            throw new Exception('Invalid Response Type');
+        if (!in_array($responseType, $this->responseTypes, true)) {
+            throw new Exception\UnexpectedValueException('Invalid Response Type');
         }
-        $this->_responseType = $responseType;
+        $this->responseType = $responseType;
         return $this;
     }
 
@@ -97,63 +136,49 @@ class Search extends Rest\Client\RestClient
      */
     public function getResponseType()
     {
-        return $this->_responseType;
-    }
-
-    /**
-     * Get the current twitter trends.  Currnetly only supports json as the return.
-     *
-     * @throws Zend_Http_Client_Exception
-     * @return array
-     */
-    public function trends()
-    {
-        $response     = $this->restGet('/trends.json');
-
-        return Json::decode($response->getBody());
+        return $this->responseType;
     }
 
     /**
      * Performs a Twitter search query.
      *
-     * @throws Zend_Http_Client_Exception
+     * @param  string                           $query   (optional)
+     * @param  array|\Traversable|SearchOptions $options (optional)
+     * @throws Exception\InvalidArgumentException If query is not defined neither $query nor $options or
+     * If query is not a string.
+     * @throws Http\Client\Exception\ExceptionInterface
+     * @return mixed
      */
-    public function search($query, array $params = array())
+    public function execute($query = null, $options = null)
     {
+        if (!$options) {
+            $options = $this->getOptions();
+        } else if (!$options instanceof SearchOptions) {
+            $options = new SearchOptions($options);
+        }
 
-        $_query = array();
+        if (is_string($query)) {
+            $options->setQuery($query);
+        } else {
+            if ($query) {
+                throw new Exception\InvalidArgumentException('query must be a string');
+            }
 
-        $_query['q'] = $query;
-
-        foreach($params as $key=>$param) {
-            switch($key) {
-                case 'geocode':
-                case 'lang':
-                case 'since_id':
-                    $_query[$key] = $param;
-                    break;
-                case 'rpp':
-                    $_query[$key] = (intval($param) > 100) ? 100 : intval($param);
-                    break;
-                case 'page':
-                    $_query[$key] = intval($param);
-                    break;
-                case 'show_user':
-                    $_query[$key] = 'true';
+            if (!$options->getQuery()) {
+                throw new Exception\InvalidArgumentException('No query defined');
             }
         }
 
-        $response = $this->restGet('/search.' . $this->_responseType, $_query);
-
-        switch($this->_responseType) {
+        $response = $this->restGet('/search.' . $this->responseType, $options->toArray());
+        switch ($this->responseType) {
             case 'json':
-                return Json\Json::decode($response->getBody());
+                return Json\Json::decode($response->getBody(), Json\Json::TYPE_ARRAY);
                 break;
             case 'atom':
-                return Feed\Reader::importString($response->getBody());
+                return Feed\Reader\Reader::importString($response->getBody());
                 break;
         }
 
-        return ;
+        return null;
     }
 }

@@ -14,24 +14,20 @@
  *
  * @category  Zend
  * @package   Zend_Measure
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Measure\Viscosity;
 use Zend\Measure;
 
 /**
  * Class for handling acceleration conversions
  *
- * @uses       Zend\Measure\AbstractMeasure
  * @category   Zend
  * @package    Zend_Measure
  * @subpackage Zend_Measure_Viscosity
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Dynamic extends Measure\AbstractMeasure

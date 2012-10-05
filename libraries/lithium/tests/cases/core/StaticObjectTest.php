@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -71,7 +71,7 @@ class StaticObjectTest extends \lithium\test\Unit {
 	 * @return void
 	 */
 	public function testMethodInvocationWithParameters() {
-		$class = '\lithium\tests\mocks\core\MockStaticMethodFiltering';
+		$class = 'lithium\tests\mocks\core\MockStaticMethodFiltering';
 
 		$this->assertEqual($class::invokeMethod('foo'), array());
 		$this->assertEqual($class::invokeMethod('foo', array('bar')), array('bar'));

@@ -18,12 +18,26 @@ e.g Model creation use-case :
 <pre>
 	<code>
 		$user = new User($this->request->data);
+		
 		if ($user->save()) {
 			$this->redirect('Users::index');
 		} else {
 			$errors = $user->getErrors();
 		}
+		
 		return compact('user', 'errors');
+	</code>
+</pre>
+
+e.g Model Access use-case :
+------------------------------
+<pre>
+	<code>
+		$user = User::findOneById($id);
+		$other = User::get($other_id);
+		
+		// access user repository
+		$lastUser = User::getLastUserLogin();
 	</code>
 </pre>
 
@@ -36,6 +50,9 @@ e.g Model filtering use-case :
 				'and' => array(
 					array('fullname' => array('neq' => 'someone')),
 					array('created' => array('gte' => '2010-10-10'))
+				), 
+				'or' => array(
+					array('public' => array('eq' => true))
 				)
 			),
 			'leftJoin' => array(

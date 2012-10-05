@@ -15,24 +15,15 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage DeveloperGarden
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
 /**
- * @uses       Zend_Service_DeveloperGarden_BaseUserService_AccountBalance
- * @uses       Zend_Service_DeveloperGarden_Client_AbstractClient
- * @uses       Zend_Service_DeveloperGarden_Client_Exception
- * @uses       Zend_Service_DeveloperGarden_Request_BaseUserService_ChangeQuotaPool
- * @uses       Zend_Service_DeveloperGarden_Request_BaseUserService_GetAccountBalance
- * @uses       Zend_Service_DeveloperGarden_Request_BaseUserService_GetQuotaInformation
- * @uses       Zend_Service_DeveloperGarden_Response_BaseUserService_ChangeQuotaPoolResponse
- * @uses       Zend_Service_DeveloperGarden_Response_BaseUserService_GetAccountBalanceResponse
- * @uses       Zend_Service_DeveloperGarden_Response_BaseUserService_GetQuotaInformationResponse
  * @category   Zend
  * @package    Zend_Service
  * @subpackage DeveloperGarden
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @author     Marco Kaiser
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */

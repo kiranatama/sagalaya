@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -90,36 +90,85 @@ class Request extends \lithium\net\http\Message {
 	}
 
 	/**
-	 * Get the queryString.
+	 * Encodes the body based on the type
+	 *
+	 * @see lithium\net\http\Message::type()
+	 * @param mixed $body
+	 * @return string
+	 */
+	protected function _encode($body) {
+		$media = $this->_classes['media'];
+		if ($type = $media::type($this->_type)) {
+			$body = $media::encode($this->_type, $body) ?: $body;
+		}
+		if (is_array($body)) {
+			$body = join("\r\n", $body);
+		}
+		return $body;
+	}
+
+	/**
+	 * Add body parts and encodes it into formated string
+	 *
+	 * @see lithium\net\Message::body()
+	 * @param mixed $data
+	 * @param array $options
+	 *        - `'buffer'`: split the body string
+	 * @return array
+	 */
+	public function body($data = null, $options = array()) {
+		$default = array('buffer' => null);
+		$options += $default;
+		$this->body = array_merge((array) $this->body, (array) $data);
+
+		$body = $this->_encode($this->body);
+		return ($options['buffer']) ? str_split($body, $options['buffer']) : $body;
+	}
+
+	/**
+	 * Get the full query string queryString.
 	 *
 	 * @param array $params
 	 * @param string $format
-	 * @return array
+	 * @return string
 	 */
 	public function queryString($params = array(), $format = null) {
-		$params = empty($params) ? (array) $this->query : (array) $this->query + (array) $params;
-		$params = array_filter($params);
+		$result = array();
 
-		if (empty($params)) {
-			return null;
-		}
-		if (!$format) {
-			return "?" . http_build_query($params);
-		}
-		$query = null;
-
-		foreach ($params as $key => $value) {
-			if (is_array($value)) {
-				foreach ($value as $val) {
-					$values = array('key' => urlencode("{$key}[]"), 'value' => urlencode($val));
-					$query .= String::insert($format, $values);
-				}
+		foreach (array_filter(array($this->query, $params)) as $query) {
+			if (is_string($query)) {
+				$result[] = $query;
 				continue;
 			}
-			$values = array('key' => urlencode($key), 'value' => urlencode($value));
-			$query .= String::insert($format, $values);
+			$query = array_filter($query);
+
+			if (!$format) {
+				$result[] = http_build_query($query);
+			}
+			if ($format) {
+				$q = null;
+
+				foreach ($params as $key => $value) {
+					if (is_array($value)) {
+						foreach ($value as $val) {
+							$q .= String::insert($format, array(
+								'key' => urlencode("{$key}[]"),
+								'value' => urlencode($val)
+							));
+						}
+						continue;
+					}
+					$q .= String::insert($format, array(
+						'key' => urlencode($key),
+						'value' => urlencode($value)
+					));
+				}
+				$result[] = substr($q, 0, -1);
+			}
+
 		}
-		return "?" . substr($query, 0, -1);
+		$result = array_filter($result);
+		return (!empty($result)) ? "?" . join("&", $result) : null;
 	}
 
 	/**
@@ -158,7 +207,9 @@ class Request extends \lithium\net\http\Message {
 			'port' => $this->port ? ":{$this->port}" : '',
 			'path' => $this->path,
 			'query' => null,
-			'auth' => $this->_config['auth'],
+			'auth' => $this->auth,
+			'username' => $this->username,
+			'password' => $this->password,
 			'headers' => array(),
 			'body' => null,
 			'version' => $this->version,
@@ -169,17 +220,33 @@ class Request extends \lithium\net\http\Message {
 		);
 		$options += $defaults;
 
+		if (!empty($options['auth'])) {
+			$data = array();
+
+			if (is_array($options['auth']) && !empty($options['auth']['nonce'])) {
+				$data = array('method' => $options['method'], 'uri' => $options['path']);
+				$data += $options['auth'];
+			}
+			$auth = $this->_classes['auth'];
+			$data = $auth::encode($options['username'], $options['password'], $data);
+			$this->headers('Authorization', $auth::header($data));
+		}
+		if (in_array($options['method'], array('POST', 'PUT'))) {
+			$media = $this->_classes['media'];
+			if ($type = $media::type($this->_type)) {
+				$this->headers('Content-Type', $type['content'][0]);
+			}
+		}
+
+		$body = $this->body($options['body']);
+		$this->headers('Content-Length', strlen($body));
+
 		switch ($format) {
 			case 'url':
 				$options['query'] = $this->queryString($options['query']);
+				$options['path'] = str_replace('//', '/', $options['path']);
 				return String::insert("{:scheme}://{:host}{:port}{:path}{:query}", $options);
 			case 'context':
-				if ($options['auth']) {
-					$auth = base64_encode("{$this->username}:{$this->password}");
-					$this->headers('Authorization', "{$options['auth']} {$auth}");
-				}
-				$body = $this->body($options['body']);
-				$this->headers('Content-Length', strlen($body));
 				$base = array(
 					'content' => $body,
 					'method' => $options['method'],
@@ -189,6 +256,10 @@ class Request extends \lithium\net\http\Message {
 					'follow_location' => $options['follow_location']
 				);
 				return array('http' => array_diff_key($options, $defaults) + $base);
+			case 'string':
+				$path = str_replace('//', '/', $this->path) . $this->queryString($options['query']);
+				$status = "{$this->method} {$path} {$this->protocol}";
+				return join("\r\n", array($status, join("\r\n", $this->headers()), "", $body));
 			default:
 				return parent::to($format, $options);
 		}
@@ -200,17 +271,7 @@ class Request extends \lithium\net\http\Message {
 	 * @return string
 	 */
 	public function __toString() {
-		if (!empty($this->_config['auth'])) {
-			$this->headers('Authorization', "{$this->_config['auth']} " . base64_encode(
-				"{$this->username}:{$this->password}"
-			));
-		}
-		$path = str_replace('//', '/', $this->path) . $this->queryString();
-		$body = $this->body();
-		$this->headers('Content-Length', strlen($body));
-
-		$status = "{$this->method} {$path} {$this->protocol}";
-		return join("\r\n", array($status, join("\r\n", $this->headers()), "", $body));
+		return $this->to('string');
 	}
 }
 

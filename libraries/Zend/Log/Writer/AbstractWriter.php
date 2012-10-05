@@ -1,104 +1,151 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Log
- * @subpackage Writer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Log
  */
 
-/**
- * @namespace
- */
 namespace Zend\Log\Writer;
 
-use \Zend\Log\Factory,
-    \Zend\Log\Writer;
+use Zend\Log\Exception;
+use Zend\Log\Filter;
+use Zend\Log\Formatter\FormatterInterface as Formatter;
 
 /**
- * @uses       \Zend\Log\Exception\InvalidArgumentException
- * @uses       \Zend\Log\Factory
- * @uses       \Zend\Log\Filter\Priority
  * @category   Zend
  * @package    Zend_Log
  * @subpackage Writer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-abstract class AbstractWriter implements Writer, Factory
+abstract class AbstractWriter implements WriterInterface
 {
     /**
-     * @var array of \Zend\Log\Filter
+     * Filter plugins
+     *
+     * @var FilterPluginManager
      */
-    protected $_filters = array();
+    protected $filterPlugins;
+    
+    /**
+     * Filter chain
+     *
+     * @var array
+     */
+    protected $filters = array();
 
     /**
-     * Formats the log message before writing.
+     * Formats the log message before writing
      *
-     * @var \Zend\Log\Formatter
+     * @var Formatter
      */
-    protected $_formatter;
+    protected $formatter;
 
     /**
      * Add a filter specific to this writer.
      *
-     * @param  \Zend\Log\Filter  $filter
-     * @throws \Zend\Log\Exception\InvalidArgumentException
-     * @return \Zend\Log\Writer\AbstractWriter
+     * @param  int|string|Filter\FilterInterface $filter
+     * @return AbstractWriter
+     * @throws Exception\InvalidArgumentException
      */
-    public function addFilter($filter)
+    public function addFilter($filter, array $options = null)
     {
         if (is_int($filter)) {
-            $filter = new \Zend\Log\Filter\Priority($filter);
+            $filter = new Filter\Priority($filter);
+        } 
+
+        if (is_string($filter)) {
+            $filter = $this->filterPlugin($filter, $options);
+        } 
+        
+        if (!$filter instanceof Filter\FilterInterface) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Writer must implement Zend\Log\Filter\FilterInterface; received "%s"',
+                is_object($filter) ? get_class($filter) : gettype($filter)
+            ));
         }
 
-        if (!$filter instanceof \Zend\Log\Filter) {
-            throw new \Zend\Log\Exception\InvalidArgumentException('Invalid filter provided');
-        }
-
-        $this->_filters[] = $filter;
+        $this->filters[] = $filter;
         return $this;
     }
 
     /**
+     * Get filter plugin manager
+     *
+     * @return FilterPluginManager
+     */
+    public function getFilterPluginManager()
+    {
+        if (null === $this->filterPlugins) {
+            $this->setFilterPluginManager(new FilterPluginManager());
+        }
+        return $this->filterPlugins;
+    }
+
+    /**
+     * Set filter plugin manager
+     *
+     * @param  string|FilterPluginManager $plugins
+     * @return Logger
+     * @throws Exception\InvalidArgumentException
+     */
+    public function setFilterPluginManager($plugins)
+    {
+        if (is_string($plugins)) {
+            $plugins = new $plugins;
+        }
+        if (!$plugins instanceof FilterPluginManager) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Writer plugin manager must extend %s\FilterPluginManager; received %s',
+                __NAMESPACE__,
+                is_object($plugins) ? get_class($plugins) : gettype($plugins)
+            ));
+        }
+
+        $this->filterPlugins = $plugins;
+        return $this;
+    }
+
+    /**
+     * Get filter instance
+     *
+     * @param string $name
+     * @param array|null $options
+     * @return Writer
+     */
+    public function filterPlugin($name, array $options = null)
+    {
+        return $this->getFilterPluginManager()->get($name, $options);
+    }
+    
+    /**
      * Log a message to this writer.
      *
-     * @param  array $event log data event
+     * @param array $event log data event
      * @return void
      */
-    public function write($event)
+    public function write(array $event)
     {
-        foreach ($this->_filters as $filter) {
-            if (! $filter->accept($event)) {
+        foreach ($this->filters as $filter) {
+            if (!$filter->filter($event)) {
                 return;
             }
         }
 
         // exception occurs on error
-        $this->_write($event);
+        $this->doWrite($event);
     }
 
     /**
      * Set a new formatter for this writer
      *
-     * @param  \Zend\Log\Formatter $formatter
-     * @return \Zend\Log\Writer\AbstractWriter
+     * @param  Formatter $formatter
+     * @return self
      */
-    public function setFormatter(\Zend\Log\Formatter $formatter)
+    public function setFormatter(Formatter $formatter)
     {
-        $this->_formatter = $formatter;
+        $this->formatter = $formatter;
         return $this;
     }
 
@@ -111,32 +158,10 @@ abstract class AbstractWriter implements Writer, Factory
     {}
 
     /**
-     * Write a message to the log.
+     * Write a message to the log
      *
-     * @param  array  $event  log data event
+     * @param array $event log data event
      * @return void
      */
-    abstract protected function _write($event);
-
-    /**
-     * Validate and optionally convert the config to array
-     *
-     * @param  array|\Zend\Config\Config $config \Zend\Config\Config or Array
-     * @return array
-     * @throws \Zend\Log\Exception\InvalidArgumentException
-     */
-    static protected function _parseConfig($config)
-    {
-        if ($config instanceof \Zend\Config\Config) {
-            $config = $config->toArray();
-        }
-
-        if (!is_array($config)) {
-            throw new \Zend\Log\Exception\InvalidArgumentException(
-                'Configuration must be an array or instance of Zend\Config\Config'
-            );
-        }
-
-        return $config;
-    }
+    abstract protected function doWrite(array $event);
 }

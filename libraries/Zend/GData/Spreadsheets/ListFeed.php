@@ -15,24 +15,19 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Spreadsheets
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Spreadsheets;
 
 use Zend\GData\Spreadsheets;
 
 /**
- * @uses       \Zend\GData\Feed
- * @uses       \Zend\GData\Spreadsheets
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Spreadsheets
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class ListFeed extends \Zend\GData\Feed
@@ -50,7 +45,7 @@ class ListFeed extends \Zend\GData\Feed
      *
      * @var string
      */
-    protected $_feedClassName = 'Zend\Gdata\Spreadsheets\ListFeed';
+    protected $_feedClassName = 'Zend\GData\Spreadsheets\ListFeed';
 
     /**
      * Constructs a new Zend_Gdata_Spreadsheets_ListFeed object.

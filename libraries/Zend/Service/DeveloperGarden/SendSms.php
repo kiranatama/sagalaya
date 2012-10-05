@@ -15,21 +15,15 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage DeveloperGarden
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
 /**
- * @uses       Zend_Service_DeveloperGarden_Client_AbstractClient
- * @uses       Zend_Service_DeveloperGarden_Client_Exception
- * @uses       Zend_Service_DeveloperGarden_Request_SendSms_SendFlashSMS
- * @uses       Zend_Service_DeveloperGarden_Request_SendSms_SendSMS
- * @uses       Zend_Service_DeveloperGarden_Response_SendSms_SendFlashSMSResponse
- * @uses       Zend_Service_DeveloperGarden_Response_SendSms_SendSMSResponse
  * @category   Zend
  * @package    Zend_Service
  * @subpackage DeveloperGarden
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @author     Marco Kaiser
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */

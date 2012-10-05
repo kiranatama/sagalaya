@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -270,15 +270,16 @@ class MongoDb extends \lithium\data\Source {
 	/**
 	 * Disconnect from the Mongo server.
 	 *
-	 * @return boolean True on successful disconnect, false otherwise.
+	 * Don't call the Mongo->close() method. The driver documentation states this should not
+	 * be necessary since it auto disconnects when out of scope.
+	 * With version 1.2.7, when using replica sets, close() can cause a segmentation fault.
+	 *
+	 * @return boolean True
 	 */
 	public function disconnect() {
 		if ($this->server && $this->server->connected) {
-			try {
-				$this->_isConnected = !$this->server->close();
-			} catch (Exception $e) {}
+			$this->_isConnected = false;
 			unset($this->connection, $this->server);
-			return !$this->_isConnected;
 		}
 		return true;
 	}
@@ -547,13 +548,30 @@ class MongoDb extends \lithium\data\Source {
 		$this->_checkConnection();
 		$defaults = array('justOne' => false, 'safe' => false, 'fsync' => false);
 		$options = array_intersect_key($options + $defaults, $defaults);
+		$_config = $this->_config;
+		$params = compact('query', 'options');
 
-		return $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params) {
+		return $this->_filter(__METHOD__, $params, function($self, $params) use ($_config) {
 			$query = $params['query'];
 			$options = $params['options'];
 			$args = $query->export($self, array('keys' => array('source', 'conditions')));
+			$source = $args['source'];
+
+			if ($source == "{$_config['gridPrefix']}.files") {
+				return $self->invokeMethod('_deleteFile', array($args['conditions']));
+			}
+
 			return $self->connection->{$args['source']}->remove($args['conditions'], $options);
 		});
+	}
+
+	protected function _deleteFile($conditions, $options = array()) {
+		$defaults = array('safe' => true);
+		$options += $defaults;
+
+		$grid = $this->connection->getGridFS();
+
+		return $grid->remove($conditions, $options);
 	}
 
 	/**
@@ -793,7 +811,7 @@ class MongoDb extends \lithium\data\Source {
 			$options['schema'] = $options['schema'] ?: $entity->schema();
 			$model = $entity->model();
 
-			if (is_a($entity, $this->_classes['entity'])) {
+			if ($entity instanceof $this->_classes['entity']) {
 				$exists = $entity->exists();
 			}
 		}

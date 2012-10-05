@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Photos
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData;
 
 /**
@@ -35,14 +32,14 @@ namespace Zend\GData;
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Photos
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Photos extends GData
 {
 
-    const PICASA_BASE_URI = 'http://picasaweb.google.com/data';
-    const PICASA_BASE_FEED_URI = 'http://picasaweb.google.com/data/feed';
+    const PICASA_BASE_URI = 'https://picasaweb.google.com/data';
+    const PICASA_BASE_FEED_URI = 'https://picasaweb.google.com/data/feed';
     const AUTH_SERVICE_NAME = 'lh2';
 
     /**
@@ -116,7 +113,7 @@ class Photos extends GData
         $this->registerPackage('Zend\GData\Photos');
         $this->registerPackage('Zend\GData\Photos\Extension');
         parent::__construct($client, $applicationId);
-        $this->_httpClient->setParameterPost('service', self::AUTH_SERVICE_NAME);
+        $this->_httpClient->setParameterPost(array('service' => self::AUTH_SERVICE_NAME));
     }
 
     /**
@@ -448,7 +445,7 @@ class Photos extends GData
             try {
                 $this->delete($album);
             } catch (App\HttpException $e) {
-                if ($e->getResponse()->getStatus() === 409) {
+                if ($e->getResponse()->getStatusCode() === 409) {
                     $entry = new AlbumEntry($e->getResponse()->getBody());
                     $this->delete($entry->getLink('edit')->href);
                 } else {
@@ -477,7 +474,7 @@ class Photos extends GData
             try {
                 $this->delete($photo);
             } catch (App\HttpException $e) {
-                if ($e->getResponse()->getStatus() === 409) {
+                if ($e->getResponse()->getStatusCode() === 409) {
                     $entry = new PhotoEntry($e->getResponse()->getBody());
                     $this->delete($entry->getLink('edit')->href);
                 } else {
@@ -506,7 +503,7 @@ class Photos extends GData
             try {
                 $this->delete($comment);
             } catch (App\HttpException $e) {
-                if ($e->getResponse()->getStatus() === 409) {
+                if ($e->getResponse()->getStatusCode() === 409) {
                     $entry = new CommentEntry($e->getResponse()->getBody());
                     $this->delete($entry->getLink('edit')->href);
                 } else {
@@ -535,7 +532,7 @@ class Photos extends GData
             try {
                 $this->delete($tag);
             } catch (App\HttpException $e) {
-                if ($e->getResponse()->getStatus() === 409) {
+                if ($e->getResponse()->getStatusCode() === 409) {
                     $entry = new TagEntry($e->getResponse()->getBody());
                     $this->delete($entry->getLink('edit')->href);
                 } else {

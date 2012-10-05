@@ -14,13 +14,15 @@
  *
  * @category   Zend
  * @package    Zend_View
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
 namespace Zend\View;
 
-use Zend\Loader\PluginBroker;
+use Zend\Loader\PluginBroker,
+    Zend\View\Renderer\RendererInterface as Renderer,
+    Zend\View\Helper\HelperInterface as Helper;
 
 /**
  * Helper Broker for view instances
@@ -30,7 +32,7 @@ use Zend\Loader\PluginBroker;
  *
  * @category   Zend
  * @package    Zend_View
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class HelperBroker extends PluginBroker
@@ -41,7 +43,7 @@ class HelperBroker extends PluginBroker
     protected $defaultClassLoader = 'Zend\View\HelperLoader';
 
     /**
-     * @var Zend\View\Renderer
+     * @var Renderer
      */
     protected $view;
 
@@ -90,12 +92,12 @@ class HelperBroker extends PluginBroker
      * 
      * @param  mixed $plugin 
      * @return true
-     * @throws InvalidHelperException
+     * @throws Exception\InvalidHelperException
      */
     protected function validatePlugin($plugin)
     {
         if (!$plugin instanceof Helper) {
-            throw new InvalidHelperException('View helpers must implement Zend\View\Helper');
+            throw new Exception\InvalidHelperException('View helpers must implement Zend\View\Helper');
         }
         return true;
     }

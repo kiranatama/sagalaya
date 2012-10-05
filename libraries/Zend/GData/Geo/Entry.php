@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Geo
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Geo;
 
 use Zend\GData\Geo;
@@ -29,13 +26,10 @@ use Zend\GData\Geo;
 /**
  * An Atom entry containing Geograpic data.
  *
- * @uses       \Zend\GData\Entry
- * @uses       \Zend\GData\Geo
- * @uses       \Zend\GData\Geo\Extension\GeoRssWhere
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Geo
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Entry extends \Zend\GData\Entry

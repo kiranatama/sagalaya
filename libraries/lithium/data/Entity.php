@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -173,7 +173,7 @@ class Entity extends \lithium\core\Object {
 	 * @return mixed Result.
 	 */
 	public function __isset($name) {
-		return isset($this->_updated[$name]);
+		return isset($this->_updated[$name]) || isset($this->_relationships[$name]);
 	}
 
 	/**
@@ -182,18 +182,26 @@ class Entity extends \lithium\core\Object {
 	 * $record->validates();
 	 * }}}
 	 *
+	 * @see lithium\data\Model::instanceMethods
 	 * @param string $method
 	 * @param array $params
 	 * @return mixed
 	 */
 	public function __call($method, $params) {
-		if (!($model = $this->_model) || !method_exists($model, $method)) {
-			$message = "No model bound or unhandled method call `{$method}`.";
-			throw new BadMethodCallException($message);
+		if ($model = $this->_model) {
+			$methods = $model::instanceMethods();
+			array_unshift($params, $this);
+
+			if (method_exists($model, $method)) {
+				$class = $model::invokeMethod('_object');
+				return call_user_func_array(array(&$class, $method), $params);
+			}
+			if (isset($methods[$method]) && is_callable($methods[$method])) {
+				return call_user_func_array($methods[$method], $params);
+			}
 		}
-		array_unshift($params, $this);
-		$class = $model::invokeMethod('_object');
-		return call_user_func_array(array(&$class, $method), $params);
+		$message = "No model bound or unhandled method call `{$method}`.";
+		throw new BadMethodCallException($message);
 	}
 
 	/**
@@ -357,10 +365,31 @@ class Entity extends \lithium\core\Object {
 	 * Gets the array of fields modified on this entity.
 	 *
 	 * @return array Returns an array where the keys are entity field names, and the values are
-	 *         always `true`.
+	 *         `true` for changed fields.
 	 */
 	public function modified() {
-		return array_fill_keys(array_keys($this->_updated), true);
+		$fields = array_fill_keys(array_keys($this->_data), false);
+
+		foreach ($this->_updated as $field => $value) {
+			if (!is_object($value) || !method_exists($value, 'modified')) {
+				$fields[$field] = (
+					!isset($fields[$field]) ||
+					$this->_data[$field] !== $this->_updated[$field]
+				);
+				continue;
+			}
+			if (!isset($this->_data[$field])) {
+				$fields[$field] = true;
+				continue;
+			}
+			$modified = $value->modified();
+
+			$fields[$field] = (
+				$modified === true ||
+				is_array($modified) && in_array(true, $modified, true)
+			);
+		}
+		return $fields;
 	}
 
 	public function export() {
@@ -384,7 +413,7 @@ class Entity extends \lithium\core\Object {
 			case 'array':
 				$data = $this->_updated;
 				$rel = array_map(function($obj) { return $obj->data(); }, $this->_relationships);
-				$data = array_merge($data, $rel);
+				$data = $rel + $data;
 				$result = Collection::toArray($data, $options);
 			break;
 			default:

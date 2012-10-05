@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Photos
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Photos;
 
 use Zend\GData\Photos;
@@ -33,14 +30,10 @@ use Zend\GData\Photos;
  * For information on requesting this feed from a server, see the
  * service class, Zend_Gdata_Photos.
  *
- * @uses       \Zend\GData\App\Exception
- * @uses       \Zend\GData\Feed
- * @uses       \Zend\GData\Photos
- * @uses       \Zend\GData\Photos\PhotoEntry
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Photos
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class PhotoFeed extends \Zend\GData\Feed

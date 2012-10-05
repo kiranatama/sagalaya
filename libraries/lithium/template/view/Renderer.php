@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -133,13 +133,12 @@ abstract class Renderer extends \lithium\core\Object {
 	protected $_vars = array();
 
 	/**
-	 * Render the template with given data.
-	 * Abstract. Must be added to subclasses.
+	 * Render the template with given data. Abstract; must be added to subclasses.
 	 *
 	 * @param string $template
 	 * @param array|string $data
 	 * @param array $options
-	 * @return void
+	 * @return string Returns the result of the rendered template.
 	 */
 	abstract public function render($template, $data = array(), array $options = array());
 
@@ -305,6 +304,9 @@ abstract class Renderer extends \lithium\core\Object {
 			$config += array('context' => $this);
 			return $this->_helpers[$name] = Libraries::instance('helper', ucfirst($name), $config);
 		} catch (ClassNotFoundException $e) {
+			if (ob_get_length()) {
+				ob_end_clean();
+			}
 			throw new RuntimeException("Helper `{$name}` not found.");
 		}
 	}
@@ -456,7 +458,7 @@ abstract class Renderer extends \lithium\core\Object {
 	 * rendered within a template, or an element or template could set a variable which would be
 	 * made available in the layout.
 	 *
-	 * @param array $data An arroy of key/value pairs representing local variables that should be
+	 * @param array $data An array of key/value pairs representing local variables that should be
 	 *              made available to all other templates rendered in this rendering context.
 	 * @return void
 	 */

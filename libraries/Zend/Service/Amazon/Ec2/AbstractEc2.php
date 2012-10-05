@@ -15,32 +15,22 @@
  * @category   Zend
  * @package    Zend_Service_Amazon
  * @subpackage Ec2
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Amazon\Ec2;
 use Zend\Service\Amazon,
     Zend\Service\Amazon\Ec2\Exception,
-    Zend\Crypt;
+    Zend\Crypt\Hmac;
 
 /**
  * Provides the basic functionality to send a request to the Amazon Ec2 Query API
  *
- * @uses       DOMXPath
- * @uses       Zend_Crypt_Hmac
- * @uses       Zend_Http_Client
- * @uses       Zend_Service_Amazon_Abstract
- * @uses       Zend\Service\Amazon\Exception
- * @uses       Zend\Service\Amazon\Ec2\Exception
- * @uses       Zend_Service_Amazon_Ec2_Response
  * @category   Zend
  * @package    Zend_Service_Amazon
  * @subpackage Ec2
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractEc2 extends Amazon\AbstractAmazon
@@ -154,18 +144,18 @@ abstract class AbstractEc2 extends Amazon\AbstractAmazon
             $request = $this->getHttpClient();
             $request->resetParameters();
 
-            $request->setConfig(array(
+            $request->setOptions(array(
                 'timeout' => $this->_httpTimeout
             ));
 
             $request->setUri($url);
-            $request->setMethod(\Zend\Http\Client::POST);
+            $request->setMethod('POST');
             $request->setParameterPost($params);
 
-            $httpResponse = $request->request();
+            $httpResponse = $request->send();
 
 
-        } catch (\Zend\Http\Client\Exception $zhce) {
+        } catch (\Zend\Http\Client\Exception\ExceptionInterface $zhce) {
             $message = 'Error in request to AWS service: ' . $zhce->getMessage();
             throw new Exception\RuntimeException($message, $zhce->getCode(), $zhce);
         }
@@ -242,7 +232,7 @@ abstract class AbstractEc2 extends Amazon\AbstractAmazon
 
         $data .= implode('&', $arrData);
 
-        $hmac = Crypt\Hmac::compute($this->_getSecretKey(), 'SHA256', $data, Crypt\Hmac::BINARY);
+        $hmac = Hmac::compute($this->_getSecretKey(), 'SHA256', $data, Hmac::BINARY);
 
         return base64_encode($hmac);
     }

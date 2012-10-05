@@ -39,7 +39,7 @@ use lithium\security\Auth;
 
 Auth::config(array(
 	'default' => array(
-		'adapter' => '\app\extensions\adapter\Doctrine',
+		'adapter' => '\sagalaya\extensions\adapter\Doctrine',
 		'model' => 'User',
 		'fields' => array('email', 'password'),
 		'query' => 'findOneBy'

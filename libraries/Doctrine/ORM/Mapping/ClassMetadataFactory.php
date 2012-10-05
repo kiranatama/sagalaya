@@ -291,7 +291,6 @@ class ClassMetadataFactory implements ClassMetadataFactoryInterface
             // Invoke driver
             try {
                 $this->driver->loadMetadataForClass($className, $class);
-                $this->wakeupReflection($class, $this->getReflectionService());
             } catch (ReflectionException $e) {
                 throw MappingException::reflectionFailure($className, $e);
             }
@@ -333,6 +332,7 @@ class ClassMetadataFactory implements ClassMetadataFactoryInterface
                 $eventArgs = new \Doctrine\ORM\Event\LoadClassMetadataEventArgs($class, $this->em);
                 $this->evm->dispatchEvent(Events::loadClassMetadata, $eventArgs);
             }
+            $this->wakeupReflection($class, $this->getReflectionService());
 
             $this->validateRuntimeMetadata($class, $parent);
 
@@ -514,6 +514,9 @@ class ClassMetadataFactory implements ClassMetadataFactoryInterface
                 break;
             case ClassMetadata::GENERATOR_TYPE_NONE:
                 $class->setIdGenerator(new \Doctrine\ORM\Id\AssignedGenerator());
+                break;
+            case ClassMetadata::GENERATOR_TYPE_UUID:
+                $class->setIdGenerator(new \Doctrine\ORM\Id\UuidGenerator());
                 break;
             case ClassMetadata::GENERATOR_TYPE_TABLE:
                 throw new ORMException("TableGenerator not yet implemented.");

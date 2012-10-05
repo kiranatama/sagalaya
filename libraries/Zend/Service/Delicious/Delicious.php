@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Delicious
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Delicious;
 
 use \Zend\Rest\Client as RestClient,
@@ -30,18 +27,10 @@ use \Zend\Rest\Client as RestClient,
 /**
  * Zend_Service_Delicious is a concrete implementation of the del.icio.us web service
  *
- * @uses       DOMDocument
- * @uses       Zend_Date
- * @uses       Zend_Json_Decoder
- * @uses       Zend_Rest_Client
- * @uses       Zend_Service_Delicious_Exception
- * @uses       Zend_Service_Delicious_Post
- * @uses       Zend_Service_Delicious_PostList
- * @uses       Zend_Service_Delicious_SimplePost
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Delicious
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Delicious
@@ -106,7 +95,7 @@ class Delicious
     public function __construct($uname = null, $pass = null)
     {
         $this->_rest = new RestClient\RestClient();
-        $this->_rest->getHttpClient()->setConfig(array('ssltransport' => 'ssl'));
+        $this->_rest->getHttpClient()->setOptions(array('ssltransport' => 'ssl'));
         $this->setAuth($uname, $pass);
     }
 

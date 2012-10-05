@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_BinaryParser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\BinaryParser\DataSource;
 use Zend\Pdf\Exception;
 use Zend\Pdf;
@@ -39,10 +36,19 @@ use Zend\Pdf;
  * Subclasses should also override {@link moveToOffset()} and
  * {@link __toString()} as appropriate.
  *
- * @uses       \Zend\Pdf\Exception
+ * The constructor is not defined in this abstract class. However, implementing
+ * classes should provide one. It should do the following:
+ * - Open the data source for parsing.
+ * - Should set $this->_size to the total size in bytes of the data source.
+ * - If the data source cannot be opened for any reason (such as insufficient
+ *   permissions, missing file, etc.), it should throw an appropriate exception.
+ *
+ * The destructor is also not defined in this abstract class. However, 
+ * implementing classes should define one, and have it close the data source.
+ *
  * @package    Zend_PDF
  * @subpackage Zend_PDF_BinaryParser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractDataSource
@@ -70,28 +76,6 @@ abstract class AbstractDataSource
     /* Abstract Methods */
 
     /**
-     * Object constructor. Opens the data source for parsing.
-     *
-     * Must set $this->_size to the total size in bytes of the data source.
-     *
-     * Upon return the data source can be interrogated using the primitive
-     * methods described here.
-     *
-     * If the data source cannot be opened for any reason (such as insufficient
-     * permissions, missing file, etc.), will throw an appropriate exception.
-     *
-     * @throws \Zend\Pdf\Exception
-     */
-    abstract public function __construct();
-
-    /**
-     * Object destructor. Closes the data source.
-     *
-     * May also perform cleanup tasks such as deleting temporary files.
-     */
-    abstract public function __destruct();
-
-    /**
      * Returns the specified number of raw bytes from the data source at the
      * byte offset of the current read position.
      *
@@ -103,7 +87,7 @@ abstract class AbstractDataSource
      *
      * @param integer $byteCount Number of bytes to read.
      * @return string
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     abstract public function readBytes($byteCount);
 
@@ -132,7 +116,7 @@ abstract class AbstractDataSource
      */
     public function __toString()
     {
-        return get_class($this);
+        return get_called_class();
     }
 
 
@@ -173,7 +157,7 @@ abstract class AbstractDataSource
      * parent method.
      *
      * @param integer $offset Destination byte offset.
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public function moveToOffset($offset)
     {
@@ -198,7 +182,7 @@ abstract class AbstractDataSource
      * the end of the data source.
      *
      * @param integer $byteCount Number of bytes to skip.
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public function skipBytes($byteCount)
     {

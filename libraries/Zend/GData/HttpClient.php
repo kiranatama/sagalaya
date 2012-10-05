@@ -15,14 +15,13 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gdata
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData;
+
+use Zend\Http;
 
 /**
  * Gdata Http Client object.
@@ -30,16 +29,13 @@ namespace Zend\GData;
  * Class to extend the generic Zend Http Client with the ability to perform
  * secure AuthSub requests
  *
- * @uses       \Zend\GData\App\Exception
- * @uses       \Zend\GData\App\InvalidArgumentException
- * @uses       \Zend\Http\Client
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gdata
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class HttpClient extends \Zend\Http\Client
+class HttpClient extends Http\Client
 {
 
     /**
@@ -124,7 +120,7 @@ class HttpClient extends \Zend\Http\Client
      * @throws \Zend\GData\App\InvalidArgumentException
      * @return \Zend\GData\HttpClient Provides a fluent interface
      */
-    public function setAuthSubPrivateKey($key, $passphrase = null) 
+    public function setAuthSubPrivateKey($key, $passphrase = null)
     {
         if ($key != null && !function_exists('openssl_pkey_get_private')) {
             throw new App\InvalidArgumentException(
@@ -265,7 +261,7 @@ class HttpClient extends \Zend\Http\Client
    /**
      * Load the connection adapter
      *
-     * @param \Zend\Http\Client\Adapter $adapter
+     * @param \Zend\Http\Client\Adapter\AdapterInterface $adapter
      * @return void
      */
     public function setAdapter($adapter)
@@ -307,7 +303,7 @@ class HttpClient extends \Zend\Http\Client
      * Prepare the request body (for POST and PUT requests)
      *
      * @return string
-     * @throws \Zend\Http\Client\Exception
+     * @throws \Zend\Http\Client\Exception\ExceptionInterface
      */
     protected function _prepareBody()
     {
@@ -317,7 +313,7 @@ class HttpClient extends \Zend\Http\Client
             return $this->raw_post_data;
         }
         else {
-            return parent::_prepareBody();
+            return parent::prepareBody();
         }
     }
 

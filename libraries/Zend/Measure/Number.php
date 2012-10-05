@@ -14,13 +14,10 @@
  *
  * @category  Zend
  * @package   Zend_Measure
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Measure;
 use Zend\Locale;
 use Zend\Locale\Math;
@@ -30,11 +27,9 @@ use Zend\Locale\Math;
  *
  * This class can only handle numbers without precision
  *
- * @uses       Zend\Locale
- * @uses       Zend\Locale\Math
  * @category   Zend
  * @package    Zend_Measure
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Number extends AbstractMeasure
@@ -137,9 +132,9 @@ class Number extends AbstractMeasure
     /**
      * Zend\Measure\AbstractMeasure is an abstract class for the different measurement types
      *
-     * @param  integer                   $value  Value
-     * @param  string                    $type   (Optional) A Zend\Measure\Number Type
-     * @param  string|Zend\Locale\Locale $locale (Optional) A Zend\Locale\Locale
+     * @param  integer                    $value  Value
+     * @param  string                     $type   (Optional) A Zend\Measure\Number Type
+     * @param  string|\Zend\Locale\Locale $locale (Optional) A Zend\Locale\Locale
      * @throws Zend\Measure\Exception When language is unknown
      * @throws Zend\Measure\Exception When type is unknown
      */
@@ -178,9 +173,9 @@ class Number extends AbstractMeasure
     /**
      * Set a new value
      *
-     * @param  integer                   $value  Value
-     * @param  string                    $type   (Optional) A Zend\Measure\Number Type
-     * @param  string|Zend\Locale\Locale $locale (Optional) A Zend\Locale\Locale Type
+     * @param  integer                    $value  Value
+     * @param  string                     $type   (Optional) A Zend\Measure\Number Type
+     * @param  string|\Zend\Locale\Locale $locale (Optional) A Zend\Locale\Locale Type
      * @throws Zend\Measure\Exception
      */
     public function setValue($value, $type = null, $locale = null)

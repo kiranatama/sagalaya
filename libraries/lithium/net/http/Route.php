@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -150,6 +150,14 @@ class Route extends \lithium\core\Object {
 	protected $_handler = null;
 
 	/**
+	 * Array of closures used to format route parameters when compiling URLs.
+	 *
+	 * @see lithium\net\http\Router::formatters()
+	 * @var array
+	 */
+	protected $_formatters = array();
+
+	/**
 	 * Auto configuration properties. Also used as the list of properties to return when exporting
 	 * this `Route` object to an array.
 	 *
@@ -172,7 +180,9 @@ class Route extends \lithium\core\Object {
 			'keys'     => array(),
 			'persist'  => array(),
 			'handler'  => null,
-			'continue' => false
+			'continue' => false,
+			'formatters' => array(),
+			'unicode'  => true
 		);
 		parent::__construct($config + $defaults);
 	}
@@ -207,8 +217,9 @@ class Route extends \lithium\core\Object {
 		$defaults = array('url' => $request->url);
 		$options += $defaults;
 		$url = '/' . trim($options['url'], '/');
+		$pattern = $this->_pattern;
 
-		if (!preg_match($this->_pattern, $url, $match)) {
+		if (!preg_match($pattern, $url, $match)) {
 			return false;
 		}
 		foreach ($this->_meta as $key => $compare) {
@@ -304,14 +315,22 @@ class Route extends \lithium\core\Object {
 		if (array_intersect_key($options, $this->_match) != $this->_match) {
 			return false;
 		}
-		if (!$this->_config['continue']) {
+		if ($this->_config['continue']) {
+			if (array_intersect_key($this->_keys, $options + $args) != $this->_keys) {
+				return false;
+			}
+		} else {
 			if (array_diff_key(array_diff_key($options, $this->_match), $this->_keys) !== array()) {
 				return false;
 			}
 		}
 		$options += $this->_defaults;
+		$base = $this->_keys + $args;
+		$match = array_intersect_key($this->_keys, $options) + $args;
+		sort($base);
+		sort($match);
 
-		if (array_intersect_key($this->_keys, $options) + $args !== $this->_keys + $args) {
+		if ($base !== $match) {
 			return false;
 		}
 		return $options;
@@ -328,10 +347,6 @@ class Route extends \lithium\core\Object {
 	protected function _write($options, $defaults) {
 		$template = $this->_template;
 		$trimmed = true;
-
-		if (isset($options['args']) && is_array($options['args'])) {
-			$options['args'] = join('/', $options['args']);
-		}
 		$options += array('args' => '');
 
 		foreach (array_reverse($this->_keys, true) as $key) {
@@ -345,6 +360,9 @@ class Route extends \lithium\core\Object {
 					$template = rtrim(substr($template, 0, $len), '/');
 					continue;
 				}
+			}
+			if (isset($this->_config['formatters'][$key])) {
+				$value = $this->_config['formatters'][$key]($value);
 			}
 			if ($value === null) {
 				$template = str_replace("/{$rpl}", '', $template);
@@ -369,6 +387,9 @@ class Route extends \lithium\core\Object {
 		$result = array();
 
 		foreach ($this->_autoConfig as $key) {
+			if ($key === 'formatters') {
+				continue;
+			}
 			$result[$key] = $this->{'_' . $key};
 		}
 		return $result;
@@ -396,7 +417,11 @@ class Route extends \lithium\core\Object {
 			return;
 		}
 		$this->_pattern = "@^{$this->_template}\$@";
-		$match = '@([/.])?\{:([^:}]+):?((?:[^{]+(?:\{[0-9,]+\})?)*?)\}@S';
+		$match = '@([/.])?\{:([^:}]+):?((?:[^{]+?(?:\{[0-9,]+\})?)*?)\}@S';
+
+		if ($this->_config['unicode']) {
+			$this->_pattern .= 'u';
+		}
 		preg_match_all($match, $this->_pattern, $m);
 
 		if (!$tokens = $m[0]) {
@@ -424,10 +449,10 @@ class Route extends \lithium\core\Object {
 	 *               `"/{:id:\d+}"`, then the value will be `"\d+"`.
 	 * @param string $param The parameter name which the capture group is assigned to, i.e.
 	 *               `'controller'`, `'id'` or `'args'`.
-	 * @param string $prefix The prefix character that separates the parameter from the other
-	 *               elements of the route. Usually `'.'` or `'/'`.
 	 * @param string $token The full token representing a matched element in a route template, i.e.
 	 *               `'/{:action}'`, `'/{:path:js|css}'`, or `'.{:type}'`.
+	 * @param string $prefix The prefix character that separates the parameter from the other
+	 *               elements of the route. Usually `'.'` or `'/'`.
 	 * @return string Returns the full route template, with the value of `$token` replaced with a
 	 *         generated regex capture group.
 	 */

@@ -74,7 +74,7 @@ use lithium\data\Connections;
         'driver' => 'pdo_mysql',
         'host' => 'localhost',
         'login' => 'root',
-        'password' => 'rahasia',
+        'password' => '123456',
         'database' => 'sagalaya',
         'encoding' => 'UTF-8'
  ));

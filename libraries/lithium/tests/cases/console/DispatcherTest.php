@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -35,9 +35,7 @@ class DispatcherTest extends \lithium\test\Unit {
 
 	public function testConfigWithClasses() {
 		Dispatcher::config(array(
-			'classes' => array(
-				'request' => 'lithium\tests\mocks\console\MockDispatcherRequest'
-			)
+			'classes' => array('request' => 'lithium\tests\mocks\console\MockDispatcherRequest')
 		));
 		$expected = 'run';
 		$result = Dispatcher::run()->testAction;
@@ -46,9 +44,7 @@ class DispatcherTest extends \lithium\test\Unit {
 
 	public function testRunWithCommand() {
 		$response = Dispatcher::run(new Request(array(
-			'args' => array(
-				'lithium\tests\mocks\console\MockDispatcherCommand'
-			)
+			'args' => array('lithium\tests\mocks\console\MockDispatcherCommand')
 		)));
 		$expected = 'run';
 		$result = $response->testAction;

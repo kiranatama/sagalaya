@@ -1,46 +1,28 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Markup
- * @subpackage Renderer_Markup
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Markup
  */
 
-/**
- * @namespace
- */
 namespace Zend\Markup\Renderer\Markup;
 
-use Zend\Markup\Renderer\Markup,
-    Zend\Markup\Renderer\AbstractRenderer,
-    Zend\Filter\Filter,
-    Zend\Filter\FilterChain;
+use Zend\Filter\FilterChain;
+use Zend\Filter\FilterInterface;
+use Zend\Markup\Renderer\AbstractRenderer;
+use Zend\Markup\Renderer\Markup;
 
 /**
  * Abstract markup
  *
- * @uses       \Zend\Markup\Renderer\Markup
- * @uses       \Zend\Markup\Renderer\AbstractRenderer
  * @category   Zend
  * @package    Zend_Markup
  * @subpackage Renderer_Markup
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-abstract class AbstractMarkup implements Markup
+abstract class AbstractMarkup implements Markup\MarkupInterface
 {
 
     /**
@@ -132,11 +114,11 @@ abstract class AbstractMarkup implements Markup
     /**
      * Adds a filter to the chain
      *
-     * @param  \Zend\Filter\Filter $filter
+     * @param  \Zend\Filter\FilterInterface $filter
      * @param  int $priority Priority at which to add filter; higher numbers are executed earlier. Defaults to 0
-     * @return \Zend\Markup\Renderer\AbstractMarkup
+     * @return AbstractMarkup
      */
-    public function addFilter(Filter $filter, $priority = 0)
+    public function addFilter(FilterInterface $filter, $priority = 0)
     {
         $this->getFilterChain()->attach($filter, $priority);
 
@@ -145,7 +127,7 @@ abstract class AbstractMarkup implements Markup
 
     /**
      * Filter
-     * 
+     *
      * @param string $value
      *
      * @return string

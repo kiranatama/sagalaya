@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -87,6 +87,13 @@ class ResponseTest extends \lithium\test\Unit {
 		)));
 		$this->assertEqual('application/json', $response->type);
 		$this->assertEqual('UTF-8', $response->encoding); //default
+	}
+
+	public function testParsingContentTypeWithVersionNumber() {
+		$response = new Response(array('headers' => array(
+			'Content-Type' => 'application/x-amz-json-1.0'
+		)));
+		$this->assertEqual('application/x-amz-json-1.0', $response->type);
 	}
 
 	public function testConstructionWithBody() {
@@ -248,7 +255,7 @@ class ResponseTest extends \lithium\test\Unit {
 
 	public function testWithoutChunksAndCommentInBody() {
 		$body = "\n<html>\n    <head>\n        <title>Simple site</title>\n    </head>";
-		$body .= "\n    <body>\n        <!-- (c) 1998 - 2011 Tweakers.net B.V. --> ";
+		$body .= "\n    <body>\n        <!-- (c) 1998 - 2012 Tweakers.net B.V. --> ";
 		$body .= "\n        <h1>Simple site</h1>\n        <p>\n            But awesome";
 		$body .= "\n        </p>\n    </body>\n</html>\n";
 		$message =  $this->_createMessage($body);
@@ -267,7 +274,7 @@ class ResponseTest extends \lithium\test\Unit {
 	}
 
 	public function testWithoutChunksAndCommentInHtmlRoot() {
-		$body = "\n<!doctype html><!-- (c) 1998 - 2011 Tweakers.net B.V. --> \n<html lang=\"nl\"> ";
+		$body = "\n<!doctype html><!-- (c) 1998 - 2012 Tweakers.net B.V. --> \n<html lang=\"nl\"> ";
 		$body .= "\n    <head>\n        <title>Simple site</title>\n    </head>";
 		$body .= "\n    <body>\n        <h1>Simple site</h1>\n        <p>\n            But awesome";
 		$body .= "\n        </p>\n    </body>\n</html>\n";
@@ -282,6 +289,23 @@ class ResponseTest extends \lithium\test\Unit {
 		$response = new Response(compact('message'));
 		$this->assertFalse($response->headers());
 		$this->assertEqual(trim($body), $response->body());
+	}
+
+	public function testDigestParsing() {
+		$auth = 'Digest realm="app",';
+		$auth .= 'qop="auth",nonce="4ee1617b8756e",opaque="dd7bcee161192cb8fba765eb595eba87"';
+		$headers = array("WWW-Authenticate" => $auth);
+		$response = new Response(compact('headers'));
+		$expected = array("WWW-Authenticate" => $auth);
+		$result = $response->headers;
+		$this->assertEqual($expected, $result);
+
+		$expected = array(
+			'realm' => 'app', 'qop' => 'auth', 'nonce' => '4ee1617b8756e',
+			'opaque' => 'dd7bcee161192cb8fba765eb595eba87'
+		);
+		$result = array_filter($response->digest());
+		$this->assertEqual($expected, $result);
 	}
 }
 

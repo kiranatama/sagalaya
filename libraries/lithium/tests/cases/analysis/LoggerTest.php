@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -18,8 +18,17 @@ use lithium\tests\mocks\analysis\MockLoggerAdapter;
 class LoggerTest extends \lithium\test\Unit {
 
 	public function skip() {
-		$this->_testPath = Libraries::get(true, 'resources') . '/tmp/tests';
-		$this->skipIf(!is_writable($this->_testPath), "{$this->_testPath} is not readable.");
+		$path = Libraries::get(true, 'resources');
+
+		if (is_writable($path)) {
+			foreach (array("{$path}/tmp/tests", "{$path}/tmp/logs") as $dir) {
+				if (!is_dir($dir)) {
+					mkdir($dir, 0777, true);
+				}
+			}
+		}
+		$this->_testPath = "{$path}/tmp/tests";
+		$this->skipIf(!is_writable($this->_testPath), "Path `{$this->_testPath}` is not writable.");
 	}
 
 	public function setUp() {
@@ -65,7 +74,7 @@ class LoggerTest extends \lithium\test\Unit {
 
 	public function testIntegrationWriteFile() {
 		$base = Libraries::get(true, 'resources') . '/tmp/logs';
-		$this->skipIf(!is_writable($base), "{$base} is not writable.");
+		$this->skipIf(!is_writable($base), "Path `{$base}` is not writable.");
 
 		$config = array('default' => array(
 			'adapter' => 'File', 'timestamp' => false, 'format' => "{:message}\n"
@@ -96,7 +105,7 @@ class LoggerTest extends \lithium\test\Unit {
 
 	public function testWriteByName() {
 		$base = Libraries::get(true, 'resources') . '/tmp/logs';
-		$this->skipIf(!is_writable($base), "{$base} is not writable.");
+		$this->skipIf(!is_writable($base), "Path `{$base}` is not writable.");
 
 		Logger::config(array('default' => array(
 			'adapter' => 'File',

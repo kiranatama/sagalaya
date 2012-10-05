@@ -1,26 +1,13 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Controller
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_XmlRpc
  */
 
-/**
- * @namespace
- */
 namespace Zend\XmlRpc;
 
 /**
@@ -34,13 +21,8 @@ namespace Zend\XmlRpc;
  * generated and stored in {@link $_fault}; developers may check for it using
  * {@link isFault()} and {@link getFault()}.
  *
- * @uses       SimpleXMLElement
- * @uses       Zend\XmlRpc\Fault
- * @uses       Zend\XmlRpc\Value
  * @category   Zend
  * @package    Zend_XmlRpc
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Request
 {
@@ -113,7 +95,7 @@ class Request
     public function setEncoding($encoding)
     {
         $this->_encoding = $encoding;
-        Value::setEncoding($encoding);
+        AbstractValue::setEncoding($encoding);
         return $this;
     }
 
@@ -170,10 +152,10 @@ class Request
         $this->_params[] = $value;
         if (null === $type) {
             // Detect type if not provided explicitly
-            if ($value instanceof Value) {
+            if ($value instanceof AbstractValue) {
                 $type = $value->getType();
             } else {
-                $xmlRpcValue = Value::getXmlRpcValue($value);
+                $xmlRpcValue = AbstractValue::getXmlRpcValue($value);
                 $type        = $xmlRpcValue->getType();
             }
         }
@@ -222,7 +204,7 @@ class Request
                 $params[] = $arg['value'];
 
                 if (!isset($arg['type'])) {
-                    $xmlRpcValue = Value::getXmlRpcValue($arg['value']);
+                    $xmlRpcValue = AbstractValue::getXmlRpcValue($arg['value']);
                     $arg['type'] = $xmlRpcValue->getType();
                 }
                 $types[] = $arg['type'];
@@ -236,10 +218,10 @@ class Request
                 $this->_types  = array();
                 $xmlRpcParams  = array();
                 foreach ($argv[0] as $arg) {
-                    if ($arg instanceof Value) {
+                    if ($arg instanceof AbstractValue) {
                         $type = $arg->getType();
                     } else {
-                        $xmlRpcValue = Value::getXmlRpcValue($arg);
+                        $xmlRpcValue = AbstractValue::getXmlRpcValue($arg);
                         $type        = $xmlRpcValue->getType();
                     }
                     $xmlRpcParams[] = array('value' => $arg, 'type' => $type);
@@ -254,10 +236,10 @@ class Request
         $this->_types  = array();
         $xmlRpcParams  = array();
         foreach ($argv as $arg) {
-            if ($arg instanceof Value) {
+            if ($arg instanceof AbstractValue) {
                 $type = $arg->getType();
             } else {
-                $xmlRpcValue = Value::getXmlRpcValue($arg);
+                $xmlRpcValue = AbstractValue::getXmlRpcValue($arg);
                 $type        = $xmlRpcValue->getType();
             }
             $xmlRpcParams[] = array('value' => $arg, 'type' => $type);
@@ -300,12 +282,16 @@ class Request
             return false;
         }
 
+        // @see ZF-12293 - disable external entities for security purposes
+        $loadEntities = libxml_disable_entity_loader(true);
         try {
             $xml = new \SimpleXMLElement($request);
+            libxml_disable_entity_loader($loadEntities);
         } catch (\Exception $e) {
             // Not valid XML
             $this->_fault = new Fault(631);
             $this->_fault->setEncoding($this->getEncoding());
+            libxml_disable_entity_loader($loadEntities);
             return false;
         }
 
@@ -331,7 +317,7 @@ class Request
                 }
 
                 try {
-                    $param   = Value::getXmlRpcValue($param->value, Value::XML_STRING);
+                    $param   = AbstractValue::getXmlRpcValue($param->value, AbstractValue::XML_STRING);
                     $types[] = $param->getType();
                     $argv[]  = $param->getValue();
                 } catch (\Exception $e) {
@@ -382,10 +368,10 @@ class Request
         if (is_array($this->_xmlRpcParams)) {
             foreach ($this->_xmlRpcParams as $param) {
                 $value = $param['value'];
-                $type  = $param['type'] ?: Value::AUTO_DETECT_TYPE;
+                $type  = $param['type'] ?: AbstractValue::AUTO_DETECT_TYPE;
 
-                if (!$value instanceof Value) {
-                    $value = Value::getXmlRpcValue($value, $type);
+                if (!$value instanceof AbstractValue) {
+                    $value = AbstractValue::getXmlRpcValue($value, $type);
                 }
                 $params[] = $value;
             }
@@ -404,7 +390,7 @@ class Request
         $args   = $this->_getXmlRpcParams();
         $method = $this->getMethod();
 
-        $generator = Value::getGenerator();
+        $generator = AbstractValue::getGenerator();
         $generator->openElement('methodCall')
                   ->openElement('methodName', $method)
                   ->closeElement('methodName');

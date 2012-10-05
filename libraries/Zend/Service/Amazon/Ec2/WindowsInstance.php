@@ -15,27 +15,21 @@
  * @category   Zend
  * @package    Zend_Service_Amazon
  * @subpackage Ec2
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Amazon\Ec2;
-use Zend\Crypt;
+use Zend\Crypt\Hmac;
 
 /**
  * An Amazon EC2 interface that allows yout to run, terminate, reboot and describe Amazon
  * Ec2 Instances.
  *
- * @uses       Zend_Crypt_Hmac
- * @uses       Zend_Json
- * @uses       Zend_Service_Amazon_Ec2_Abstract
  * @category   Zend
  * @package    Zend_Service_Amazon
  * @subpackage Ec2
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class WindowsInstance extends AbstractEc2
@@ -182,7 +176,7 @@ class WindowsInstance extends AbstractEc2
      */
     protected function _signS3UploadPolicy($policy)
     {
-        $hmac = Crypt\Hmac::compute($this->_getSecretKey(), 'SHA1', $policy, Crypt\Hmac::BINARY);
+        $hmac = Hmac::compute($this->_getSecretKey(), 'SHA1', $policy, Hmac::BINARY);
         return $hmac;
     }
 }

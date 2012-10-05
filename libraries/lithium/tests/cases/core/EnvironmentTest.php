@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -92,7 +92,7 @@ class EnvironmentTest extends \lithium\test\Unit {
 
 		$request = new MockRequest(array('SERVER_ADDR' => '1.1.1.1', 'HTTP_HOST' => 'www.com'));
 		Environment::set($request);
-		$isProduction = Environment::is('production'); // returns true if not running locally
+		$isProduction = Environment::is('production');
 		$this->assertTrue($isProduction);
 
 		$request = new MockRequest(array('SERVER_ADDR' => '::1'));
@@ -101,12 +101,16 @@ class EnvironmentTest extends \lithium\test\Unit {
 		$this->assertTrue(Environment::is('test'));
 
 		$request = new MockRequest();
-		$request->argv = array(0 => 'test');
+		$request->command = 'test';
 		Environment::set($request);
 		$this->assertTrue(Environment::is('test'));
 
 		$request = new MockRequest();
-		$request->argv = array(0 => 'something');
+		$request->env = 'test';
+		Environment::set($request);
+		$this->assertTrue(Environment::is('test'));
+
+		$request = new MockRequest(array('PLATFORM' => 'CLI'));
 		Environment::set($request);
 		$this->assertTrue(Environment::is('development'));
 

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -378,6 +378,29 @@ class ExporterTest extends \lithium\test\Unit {
 
 		$result = Exporter::get('update', $doc->export());
 		$this->assertEqual(array('update' => array('this.that' => 'value2')), $result);
+	}
+
+	public function testUpdatingArraysAndExporting() {
+		$new = new Document(array('data' => array('name' => 'Acme, Inc.', 'active' => true)));
+
+		$expected = array('name' => 'Acme, Inc.', 'active' => true);
+		$result = $new->data();
+		$this->assertEqual($expected, $result);
+
+		$new->foo = new DocumentArray(array('data' => array('bar')));
+		$expected = array('name' => 'Acme, Inc.', 'active' => true, 'foo' => array('bar'));
+		$result = $new->data();
+		$this->assertEqual($expected, $result);
+
+		$expected = 'bar';
+		$result = $new->foo[0];
+		$this->assertEqual($expected, $result);
+
+		$new->foo[1] = 'baz';
+
+		$expected = 'baz';
+		$result = $new->data();
+		$this->assertEqual($expected, $result['foo'][1]);
 	}
 
 	/**

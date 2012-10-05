@@ -1,44 +1,26 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Markup
- * @subpackage Renderer_Markup_HTML
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Markup
  */
 
-/**
- * @namespace
- */
 namespace Zend\Markup\Renderer\Markup\Html;
 
-use Zend\Markup\Renderer\Markup\AbstractMarkup,
-    Zend\Markup,
-    Zend\Filter\HtmlEntities as HtmlEntitiesFilter,
-    Zend\Filter\Callback as CallbackFilter;
+use Zend\Filter\Callback as CallbackFilter;
+use Zend\Filter\HtmlEntities as HtmlEntitiesFilter;
+use Zend\Markup;
+use Zend\Markup\Renderer\Markup\AbstractMarkup;
 
 /**
  * Abstract markup
  *
- * @uses       \Zend\Markup\Renderer\Markup\AbstractMarkup
- * @uses       \Zend\Markup\Renderer\AbstractRenderer
  * @category   Zend
  * @package    Zend_Markup
  * @subpackage Renderer_Markup_Html
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractHtml extends AbstractMarkup
 {
@@ -46,7 +28,6 @@ abstract class AbstractHtml extends AbstractMarkup
     /**
      * Constructor, adds default filters for the filter chain
      *
-     * @return void
      */
     public function __construct()
     {

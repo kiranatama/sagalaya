@@ -118,21 +118,12 @@ Libraries::add('lithium');
  * your main application, but generally you should not need to change any settings.
  */
 Libraries::add('app', array('default' => true));
-Libraries::add('Twig', array(
-    'path' => LITHIUM_LIBRARY_PATH . '/Twig',
-    'prefix' => 'Twig_',
-    'loader' => 'Twig_Autoloader::autoload',
-));
-
-require LITHIUM_APP_PATH . '/extensions/template/Loader.php';
-require LITHIUM_APP_PATH . '/extensions/template/view/adapter/Twig.php';
-require LITHIUM_APP_PATH . '/extensions/template/view/adapter/Template.php';
+Libraries::add('sagalaya', array('bootstrap' => true));
 
 /**
  * Add some plugins:
  */
 // Libraries::add('li3_docs');
-Libraries::add('lithium_qa');
-Libraries::add('Zend');
+Libraries::add('li3_quality');
 
 ?>

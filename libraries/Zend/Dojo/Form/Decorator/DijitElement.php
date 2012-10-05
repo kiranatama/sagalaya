@@ -14,13 +14,10 @@
  *
  * @category   Zend
  * @package    Zend_Form
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Dojo\Form\Decorator;
 
 use Zend\Form\Decorator\ViewHelper as ViewHelperDecorator,
@@ -39,11 +36,9 @@ use Zend\Form\Decorator\ViewHelper as ViewHelperDecorator,
  * Assumes the view helper accepts three parameters, the name, value, and
  * optional attributes; these will be provided by the element.
  *
- * @uses       \Zend\Form\Decorator\Exception
- * @uses       \Zend\Form\Decorator\ViewHelper
  * @package    Zend_Dojo
  * @subpackage Form_Decorator
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class DijitElement extends ViewHelperDecorator
@@ -169,8 +164,11 @@ class DijitElement extends ViewHelperDecorator
         $name      = $element->getFullyQualifiedName();
 
         $dijitParams = $this->getDijitParams();
-        $dijitParams['required'] = $element->isRequired();
-
+        
+        if ($element->isRequired()) {
+            $dijitParams['required'] = true;
+        }
+        
         $id = $element->getId();
         if ($view->plugin('dojo')->hasDijit($id)) {
             trigger_error(sprintf('Duplicate dijit ID detected for id "%s; temporarily generating uniqid"', $id), E_USER_NOTICE);

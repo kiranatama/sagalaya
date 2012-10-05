@@ -15,27 +15,22 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Exception
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\Exception;
-use Zend\Pdf\Exception;
 
 /**
- * Exception class for Zend_Application
+ * Exception class for Zend\Pdf.
  *
  * @category  Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Exception
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 class UnrecognizedFontException
-    extends \CorruptedFontException
-    implements Exception
+    extends CorruptedFontException
 {
 }

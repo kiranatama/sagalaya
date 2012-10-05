@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -60,7 +60,7 @@ namespace lithium\analysis\logger\adapter;
  * method for more information on how your message will be encoded.
  *
  * {{{
- * Logger::debug(array('debug' => 'me));
+ * Logger::debug(array('debug' => 'me'));
  * Logger::debug(new \lithium\action\Response());
  * }}}
  *

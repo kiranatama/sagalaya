@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -34,6 +34,27 @@ class EntityTest extends \lithium\test\Unit {
 		$this->assertEqual($expected, $entity->export());
 	}
 
+	public function testPropertyIssetEmpty() {
+		$entity = new Entity(array(
+			'model' => 'Foo',
+			'exists' => true,
+			'data' => array('test_field' => 'foo'),
+			'relationships' => array('test_relationship' => array('test_me' => 'bar'))
+		));
+
+		$this->assertEqual('foo', $entity->test_field);
+		$this->assertEqual(array('test_me' => 'bar'), $entity->test_relationship);
+
+		$this->assertTrue(isset($entity->test_field));
+		$this->assertTrue(isset($entity->test_relationship));
+
+		$this->assertFalse(empty($entity->test_field));
+		$this->assertFalse(empty($entity->test_relationship));
+
+		$this->assertTrue(empty($entity->test_invisible_field));
+		$this->assertTrue(empty($entity->test_invisible_relationship));
+	}
+
 	public function testIncrement() {
 		$entity = new Entity(array('data' => array('counter' => 0)));
 		$this->assertEqual(0, $entity->counter);
@@ -57,8 +78,15 @@ class EntityTest extends \lithium\test\Unit {
 	}
 
 	public function testMethodDispatch() {
-		$entity = new Entity(array('model' => $this->_model, 'data' => array('foo' => true)));
+		$model = $this->_model;
+		$entity = new Entity(array('model' => $model, 'data' => array('foo' => true)));
 		$this->assertTrue($entity->validates());
+
+		$model::instanceMethods(array(
+			'testInstanceMethod' => function($entity) { return 'testInstanceMethod'; }
+		));
+		$this->assertEqual('testInstanceMethod', $entity->testInstanceMethod($entity));
+
 		$this->expectException("/^No model bound or unhandled method call `foo`.$/");
 		$entity->foo();
 	}

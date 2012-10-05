@@ -1,51 +1,29 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Feed_Writer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Feed
  */
 
-/**
-* @namespace
-*/
 namespace Zend\Feed\Writer\Renderer\Feed;
-use Zend\Feed\Writer\Renderer;
+
+use DOMDocument;
 use Zend\Feed\Writer;
+use Zend\Feed\Writer\Renderer;
 
 /**
-* @uses DOMDocument
-* @uses \Zend\Feed\Writer\Writer
-* @uses \Zend\Feed\Writer\Feed\Feed
-* @uses \Zend\Feed\Writer\Renderer\Entry\Atom\Atom
-* @uses \Zend\Feed\Writer\Renderer\Entry\Atom\Deleted
-* @uses \Zend\Feed\Writer\Renderer\Feed\Atom\AtomAbstract
-* @uses \Zend\Feed\Writer\Renderer\RendererAbstract
-* @uses \Zend\Feed\Writer\Renderer\RendererInterface
-* @uses \Zend\Version
 * @category Zend
 * @package Zend_Feed_Writer
-* @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
-* @license http://framework.zend.com/license/new-bsd New BSD License
 */
-class Atom extends AbstractAtom implements Renderer\Renderer
+class Atom extends AbstractAtom implements Renderer\RendererInterface
 {
     /**
      * Constructor
-     * 
-     * @param  Zend_Feed_Writer_Feed $container 
+     *
+     * @param  Writer\Feed $container
      * @return void
      */
     public function __construct (Writer\Feed $container)
@@ -55,15 +33,15 @@ class Atom extends AbstractAtom implements Renderer\Renderer
 
     /**
      * Render Atom feed
-     * 
-     * @return Zend_Feed_Writer_Renderer_Feed_Atom
+     *
+     * @return Atom
      */
     public function render()
     {
         if (!$this->_container->getEncoding()) {
             $this->_container->setEncoding('UTF-8');
         }
-        $this->_dom = new \DOMDocument('1.0', $this->_container->getEncoding());
+        $this->_dom = new DOMDocument('1.0', $this->_container->getEncoding());
         $this->_dom->formatOutput = true;
         $root = $this->_dom->createElementNS(
             Writer\Writer::NAMESPACE_ATOM_10, 'feed'
@@ -85,14 +63,14 @@ class Atom extends AbstractAtom implements Renderer\Renderer
         $this->_setCopyright($this->_dom, $root);
         $this->_setCategories($this->_dom, $root);
         $this->_setHubs($this->_dom, $root);
-        
+
         foreach ($this->_extensions as $ext) {
             $ext->setType($this->getType());
             $ext->setRootElement($this->getRootElement());
             $ext->setDOMDocument($this->getDOMDocument(), $root);
             $ext->render();
         }
-        
+
         foreach ($this->_container as $entry) {
             if ($this->getDataContainer()->getEncoding()) {
                 $entry->setEncoding($this->getDataContainer()->getEncoding());

@@ -16,13 +16,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gdata
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData;
 
 use Zend\Http\Client\Adapter;
@@ -34,7 +31,7 @@ use Zend\Http\Client\Adapter;
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Gdata
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class HttpAdapterStreamingProxy extends Adapter\Proxy
@@ -60,12 +57,12 @@ class HttpAdapterStreamingProxy extends Adapter\Proxy
     {
         // If no proxy is set, throw an error
         if (! $this->config['proxy_host']) {
-            throw new Adapter\Exception('No proxy host set!');
+            throw new Adapter\Exception\RuntimeException('No proxy host set!');
         }
 
         // Make sure we're properly connected
         if (! $this->socket) {
-            throw new Adapter\Exception(
+            throw new Adapter\Exception\RuntimeException(
                 'Trying to write but we are not connected');
         }
 
@@ -73,7 +70,7 @@ class HttpAdapterStreamingProxy extends Adapter\Proxy
         $port = $this->config['proxy_port'];
 
         if ($this->connected_to[0] != $host || $this->connected_to[1] != $port) {
-            throw new Adapter\Exception(
+            throw new Adapter\Exception\RuntimeException(
                 'Trying to write but we are connected to the wrong proxy ' .
                 'server');
         }
@@ -107,14 +104,14 @@ class HttpAdapterStreamingProxy extends Adapter\Proxy
 
         // Send the request headers
         if (! @fwrite($this->socket, $request)) {
-            throw new Adapter\Exception(
+            throw new Adapter\Exception\RuntimeException(
                 'Error writing request to proxy server');
         }
 
         //read from $body, write to socket
         while ($body->hasData()) {
             if (! @fwrite($this->socket, $body->read(self::CHUNK_SIZE))) {
-                throw new Adapter\Exception(
+                throw new Adapter\Exception\RuntimeException(
                     'Error writing request to server');
             }
         }

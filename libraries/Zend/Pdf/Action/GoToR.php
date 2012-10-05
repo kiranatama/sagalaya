@@ -15,22 +15,18 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Action
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\Action;
 
 /**
  * PDF 'Go to a destination in another document' action
  *
- * @uses       \Zend\Pdf\Action\AbstractAction
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Action
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class GoToR extends AbstractAction

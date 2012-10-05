@@ -14,22 +14,27 @@
  *
  * @category   Zend
  * @package    Zend_Loader
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @version    $Id$
  */
 
 namespace Zend\Loader;
 
+use ReflectionClass;
+use Zend\ServiceManager\Exception\ExceptionInterface as ServiceManagerException;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
+
 /**
  * Plugin broker base implementation
  *
  * @category   Zend
  * @package    Zend_Loader
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class PluginBroker implements Broker
+class PluginBroker implements Broker, ServiceLocatorAwareInterface
 {
     /**
      * @var string Default class loader to utilize with this broker
@@ -57,6 +62,11 @@ class PluginBroker implements Broker
     protected $validator;
 
     /**
+     * @var Zend\Di\LocatorInterface
+     */
+    protected $locator;
+
+    /**
      * Constructor
      *
      * Allow configuration via options; see {@link setOptions()} for details.
@@ -74,7 +84,7 @@ class PluginBroker implements Broker
     /**
      * Configure plugin broker
      * 
-     * @param  array|Traversable $options 
+     * @param  array|\Traversable $options
      * @return PluginBroker
      */
     public function setOptions($options)
@@ -179,23 +189,63 @@ class PluginBroker implements Broker
             return $this->plugins[$pluginName];
         }
 
-        if (class_exists($plugin)) {
-            // Allow loading fully-qualified class names via the broker
-            $class = $plugin;
-        } else {
-            // Unqualified class names are then passed to the class loader
-            $class = $this->getClassLoader()->load($plugin);
-            if (empty($class)) {
-                throw new Exception\RuntimeException('Unable to locate class associated with "' . $pluginName . '"');
+        $locator  = $this->getServiceLocator();
+        // Pulling by alias
+        if ($locator) {
+            try {
+                $instance = $locator->get($plugin);
+            } catch (ServiceManagerException $e) {
+                // not returning an instance is okay; there are other ways to 
+                // retrieve the plugin later
+                $instance = false;
+            }
+
+            if ($instance) {
+                if ($this->getRegisterPluginsOnLoad()) {
+                    $this->register($pluginName, $instance);
+                }
+                return $instance;
             }
         }
 
+        $class = $this->getClassLoader()->load($plugin);
+        if (empty($class) && !class_exists($plugin)) {
+            throw new Exception\RuntimeException('Unable to locate class associated with "' . $pluginName . '"');
+        }
+
+        if (empty($class) && class_exists($plugin)) {
+            $class = $plugin;
+        }
+
+        // Pulling by resolved class name
+        if ($locator) {
+            try {
+                $instance = $locator->get($class);
+            } catch (ServiceManagerException $e) {
+                // not returning an instance is okay; there are other ways to 
+                // retrieve the plugin later
+                $instance = false;
+            }
+
+            if ($instance) {
+                if ($this->getRegisterPluginsOnLoad()) {
+                    $this->register($pluginName, $instance);
+                }
+                return $instance;
+            }
+        } 
+
+        if (!class_exists($class)) {
+            throw new Exception\RuntimeException('Unable to locate class associated with "' . $pluginName . '"');
+        }
+
+        // Did not find in the locator, so instantiate directly
         if (empty($options)) {
             $instance = new $class();
         } elseif ($this->isAssocArray($options)) {
             $instance = new $class($options);
         } else {
-            $r = new \ReflectionClass($class);
+            $r = new ReflectionClass($class);
             $instance = $r->newInstanceArgs($options);
         }
 
@@ -371,5 +421,26 @@ class PluginBroker implements Broker
             return false;
         }
         return true;
+    }
+ 
+    /**
+     * Get locator. 
+     * 
+     * @return ServiceLocatorInterface
+     */
+    public function getServiceLocator()
+    {
+        return $this->locator;
+    }
+
+    /**
+     * Set locator.
+     *
+     * @param ServiceLocatorInterface $locator
+     */
+    public function setServiceLocator(ServiceLocatorInterface $locator)
+    {
+        $this->locator = $locator;
+        return $this;
     }
 }

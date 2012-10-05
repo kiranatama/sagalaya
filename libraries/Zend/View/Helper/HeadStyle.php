@@ -1,44 +1,25 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_View
- * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_View
  */
 
-/**
- * @namespace
- */
 namespace Zend\View\Helper;
+
 use Zend\View;
+use Zend\View\Exception;
 
 /**
  * Helper for setting and retrieving stylesheets
  *
- * @uses       stdClass
- * @uses       \Zend\View\Helper\Placeholder\Container\AbstractContainer
- * @uses       \Zend\View\Helper\Placeholder\Container\Exception
- * @uses       \Zend\View\Helper\Placeholder\Container\Standalone
- * @uses       \Zend\View\Exception
  * @package    Zend_View
  * @subpackage Helper
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class HeadStyle extends Placeholder\Container\Standalone
+class HeadStyle extends Placeholder\Container\AbstractStandalone
 {
     /**
      * Registry key for placeholder
@@ -135,7 +116,7 @@ class HeadStyle extends Placeholder\Container\Standalone
      * @param  string $method
      * @param  array $args
      * @return void
-     * @throws \Zend\View\Exception When no $content provided or invalid method
+     * @throws Exception\BadMethodCallException When no $content provided or invalid method
      */
     public function __call($method, $args)
     {
@@ -152,9 +133,10 @@ class HeadStyle extends Placeholder\Container\Standalone
             }
 
             if (1 > $argc) {
-                $e = new View\Exception(sprintf('Method "%s" requires minimally content for the stylesheet', $method));
-                $e->setView($this->view);
-                throw $e;
+                throw new Exception\BadMethodCallException(sprintf(
+                    'Method "%s" requires minimally content for the stylesheet',
+                    $method
+                ));
             }
 
             $content = $args[0];
@@ -201,13 +183,14 @@ class HeadStyle extends Placeholder\Container\Standalone
      *
      * @param  mixed $value
      * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function append($value)
     {
         if (!$this->_isValid($value)) {
-            $e = new View\Exception('Invalid value passed to append; please use appendStyle()');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException(
+                'Invalid value passed to append; please use appendStyle()'
+            );
         }
 
         return $this->getContainer()->append($value);
@@ -219,13 +202,14 @@ class HeadStyle extends Placeholder\Container\Standalone
      * @param  string|int $index
      * @param  mixed $value
      * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function offsetSet($index, $value)
     {
         if (!$this->_isValid($value)) {
-            $e = new View\Exception('Invalid value passed to offsetSet; please use offsetSetStyle()');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException(
+                'Invalid value passed to offsetSet; please use offsetSetStyle()'
+            );
         }
 
         return $this->getContainer()->offsetSet($index, $value);
@@ -236,13 +220,14 @@ class HeadStyle extends Placeholder\Container\Standalone
      *
      * @param  mixed $value
      * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function prepend($value)
     {
         if (!$this->_isValid($value)) {
-            $e = new View\Exception('Invalid value passed to prepend; please use prependStyle()');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException(
+                'Invalid value passed to prepend; please use prependStyle()'
+            );
         }
 
         return $this->getContainer()->prepend($value);
@@ -253,13 +238,12 @@ class HeadStyle extends Placeholder\Container\Standalone
      *
      * @param  mixed $value
      * @return void
+     * @throws Exception\InvalidArgumentException
      */
     public function set($value)
     {
         if (!$this->_isValid($value)) {
-            $e = new View\Exception('Invalid value passed to set; please use setStyle()');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\InvalidArgumentException('Invalid value passed to set; please use setStyle()');
         }
 
         return $this->getContainer()->set($value);
@@ -271,13 +255,12 @@ class HeadStyle extends Placeholder\Container\Standalone
      * @param  mixed $captureType
      * @param  string $typeOrAttrs
      * @return void
+     * @throws Exception\RuntimeException
      */
     public function captureStart($type = Placeholder\Container\AbstractContainer::APPEND, $attrs = null)
     {
         if ($this->_captureLock) {
-            $e = new Placeholder\Container\Exception('Cannot nest headStyle captures');
-            $e->setView($this->view);
-            throw $e;
+            throw new Exception\RuntimeException('Cannot nest headStyle captures');
         }
 
         $this->_captureLock        = true;
@@ -324,7 +307,7 @@ class HeadStyle extends Placeholder\Container\Standalone
         $attrString = '';
         if (!empty($item->attributes)) {
             $enc = 'UTF-8';
-            if ($this->view instanceof View\Renderer
+            if ($this->view instanceof View\Renderer\RendererInterface
                 && method_exists($this->view, 'getEncoding')
             ) {
                 $enc = $this->view->getEncoding();

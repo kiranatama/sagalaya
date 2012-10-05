@@ -1,27 +1,13 @@
 <?php
 /**
- * Zend_Console_Getopt is a class to parse options for command-line
- * applications.
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Console
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Console
  */
 
-/**
- * @namespace
- */
 namespace Zend\Console;
 
 /**
@@ -84,8 +70,6 @@ namespace Zend\Console;
  *
  * @category   Zend
  * @package    Zend_Console_Getopt
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @version    Release: @package_version@
  * @since      Class available since Release 0.6.0
  *
@@ -99,8 +83,6 @@ namespace Zend\Console;
  *
  * @todo  Feature request to implement callbacks.
  *        e.g. if -a is specified, run function 'handleOptionA'().
- * @uses  \Zend\Console\GetoptException
- * @uses  \Zend\Json\Json
  */
 class Getopt
 {
@@ -331,8 +313,8 @@ class Getopt
      * These are appended to those defined when the constructor was called.
      *
      * @param  array $argv
-     * @throws \Zend\Console\Getopt\Exception When not given an array as parameter
-     * @return \Zend\Console\Getopt\Getopt Provides a fluent interface
+     * @throws \Zend\Console\Exception\ExceptionInterface When not given an array as parameter
+     * @return \Zend\Console\Getopt Provides a fluent interface
      */
     public function addArguments($argv)
     {
@@ -349,8 +331,8 @@ class Getopt
      * These replace any currently defined.
      *
      * @param  array $argv
-     * @throws \Zend\Console\Getopt\Exception When not given an array as parameter
-     * @return \Zend\Console\Getopt\Getopt Provides a fluent interface
+     * @throws \Zend\Console\Exception\ExceptionInterface When not given an array as parameter
+     * @return \Zend\Console\Getopt Provides a fluent interface
      */
     public function setArguments($argv)
     {
@@ -368,7 +350,7 @@ class Getopt
      * the behavior of Zend_Console_Getopt.
      *
      * @param  array $getoptConfig
-     * @return \Zend\Console\Getopt\Getopt Provides a fluent interface
+     * @return \Zend\Console\Getopt Provides a fluent interface
      */
     public function setOptions($getoptConfig)
     {
@@ -387,7 +369,7 @@ class Getopt
      *
      * @param  string $configKey
      * @param  string $configValue
-     * @return \Zend\Console\Getopt\Getopt Provides a fluent interface
+     * @return \Zend\Console\Getopt Provides a fluent interface
      */
     public function setOption($configKey, $configValue)
     {
@@ -402,7 +384,7 @@ class Getopt
      * These are appended to the rules defined when the constructor was called.
      *
      * @param  array $rules
-     * @return \Zend\Console\Getopt\Getopt Provides a fluent interface
+     * @return \Zend\Console\Getopt Provides a fluent interface
      */
     public function addRules($rules)
     {
@@ -616,13 +598,12 @@ class Getopt
      * mapping option name (short or long) to an alias.
      *
      * @param  array $aliasMap
-     * @throws \Zend\Console\Getopt\Exception
-     * @return \Zend\Console\Getopt\Getopt Provides a fluent interface
+     * @throws \Zend\Console\Exception\ExceptionInterface
+     * @return \Zend\Console\Getopt Provides a fluent interface
      */
     public function setAliases($aliasMap)
     {
-        foreach ($aliasMap as $flag => $alias)
-        {
+        foreach ($aliasMap as $flag => $alias) {
             if ($this->_getoptConfig[self::CONFIG_IGNORECASE]) {
                 $flag = strtolower($flag);
                 $alias = strtolower($alias);
@@ -648,12 +629,11 @@ class Getopt
      * mapping option name (short or long) to the help string.
      *
      * @param  array $helpMap
-     * @return \Zend\Console\Getopt\Getopt Provides a fluent interface
+     * @return \Zend\Console\Getopt Provides a fluent interface
      */
     public function setHelp($helpMap)
     {
-        foreach ($helpMap as $flag => $help)
-        {
+        foreach ($helpMap as $flag => $help) {
             if (!isset($this->_ruleMap[$flag])) {
                 continue;
             }
@@ -670,7 +650,7 @@ class Getopt
      * Also find option parameters, and remaining arguments after
      * all options have been parsed.
      *
-     * @return \Zend\Console\Getopt\Getopt|null Provides a fluent interface
+     * @return \Zend\Console\Getopt|null Provides a fluent interface
      */
     public function parse()
     {
@@ -690,7 +670,7 @@ class Getopt
             }
             if (substr($argv[0], 0, 2) == '--') {
                 $this->_parseLongOption($argv);
-            } else if (substr($argv[0], 0, 1) == '-' && ('-' != $argv[0] || count($argv) >1))  {
+            } elseif (substr($argv[0], 0, 1) == '-' && ('-' != $argv[0] || count($argv) >1))  {
                 $this->_parseShortOptionCluster($argv);
             } else if($this->_getoptConfig[self::CONFIG_PARSEALL]) {
                 $this->_remainingArgs[] = array_shift($argv);
@@ -748,7 +728,7 @@ class Getopt
      *
      * @param  string $flag
      * @param  mixed  $argv
-     * @throws \Zend\Console\Getopt\Exception
+     * @throws \Zend\Console\Exception\ExceptionInterface
      * @return void
      */
     protected function _parseSingleOption($flag, &$argv)
@@ -778,7 +758,7 @@ class Getopt
         } else {
             $realFlag = $this->_ruleMap[$flag];
         }
-        
+
         switch ($this->_rules[$realFlag]['param']) {
             case 'required':
                 if (count($argv) > 0) {
@@ -828,10 +808,10 @@ class Getopt
 
         return $this->_setSingleOptionValue($this->_getoptConfig['numericFlagsOption'], $value);
     }
-    
+
     /**
      * Add relative to options' flag value
-     * 
+     *
      * If options list already has current flag as key
      * and parser should follow cumulative params by configuration,
      * we should to add new param to array, not to overwrite
@@ -885,7 +865,7 @@ class Getopt
      *
      * @param  string $flag
      * @param  string $param
-     * @throws \Zend\Console\Getopt\Exception
+     * @throws \Zend\Console\Exception\ExceptionInterface
      * @return bool
      */
     protected function _checkParameterType($flag, $param)
@@ -954,13 +934,12 @@ class Getopt
      * Define legal options using the Zend-style format.
      *
      * @param  array $rules
-     * @throws \Zend\Console\Getopt\Exception
+     * @throws \Zend\Console\Exception\ExceptionInterface
      * @return void
      */
     protected function _addRulesModeZend($rules)
     {
-        foreach ($rules as $ruleCode => $helpMessage)
-        {
+        foreach ($rules as $ruleCode => $helpMessage) {
             // this may have to translate the long parm type if there
             // are any complaints that =string will not work (even though that use
             // case is not documented)

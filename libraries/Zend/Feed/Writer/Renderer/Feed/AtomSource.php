@@ -1,56 +1,41 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Feed_Writer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Feed
  */
- 
-/**
-* @namespace
-*/
+
 namespace Zend\Feed\Writer\Renderer\Feed;
-use Zend\Feed\Writer\Renderer;
+
+use DOMDocument;
+use DOMElement;
 use Zend\Feed\Writer;
+use Zend\Feed\Writer\Renderer;
 
 /**
-* @uses DOMDocument
-* @uses \Zend\Feed\Writer\Renderer\Feed\Atom\AtomAbstract
-* @uses \Zend\Feed\Writer\Renderer\RendererInterface
 * @category Zend
 * @package Zend_Feed_Writer
-* @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
-* @license http://framework.zend.com/license/new-bsd New BSD License
 */
-class AtomSource extends AtomAbstract implements Renderer\Renderer
+class AtomSource extends AbstractAtom implements Renderer\RendererInterface
 {
 
     /**
      * Constructor
-     * 
-     * @param  Zend_Feed_Writer_Feed_Source $container 
+     *
+     * @param  Zend_Feed_Writer_Feed_Source $container
      * @return void
      */
     public function __construct (Writer\Source $container)
     {
         parent::__construct($container);
     }
-    
+
     /**
      * Render Atom Feed Metadata (Source element)
-     * 
+     *
      * @return \Zend\Feed\Writer\Renderer\Feed\Atom
      */
     public function render()
@@ -58,7 +43,7 @@ class AtomSource extends AtomAbstract implements Renderer\Renderer
         if (!$this->_container->getEncoding()) {
             $this->_container->setEncoding('UTF-8');
         }
-        $this->_dom = new \DOMDocument('1.0', $this->_container->getEncoding());
+        $this->_dom = new DOMDocument('1.0', $this->_container->getEncoding());
         $this->_dom->formatOutput = true;
         $root = $this->_dom->createElement('source');
         $this->setRootElement($root);
@@ -76,7 +61,7 @@ class AtomSource extends AtomAbstract implements Renderer\Renderer
         $this->_setAuthors($this->_dom, $root);
         $this->_setCopyright($this->_dom, $root);
         $this->_setCategories($this->_dom, $root);
-        
+
         foreach ($this->_extensions as $ext) {
             $ext->setType($this->getType());
             $ext->setRootElement($this->getRootElement());
@@ -85,15 +70,15 @@ class AtomSource extends AtomAbstract implements Renderer\Renderer
         }
         return $this;
     }
-    
+
     /**
      * Set feed generator string
-     * 
-     * @param  \DOMDocument $dom 
-     * @param  \DOMElement $root 
+     *
+     * @param  DOMDocument $dom
+     * @param  DOMElement $root
      * @return void
      */
-    protected function _setGenerator(\DOMDocument $dom, \DOMElement $root)
+    protected function _setGenerator(DOMDocument $dom, DOMElement $root)
     {
         if(!$this->getDataContainer()->getGenerator()) {
             return;

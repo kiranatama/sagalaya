@@ -14,13 +14,10 @@
  *
  * @category  Zend
  * @package   Zend_Measure
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Measure;
 use Zend\Registry;
 use Zend\Locale;
@@ -29,12 +26,9 @@ use Zend\Locale\Math;
 /**
  * Abstract class for all measurements
  *
- * @uses       Zend\Locale\Locale
- * @uses       Zend\Locale\Locale\Math
- * @uses       Zend\Registry
  * @category   Zend
  * @package    Zend_Measure
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractMeasure
@@ -68,9 +62,9 @@ abstract class AbstractMeasure
     /**
      * Zend\Measure\MeasureAbstract is an abstract class for the different measurement types
      *
-     * @param  mixed       $value  Value as string, integer, real or float
-     * @param  string      $type   OPTIONAL a measure type f.e. Zend\Measure\Length::METER
-     * @param  Zend_Locale $locale OPTIONAL a Zend\Zend\Locale Type
+     * @param  mixed               $value  Value as string, integer, real or float
+     * @param  string              $type   OPTIONAL a measure type f.e. Zend\Measure\Length::METER
+     * @param  \Zend\Locale\Locale $locale OPTIONAL a Zend\Zend\Locale Type
      * @throws Zend\Measure\Exception
      */
     public function __construct($value, $type = null, $locale = null)
@@ -105,8 +99,8 @@ abstract class AbstractMeasure
     /**
      * Sets a new locale for the value representation
      *
-     * @param string|Zend\Locale\Locale $locale (Optional) New locale to set
-     * @param boolean                   $check  False, check but don't set; True, set the new locale
+     * @param string|\Zend\Locale\Locale $locale (Optional) New locale to set
+     * @param boolean                    $check  False, check but don't set; True, set the new locale
      * @return Zend\Measure\AbstractMeasure
      */
     public function setLocale($locale = null, $check = false)
@@ -138,9 +132,9 @@ abstract class AbstractMeasure
     /**
      * Returns the internal value
      *
-     * @param integer                   $round  (Optional) Rounds the value to an given precision,
-     *                                                     Default is -1 which returns without rounding
-     * @param string|Zend\Locale\Locale $locale (Optional) Locale for number representation
+     * @param integer                    $round  (Optional) Rounds the value to an given precision,
+     *                                                      Default is -1 which returns without rounding
+     * @param string|\Zend\Locale\Locale $locale (Optional) Locale for number representation
      * @return integer|string
      */
     public function getValue($round = -1, $locale = null)
@@ -162,9 +156,9 @@ abstract class AbstractMeasure
     /**
      * Set a new value
      *
-     * @param  integer|string             $value   Value as string, integer, real or float
-     * @param  string                     $type    OPTIONAL A measure type f.e. Zend_Measure_Length::METER
-     * @param  string|Zend\Locale\Locale  $locale  OPTIONAL Locale for parsing numbers
+     * @param  integer|string              $value   Value as string, integer, real or float
+     * @param  string                      $type    OPTIONAL A measure type f.e. Zend_Measure_Length::METER
+     * @param  string|\Zend\Locale\Locale  $locale  OPTIONAL Locale for parsing numbers
      * @throws Zend\Measure\Exception
      * @return Zend\Measure\AbstractMeasure
      */
@@ -274,16 +268,7 @@ abstract class AbstractMeasure
                 $value = call_user_func(Math::$div, $value, $this->_units[$type][0], 25);
             }
 
-            $slength = strlen($value);
-            $length  = 0;
-            for($i = 1; $i <= $slength; ++$i) {
-                if ($value[$slength - $i] != '0') {
-                    $length = 26 - $i;
-                    break;
-                }
-            }
-
-            $this->_value = Math::round($value, $length);
+            $this->_value = $this->roundToPrecision($value);
             $this->_type  = $type;
         }
         return $this;
@@ -307,8 +292,8 @@ abstract class AbstractMeasure
     /**
      * Returns a string representation
      *
-     * @param  integer                   $round  (Optional) Runds the value to an given exception
-     * @param  string|Zend\Locale\Locale $locale (Optional) Locale to set for the number
+     * @param  integer                    $round  (Optional) Runds the value to an given exception
+     * @param  string|\Zend\Locale\Locale $locale (Optional) Locale to set for the number
      * @return string
      */
     public function toString($round = -1, $locale = null)
@@ -343,9 +328,9 @@ abstract class AbstractMeasure
     /**
      * Alias function for setType returning the converted unit
      *
-     * @param  string                    $type   Constant Type
-     * @param  integer                   $round  (Optional) Rounds the value to a given precision
-     * @param  string|Zend\Locale\Locale $locale (Optional) Locale to set for the number
+     * @param  string                     $type   Constant Type
+     * @param  integer                    $round  (Optional) Rounds the value to a given precision
+     * @param  string|\Zend\Locale\Locale $locale (Optional) Locale to set for the number
      * @return string
      */
     public function convertTo($type, $round = 2, $locale = null)
@@ -363,9 +348,9 @@ abstract class AbstractMeasure
     public function add($object)
     {
         $object->setType($this->getType());
-        $value  = $this->getValue(-1) + $object->getValue(-1);
+        $value  = call_user_func(Math::$add, $this->getValue(-1), $object->getValue(-1), 25);
 
-        $this->setValue($value, $this->getType(), $this->_locale);
+        $this->_value = $this->roundToPrecision($value);
         return $this;
     }
 
@@ -378,9 +363,9 @@ abstract class AbstractMeasure
     public function sub($object)
     {
         $object->setType($this->getType());
-        $value  = $this->getValue(-1) - $object->getValue(-1);
+        $value  = call_user_func(Math::$sub, $this->getValue(-1), $object->getValue(-1), 25);
 
-        $this->setValue($value, $this->getType(), $this->_locale);
+        $this->_value = $this->roundToPrecision($value);
         return $this;
     }
 
@@ -402,5 +387,25 @@ abstract class AbstractMeasure
         }
 
         return 0;
+    }
+
+    /**
+     * Rounds a number to its last significant figure
+     *
+     * @param integer|float|string $value the number to round
+     * @return float the rounded number
+     */
+    protected function roundToPrecision($value)
+    {
+        $slength = strlen($value);
+        $length  = 0;
+        for($i = 1; $i <= $slength; ++$i) {
+            if ($value[$slength - $i] != '0') {
+                $length = 26 - $i;
+                break;
+            }
+        }
+
+        return Math::round($value, $length);
     }
 }

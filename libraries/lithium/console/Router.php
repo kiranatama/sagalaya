@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -16,11 +16,13 @@ namespace lithium\console;
 class Router extends \lithium\core\Object {
 
 	/**
-	 * Parse incoming request from console
+	 * Parse incoming request from console. Short and long (GNU-style) options
+	 * in the form of `-f`, `--foo`, `--foo-bar` and `--foo=bar` are parsed.
+	 * XF68-style long options (i.e. `-foo`) are not supported but support
+	 * can be added by extending this class.
 	 *
 	 * @param object $request lithium\console\Request
 	 * @return array $params
-	 *
 	 */
 	public static function parse($request = null) {
 		$defaults = array('command' => null, 'action' => 'run', 'args' => array());

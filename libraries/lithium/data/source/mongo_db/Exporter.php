@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -168,18 +168,20 @@ class Exporter extends \lithium\core\StaticObject {
 		foreach ($left as $key => $value) {
 			$result = static::_append($result, "{$path}{$key}", $value, 'remove');
 		}
+		$data = (array) $right + (array) $objects;
 
-		foreach (array_merge($right, $objects) as $key => $value) {
+		foreach ($data as $key => $value) {
 			$original = $export['data'];
 			$isArray = is_object($value) && get_class($value) == static::$_classes['array'];
 			if ($isArray && isset($original[$key]) && $value->data() != $original[$key]->data()) {
+				$value = $value->data();
+			}
+			if ($isArray && !isset($original[$key])) {
 				 $value = $value->data();
 			}
 			$result = static::_append($result, "{$path}{$key}", $value, 'update');
 		}
-
 		return array_filter($result);
-
 	}
 
 	/**

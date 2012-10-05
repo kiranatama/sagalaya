@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -75,15 +75,15 @@ class ApcTest extends \lithium\test\Unit {
 	}
 
 	public function testWriteDefaultCacheTime() {
-		$Apc = new Apc(array('expiry' => '+5 seconds'));
+		$apc = new Apc(array('expiry' => '+5 seconds'));
 		$key = 'key';
 		$data = 'value';
 
-		$closure = $Apc->write($key, $data);
+		$closure = $apc->write($key, $data);
 		$this->assertTrue(is_callable($closure));
 
 		$params = compact('key', 'data');
-		$result = $closure($Apc, $params, null);
+		$result = $closure($apc, $params, null);
 		$expected = $data;
 		$this->assertTrue($result);
 

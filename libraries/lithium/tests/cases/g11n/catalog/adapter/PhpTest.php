@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -20,8 +20,7 @@ class PhpTest extends \lithium\test\Unit {
 
 	public function skip() {
 		$this->_path = $path = Libraries::get(true, 'resources') . '/tmp/tests';
-		$message = "{$path} is not writable.";
-		$this->skipIf(!is_writable($path), $message);
+		$this->skipIf(!is_writable($path), "Path `{$path}` is not writable.");
 	}
 
 	public function setUp() {

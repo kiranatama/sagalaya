@@ -1,41 +1,21 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Mail
- * @subpackage Storage
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Mail
  */
 
-/**
- * @namespace
- */
 namespace Zend\Mail\Storage;
 
-use Zend\Mail\AbstractStorage,
-    Zend\Mail\Storage\Exception;
+use Zend\Stdlib\ErrorHandler;
 
 /**
- * @uses       \Zend\Mail\Message\File
- * @uses       \Zend\Mail\Storage\AbstractStorage
- * @uses       \Zend\Mail\Storage\Exception
  * @category   Zend
  * @package    Zend_Mail
  * @subpackage Storage
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Mbox extends AbstractStorage
 {
@@ -58,22 +38,22 @@ class Mbox extends AbstractStorage
     protected $_filemtime;
 
     /**
-     * start and end position of messages as array('start' => start, 'seperator' => headersep, 'end' => end)
+     * start and end position of messages as array('start' => start, 'separator' => headersep, 'end' => end)
      * @var array
      */
     protected $_positions;
 
     /**
-     * used message class, change it in an extened class to extend the returned message class
+     * used message class, change it in an extended class to extend the returned message class
      * @var string
      */
-    protected $_messageClass = '\Zend\Mail\Message\File';
+    protected $_messageClass = '\Zend\Mail\Storage\Message\File';
 
     /**
      * Count messages all messages in current box
      *
      * @return int number of messages
-     * @throws \Zend\Mail\Storage\Exception
+     * @throws \Zend\Mail\Storage\Exception\ExceptionInterface
      */
     public function countMessages()
     {
@@ -104,11 +84,11 @@ class Mbox extends AbstractStorage
 
 
     /**
-     * Get positions for mail message or throw exeption if id is invalid
+     * Get positions for mail message or throw exception if id is invalid
      *
      * @param int $id number of message
+     * @throws Exception\InvalidArgumentException
      * @return array positions as in _positions
-     * @throws \Zend\Mail\Storage\Exception
      */
     protected function _getPos($id)
     {
@@ -124,13 +104,14 @@ class Mbox extends AbstractStorage
      * Fetch a message
      *
      * @param  int $id number of message
-     * @return \Zend\Mail\Message\File
-     * @throws \Zend\Mail\Storage\Exception
+     * @return \Zend\Mail\Storage\Message\File
+     * @throws \Zend\Mail\Storage\Exception\ExceptionInterface
      */
     public function getMessage($id)
     {
         // TODO that's ugly, would be better to let the message class decide
-        if (strtolower($this->_messageClass) == '\zend\mail\message\file' || is_subclass_of($this->_messageClass, '\Zend\Mail\Message\File')) {
+        if (strtolower($this->_messageClass) == '\zend\mail\storage\message\file'
+            || is_subclass_of($this->_messageClass, '\Zend\Mail\Storage\Message\File')) {
             // TODO top/body lines
             $messagePos = $this->_getPos($id);
             return new $this->_messageClass(array('file' => $this->_fh, 'startPos' => $messagePos['start'],
@@ -155,11 +136,11 @@ class Mbox extends AbstractStorage
      * Get raw header of message or part
      *
      * @param  int               $id       number of message
-     * @param  null|array|string $part     path to part or null for messsage header
+     * @param  null|array|string $part     path to part or null for message header
      * @param  int               $topLines include this many lines with header (after an empty line)
      * @return string raw header
-     * @throws \Zend\Mail\Protocol\Exception
-     * @throws \Zend\Mail\Storage\Exception
+     * @throws \Zend\Mail\Protocol\Exception\ExceptionInterface
+     * @throws \Zend\Mail\Storage\Exception\ExceptionInterface
      */
     public function getRawHeader($id, $part = null, $topLines = 0)
     {
@@ -176,10 +157,10 @@ class Mbox extends AbstractStorage
      * Get raw content of message or part
      *
      * @param  int               $id   number of message
-     * @param  null|array|string $part path to part or null for messsage content
+     * @param  null|array|string $part path to part or null for message content
      * @return string raw content
-     * @throws \Zend\Mail\Protocol\Exception
-     * @throws \Zend\Mail\Storage\Exception
+     * @throws \Zend\Mail\Protocol\Exception\ExceptionInterface
+     * @throws \Zend\Mail\Storage\Exception\ExceptionInterface
      */
     public function getRawContent($id, $part = null)
     {
@@ -197,7 +178,7 @@ class Mbox extends AbstractStorage
      *   - filename filename of mbox file
      *
      * @param  $params array mail reader specific parameters
-     * @throws \Zend\Mail\Storage\Exception
+     * @throws Exception\InvalidArgumentException
      */
     public function __construct($params)
     {
@@ -226,7 +207,9 @@ class Mbox extends AbstractStorage
     protected function _isMboxFile($file, $fileIsString = true)
     {
         if ($fileIsString) {
-            $file = @fopen($file, 'r');
+            ErrorHandler::start(E_WARNING);
+            $file = fopen($file, 'r');
+            ErrorHandler::stop();
             if (!$file) {
                 return false;
             }
@@ -242,7 +225,9 @@ class Mbox extends AbstractStorage
         }
 
         if ($fileIsString) {
-            @fclose($file);
+            ErrorHandler::start(E_WARNING);
+            fclose($file);
+            ErrorHandler::stop();
         }
 
         return $result;
@@ -252,8 +237,8 @@ class Mbox extends AbstractStorage
      * open given file as current mbox file
      *
      * @param  string $filename filename of mbox file
-     * @return null
-     * @throws \Zend\Mail\Storage\Exception
+     * @throws Exception\RuntimeException
+     * @throws Exception\InvalidArgumentException
      */
     protected function _openMboxFile($filename)
     {
@@ -269,7 +254,9 @@ class Mbox extends AbstractStorage
         $this->_filemtime = filemtime($this->_filename);
 
         if (!$this->_isMboxFile($this->_fh, false)) {
-            @fclose($this->_fh);
+            ErrorHandler::start(E_WARNING);
+            fclose($this->_fh);
+            ErrorHandler::stop();
             throw new Exception\InvalidArgumentException('file is not a valid mbox format');
         }
 
@@ -299,11 +286,12 @@ class Mbox extends AbstractStorage
      * Close resource for mail lib. If you need to control, when the resource
      * is closed. Otherwise the destructor would call this.
      *
-     * @return void
      */
     public function close()
     {
-        @fclose($this->_fh);
+        ErrorHandler::start(E_WARNING);
+        fclose($this->_fh);
+        ErrorHandler::stop();
         $this->_positions = array();
     }
 
@@ -311,7 +299,7 @@ class Mbox extends AbstractStorage
     /**
      * Waste some CPU cycles doing nothing.
      *
-     * @return void
+     * @return boolean always return true
      */
     public function noop()
     {
@@ -322,8 +310,8 @@ class Mbox extends AbstractStorage
     /**
      * stub for not supported message deletion
      *
-     * @return null
-     * @throws \Zend\Mail\Storage\Exception
+     * @param $id
+     * @throws Exception\RuntimeException
      */
     public function removeMessage($id)
     {
@@ -339,7 +327,7 @@ class Mbox extends AbstractStorage
      *
      * @param int|null $id message number
      * @return array|string message number for given message or all messages as array
-     * @throws \Zend\Mail\Storage\Exception
+     * @throws \Zend\Mail\Storage\Exception\ExceptionInterface
      */
     public function getUniqueId($id = null)
     {
@@ -361,7 +349,7 @@ class Mbox extends AbstractStorage
      *
      * @param string $id unique id
      * @return int message number
-     * @throws \Zend\Mail\Storage\Exception
+     * @throws \Zend\Mail\Storage\Exception\ExceptionInterface
      */
     public function getNumberByUniqueId($id)
     {
@@ -388,8 +376,7 @@ class Mbox extends AbstractStorage
      * with this method you can cache the mbox class
      * for cache validation the mtime of the mbox file is used
      *
-     * @return null
-     * @throws \Zend\Mail\Storage\Exception
+     * @throws Exception\RuntimeException
      */
     public function __wakeup()
     {

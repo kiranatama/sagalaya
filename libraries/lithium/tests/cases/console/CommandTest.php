@@ -2,13 +2,14 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
 namespace lithium\tests\cases\console;
 
 use lithium\console\Request;
+use lithium\console\Response;
 use lithium\tests\mocks\console\MockCommand;
 
 class CommandTest extends \lithium\test\Unit {
@@ -38,8 +39,7 @@ class CommandTest extends \lithium\test\Unit {
 		$response = $command('testRun');
 
 		$result = $response;
-		$expected = 'lithium\console\Response';
-		$this->assertTrue(is_a($result, $expected));
+		$this->assertTrue($result instanceof Response);
 
 		$expected = 'testRun';
 		$result = $response->testAction;
@@ -152,7 +152,7 @@ class CommandTest extends \lithium\test\Unit {
 		$command = new MockCommand(array('request' => $this->request));
 		$return = $command->__invoke('_help');
 
-		$this->assertTrue($return);
+		$this->assertTrue($return instanceOf \lithium\tests\mocks\console\MockResponse);
 
 		$expected = "DESCRIPTION.*This is the Mock Command";
 		$result = $command->response->output;
@@ -233,6 +233,37 @@ class CommandTest extends \lithium\test\Unit {
 
 		$expected = "y";
 		$result = $command->in('Everything Cool?', array('choices' => array('y', 'n')));
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testOutWithStyles() {
+		$command = new MockCommand(array('request' => $this->request));
+		$expected = "{:some-style}ok\n";
+		$result = $command->out('ok', 'some-style');
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testOutWithoutStyles() {
+		$command = new MockCommand(array('request' => $this->request));
+		$command->plain = true;
+		$expected = "ok\n";
+		$result = $command->out('ok', 'some-style');
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testOutWithSilent() {
+		$command = new MockCommand(array('request' => $this->request));
+		$command->silent = true;
+		$expected = "";
+		$result = $command->out('ok', 'some-style');
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testColumnsOnErrorOutput() {
+		$command = new MockCommand(array('request' => $this->request));
+		$expected = "data1\t\ndata2\t\n";
+		$command->columns(array('col1' => 'data1', 'col2' => 'data2'), array('error' => true));
+		$result = $command->response->error;
 		$this->assertEqual($expected, $result);
 	}
 }

@@ -1,16 +1,18 @@
 <?php
 /**
  * @category   Zend
- * @package    Zend\Cloud\Infrastructure
+ * @package    Zend_Cloud_Infrastructure
  * @subpackage Adapter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
 namespace Zend\Cloud\Infrastructure\Adapter;
 
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
 use Zend\Service\Rackspace\Servers as RackspaceServers,
-    Zend\Cloud\Infrastructure\Instance,    
+    Zend\Cloud\Infrastructure\Instance,
     Zend\Cloud\Infrastructure\InstanceList,
     Zend\Cloud\Infrastructure\Image,
     Zend\Cloud\Infrastructure\ImageList;
@@ -18,9 +20,9 @@ use Zend\Service\Rackspace\Servers as RackspaceServers,
 /**
  * Rackspace servers adapter for infrastructure service
  *
- * @package    Zend\Cloud\Infrastructure
+ * @package    Zend_Cloud_Infrastructure
  * @subpackage Adapter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Rackspace extends AbstractAdapter
@@ -91,19 +93,15 @@ class Rackspace extends AbstractAdapter
     /**
      * Constructor
      *
-     * @param  array|Zend_Config $options
+     * @param  array|Traversable $options
      * @return void
      */
     public function __construct($options = array())
     {
-        if (is_object($options)) {
-            if (method_exists($options, 'toArray')) {
-                $options= $options->toArray();
-            } elseif ($options instanceof \Traversable) {
-                $options = iterator_to_array($options);
-            }
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         }
-        
+
         if (empty($options) || !is_array($options)) {
             throw new Exception\InvalidArgumentException('Invalid options provided');
         }
@@ -143,8 +141,6 @@ class Rackspace extends AbstractAdapter
         if (isset($options[self::HTTP_ADAPTER])) {
             $this->rackspace->getHttpClient()->setAdapter($options[self::HTTP_ADAPTER]);
         }
-        
-        $this->flavors= $this->rackspace->listFlavors(true);
     }
     /**
      * Convert the attributes of Rackspace server into attributes of Infrastructure
@@ -157,28 +153,42 @@ class Rackspace extends AbstractAdapter
         $result = array();       
         if (!empty($attr) && is_array($attr)) {
             $result[Instance::INSTANCE_ID]      = $attr['id'];
+            unset($attr['id']);
             $result[Instance::INSTANCE_NAME]    = $attr['name'];
+            unset($attr['name']);
             $result[Instance::INSTANCE_STATUS]  = $this->mapStatus[$attr['status']];
+            unset($attr['status']);
             $result[Instance::INSTANCE_IMAGEID] = $attr['imageId'];
+            unset($attr['imageId']);
             if ($this->region==RackspaceServers::US_AUTH_URL) {
                 $result[Instance::INSTANCE_ZONE] = self::RACKSPACE_ZONE_USA;
             } else {
                 $result[Instance::INSTANCE_ZONE] = self::RACKSPACE_ZONE_UK;
             }
-            $result[Instance::INSTANCE_RAM]     = $this->flavors[$attr['flavorId']]['ram'];
-            $result[Instance::INSTANCE_STORAGE] = $this->flavors[$attr['flavorId']]['disk'];
+            if (empty($this->flavors)) {
+                $this->flavors = $this->rackspace->listFlavors(true);
+            }
+            if (!empty($this->flavors)) {
+                $result[Instance::INSTANCE_RAM]     = $this->flavors[$attr['flavorId']]['ram'];
+                $result[Instance::INSTANCE_STORAGE] = $this->flavors[$attr['flavorId']]['disk'];
+            }    
+            unset($attr['flavorId']);
+            $result[Instance::INSTANCE_PUBLICDNS] = $attr['addresses']['public'][0];
+            $result = array_merge($attr,$result);
         }
         return $result;
     }
     /**
-     * Return a list of the available instancies
+     * Return a list of the available instances
      *
      * @return InstanceList|boolean
      */ 
     public function listInstances() 
     {
+        $this->resetError();
         $this->adapterResult = $this->rackspace->listServers(true);
         if ($this->adapterResult===false) {
+            $this->setError();
             return false;
         }
         $array= $this->adapterResult->toArray();
@@ -196,8 +206,10 @@ class Rackspace extends AbstractAdapter
      */ 
     public function statusInstance($id)
     {
+        $this->resetError();
         $this->adapterResult = $this->rackspace->getServer($id);
         if ($this->adapterResult===false) {
+            $this->setError();
             return false;
         }
         $array= $this->adapterResult->toArray();
@@ -211,10 +223,12 @@ class Rackspace extends AbstractAdapter
      */
     public function publicDnsInstance($id) 
     {
+        $this->resetError();
         $this->adapterResult = $this->rackspace->getServerPublicIp($id);
         if (empty($this->adapterResult)) {
+            $this->setError();
             return false;
-        }    
+        }  
         return $this->adapterResult[0];
     }
     /**
@@ -225,7 +239,12 @@ class Rackspace extends AbstractAdapter
      */ 
     public function rebootInstance($id)
     {
-        return $this->rackspace->rebootServer($id,true);
+        $this->resetError();
+        $result = $this->rackspace->rebootServer($id,true);
+        if ($result===false) {
+            $this->setError();
+        }
+        return $result;
     }
     /**
      * Create a new instance
@@ -242,20 +261,22 @@ class Rackspace extends AbstractAdapter
         if (empty($options) || !is_array($options)) {
             throw new Exception\InvalidArgumentException('The options must be an array');
         }
+        $this->resetError();
         // @todo create an generic abstract definition for an instance?
-        $metadata= array();
+        $metadata = array();
         if (isset($options['metadata'])) {
-            $metadata= $options['metadata'];
+            $metadata = $options['metadata'];
             unset($options['metadata']);
         }
-        $files= array();
+        $files = array();
         if (isset($options['files'])) {
-            $files= $options['files'];
+            $files = $options['files'];
             unset($options['files']);
         }
-        $options['name']= $name;
+        $options['name'] = $name;
         $this->adapterResult = $this->rackspace->createServer($options,$metadata,$files);
         if ($this->adapterResult===false) {
+            $this->setError();
             return false;
         }
         return new Instance($this, $this->convertAttributes($this->adapterResult->toArray()));
@@ -290,7 +311,11 @@ class Rackspace extends AbstractAdapter
      */ 
     public function destroyInstance($id)
     {
+        $this->resetError();
         $this->adapterResult= $this->rackspace->deleteServer($id);
+        if ($this->adapterResult===false) {
+            $this->setError();
+        }
         return $this->adapterResult;
     }
     /**
@@ -300,14 +325,16 @@ class Rackspace extends AbstractAdapter
      */ 
     public function imagesInstance()
     {
+        $this->resetError();
         $this->adapterResult = $this->rackspace->listImages(true);
         if ($this->adapterResult===false) {
+            $this->setError();
             return false;
         }
         
         $images= $this->adapterResult->toArray();
         $result= array();
-        
+        $i=0;
         foreach ($images as $image) {
             if (strtolower($image['status'])==='active') {
                 if (strpos($image['name'],'Windows')!==false) {
@@ -320,13 +347,17 @@ class Rackspace extends AbstractAdapter
                 } else {
                     $arch = Image::ARCH_32BIT;
                 }
-                $result[]= array (
+                $result[$i]= array (
                     Image::IMAGE_ID           => $image['id'],
                     Image::IMAGE_NAME         => $image['name'],
                     Image::IMAGE_DESCRIPTION  => $image['name'],
                     Image::IMAGE_ARCHITECTURE => $arch,
                     Image::IMAGE_PLATFORM     => $platform,
                 );
+                unset($image['id']);
+                unset($image['name']);
+                $result[$i] = array_merge($image, $result[$i]);
+                $i++;
             }
         }
         return new ImageList($result,$this->adapterResult);
@@ -387,9 +418,10 @@ class Rackspace extends AbstractAdapter
             Instance::SSH_PASSWORD => $options['password']
         );
         $exec_time= time();
-        $result= $this->deployInstance($id,$params,$cmd);
-        
-        if (empty($result)) {
+        try {
+            $result= $this->deployInstance($id,$params,$cmd);
+        } catch (Exception\RuntimeException $e) {
+            $this->errorMsg = $e->getMessage();
             return false;
         }
 
@@ -426,7 +458,7 @@ class Rackspace extends AbstractAdapter
                 
                 $monitor['series'][] = array (
                     'timestamp' => $exec_time,
-                    'value'     => number_format($usage,2).'%'
+                    'value'     => number_format($usage,2)
                 );
                 
                 $average += $usage;
@@ -436,14 +468,14 @@ class Rackspace extends AbstractAdapter
         }
         
         if ($num>0) {
-            $monitor['average'] = number_format($average/$num,2).'%';
+            $monitor['average'] = number_format($average/$num,2);
         }
         return $monitor;
     }
     /**
      * Get the adapter 
      * 
-     * @return Zend\Service\Rackspace\Servers
+     * @return \Zend\Service\Rackspace\Servers
      */
     public function getAdapter()
     {
@@ -456,15 +488,25 @@ class Rackspace extends AbstractAdapter
      */
     public function getLastHttpRequest()
     {
-        return $this->rackspace->getHttpClient()->getLastRequest();
+        return $this->rackspace->getHttpClient()->getLastRawRequest();
     }
     /**
      * Get the last HTTP response
      * 
-     * @return Zend\Http\Response 
+     * @return \Zend\Http\Response
      */
     public function getLastHttpResponse()
     {
-        return $this->rackspace->getHttpClient()->getLastResponse();
+        return $this->rackspace->getHttpClient()->getResponse()->toString();
+    }
+    /**
+     * Set the error message and code
+     * 
+     * @return void
+     */
+    protected function setError()
+    {
+        $this->errorMsg  = $this->rackspace->getErrorMsg();
+        $this->errorCode = $this->rackspace->getErrorCode();
     }
 }

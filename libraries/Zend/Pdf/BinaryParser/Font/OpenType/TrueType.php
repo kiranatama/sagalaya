@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage FileParser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\BinaryParser\Font\OpenType;
 use Zend\Pdf\Exception;
 use Zend\Pdf;
@@ -29,12 +26,9 @@ use Zend\Pdf;
 /**
  * Parses an OpenType font file containing TrueType outlines.
  *
- * @uses       \Zend\Pdf\Exception
- * @uses       \Zend\Pdf\BinaryParser\Font\OpenType\AbstractOpenType
- * @uses       \Zend\Pdf\Font
  * @package    Zend_PDF
  * @subpackage FileParser
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class TrueType extends AbstractOpenType
@@ -47,7 +41,7 @@ class TrueType extends AbstractOpenType
     /**
      * Verifies that the font file actually contains TrueType outlines.
      *
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public function screen()
     {

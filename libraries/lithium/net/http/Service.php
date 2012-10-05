@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -184,6 +184,13 @@ class Service extends \lithium\core\Object {
 		}
 		$response = $this->connection->send($request, $options);
 		$this->connection->close();
+
+		if ($response->status['code'] == 401 && $auth = $response->digest()) {
+			$request->auth = $auth;
+			$this->connection->open(array('message' => $request) + $options);
+			$response = $this->connection->send($request, $options);
+			$this->connection->close();
+		}
 		$this->last = (object) compact('request', 'response');
 		return ($options['return'] == 'body' && $response) ? $response->body() : $response;
 	}
@@ -203,22 +210,14 @@ class Service extends \lithium\core\Object {
 	protected function _request($method, $path, $data, $options) {
 		$defaults = array('type' => 'form');
 		$options += $defaults + $this->_config;
+
 		$request = $this->_instance('request', $options);
 		$request->path = str_replace('//', '/', "{$request->path}{$path}");
 		$request->method = $method = strtoupper($method);
+
 		$hasBody = in_array($method, array('POST', 'PUT'));
-
-		$media = $this->_classes['media'];
-		$type = null;
-
-		if ($data && in_array($options['type'], $media::types())) {
-			$type = $media::type($options['type']);
-			$contentType = (array) $type['content'];
-			$request->headers(array('Content-Type' => current($contentType)));
-			$data = $hasBody && !is_string($data) ?
-				Media::encode($options['type'], $data, $options) : $data;
-		}
 		$hasBody ? $request->body($data) : $request->query = $data;
+		$hasBody ? $request->type($options['type']) : null;
 		return $request;
 	}
 }

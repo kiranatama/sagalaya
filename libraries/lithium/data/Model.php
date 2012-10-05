@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -244,6 +244,20 @@ class Model extends \lithium\core\StaticObject {
 	 * a collection, along with a `'data'` key, which contains the schema for that collection, in
 	 * the format specified above.
 	 *
+	 * When defining `'$_schema'` where the data source is MongoDB, the types map to database types
+	 * as follows:
+	 *
+	 * {{{
+	 *	id      => MongoId
+	 *	date    => MongoDate
+	 *	regex   => MongoRegex
+	 *	integer => integer
+	 *	float   => float
+	 *	boolean => boolean
+	 *	code    => MongoCode
+	 *	binary  => MongoBinData
+	 * }}}
+	 *
 	 * @see lithium\data\source\MongoDb::$_schema
 	 * @var array
 	 */
@@ -295,6 +309,13 @@ class Model extends \lithium\core\StaticObject {
 	protected static $_baseClasses = array(__CLASS__ => true);
 
 	/**
+	 * Stores all custom instance methods created by `Model::instanceMethods`.
+	 *
+	 * @var array
+	 */
+	protected static $_instanceMethods = array();
+
+	/**
 	 * Sets default connection options and connects default finders.
 	 *
 	 * @param array $options
@@ -311,8 +332,9 @@ class Model extends \lithium\core\StaticObject {
 	 * attributes, as well as obtain a handle to the configured persistent storage connection.
 	 *
 	 * @param array $options Possible options are:
-	 * - `meta`: Meta-information for this model, such as the connection.
-	 * - `finders`: Custom finders for this model.
+	 *     - `meta`: Meta-information for this model, such as the connection.
+	 *     - `finders`: Custom finders for this model.
+	 *
 	 * @return void
 	 */
 	public static function config(array $options = array()) {
@@ -475,7 +497,7 @@ class Model extends \lithium\core\StaticObject {
 	}
 
 	/**
-	 * Set/get method for `Model` metadata.
+	 * Gets or sets Model's metadata.
 	 *
 	 * @see lithium\data\Model::$_meta
 	 * @param string $key Model metadata key.
@@ -639,8 +661,8 @@ class Model extends \lithium\core\StaticObject {
 	 * example:
 	 *
 	 * {{{
-	 * $post = Posts::create(array("title" => "New post"));
-	 * echo $post->title; // echoes "New post"
+	 * $post = Posts::create(array('title' => 'New post'));
+	 * echo $post->title; // echoes 'New post'
 	 * $success = $post->save();
 	 * }}}
 	 *
@@ -651,8 +673,8 @@ class Model extends \lithium\core\StaticObject {
 	 * database, without actually querying the database:
 	 *
 	 * {{{
-	 * $post = Posts::create(array("id" => $id, "moreData" => "foo"), array("exists" => true));
-	 * $post->title = "New title";
+	 * $post = Posts::create(array('id' => $id, 'moreData' => 'foo'), array('exists' => true));
+	 * $post->title = 'New title';
 	 * $success = $post->save();
 	 * }}}
 	 *
@@ -682,6 +704,31 @@ class Model extends \lithium\core\StaticObject {
 			$data = Set::merge(Set::expand($defaults), $data);
 			return $self::connection()->item($self, $data, $options);
 		});
+	}
+
+	/**
+	 * Getter and setter for custom instance methods. This is used in `Entity::__call`.
+	 *
+	 * {{{
+	 * Model::instanceMethods(array(
+	 *     'method_name' => array('Class', 'method'),
+	 *     'another_method' => array($object, 'method'),
+	 *     'closure_callback' => function($entity) {}
+	 * ));
+	 * }}}
+	 *
+	 * @param array $methods
+	 * @return array
+	 */
+	public static function instanceMethods(array $methods = null) {
+		$class = get_called_class();
+		if (!isset(static::$_instanceMethods[$class])) {
+			static::$_instanceMethods[$class] = array();
+		}
+		if (!is_null($methods)) {
+			static::$_instanceMethods[$class] = $methods + static::$_instanceMethods[$class];
+		}
+		return static::$_instanceMethods[$class];
 	}
 
 	/**
@@ -736,6 +783,10 @@ class Model extends \lithium\core\StaticObject {
 	 *          be immediately saved. Defaults to `true`. May also be specified as an array, in
 	 *          which case it will replace the default validation rules specified in the
 	 *         `$validates` property of the model.
+	 *        - `'events'` _mixed_: A string or array defining one or more validation _events_.
+	 *          Events are different contexts in which data events can occur, and correspond to the
+	 *          optional `'on'` key in validation rules. They will be passed to the validates()
+	 *          method if `'validate'` is not `false`.
 	 *        - `'whitelist'` _array_: An array of fields that are allowed to be saved to this
 	 *          record.
 	 *
@@ -749,6 +800,7 @@ class Model extends \lithium\core\StaticObject {
 
 		$defaults = array(
 			'validate' => true,
+			'events' => $entity->exists() ? 'update' : 'create',
 			'whitelist' => null,
 			'callbacks' => true,
 			'locked' => $self->_meta['locked']
@@ -764,7 +816,9 @@ class Model extends \lithium\core\StaticObject {
 				$entity->set($params['data']);
 			}
 			if ($rules = $options['validate']) {
-				if (!$entity->validates(is_array($rules) ? compact('rules') : array())) {
+				$events = $options['events'];
+				$validateOpts = is_array($rules) ? compact('rules','events') : compact('events');
+				if (!$entity->validates($validateOpts)) {
 					return false;
 				}
 			}

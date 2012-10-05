@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Internal
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\InternalType\StreamFilter\Compression;
 use Zend\Pdf\Exception;
 use Zend\Pdf;
@@ -29,11 +26,9 @@ use Zend\Pdf;
 /**
  * LZW stream filter
  *
- * @uses       \Zend\Pdf\Exception
- * @uses       \Zend\Pdf\InternalType\StreamFilter\Compression\AbstractCompression
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Internal
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Lzw extends AbstractCompression
@@ -43,7 +38,7 @@ class Lzw extends AbstractCompression
      *
      * @param array $params
      * @return integer
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     private static function _getEarlyChangeValue($params)
     {
@@ -66,7 +61,7 @@ class Lzw extends AbstractCompression
      * @param string $data
      * @param array $params
      * @return string
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public static function encode($data, $params = null)
     {
@@ -83,7 +78,7 @@ class Lzw extends AbstractCompression
      * @param string $data
      * @param array $params
      * @return string
-     * @throws \Zend\Pdf\Exception
+     * @throws \Zend\Pdf\Exception\ExceptionInterface
      */
     public static function decode($data, $params = null)
     {

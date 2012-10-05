@@ -15,22 +15,18 @@
  * @category   Zend
  * @package    Zend_Dojo
  * @subpackage View
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Dojo\View\Helper;
 
 /**
  * dijit.form.SimpleTextarea view helper
  *
- * @uses       \Zend\Dojo\View\Helper\Dijit
  * @package    Zend_Dojo
  * @subpackage View
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class SimpleTextarea extends Dijit
@@ -69,7 +65,7 @@ class SimpleTextarea extends Dijit
         $attribs = $this->_prepareDijit($attribs, $params, 'textarea');
 
         $html = '<textarea' . $this->_htmlAttribs($attribs) . '>'
-              . $this->view->vars()->escape($value)
+              . $this->view->escape($value)
               . "</textarea>\n";
 
         return $html;

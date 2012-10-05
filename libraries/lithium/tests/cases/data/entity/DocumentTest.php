@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -112,6 +112,81 @@ class DocumentTest extends \lithium\test\Unit {
 		);
 		$result = $doc->data();
 		$this->assertEqual($expected, $result);
+	}
+
+
+	public function testSyncModified() {
+		$doc = new Document(array('model' => $this->_model));
+		$doc->id = 4;
+		$doc->name = 'Four';
+		$doc->content = 'Lorem ipsum four';
+		$doc->array = array(1, 2, 3, 4);
+		$doc->subdoc = array(
+			'setting' => 'something',
+			'foo' => 'bar',
+			'sub' => array(
+				'name' => 'A sub sub doc'
+			)
+		);
+		$doc->subdocs = array(
+			array(
+				'id' => 1
+			),
+			array(
+				'id' => 2
+			),
+			array(
+				'id' => 3
+			),
+			array(
+				'id' => 4
+			)
+		);
+
+		$fields = array(
+			'id', 'name', 'content',
+			'array', 'subdoc', 'subdocs'
+		);
+		$expected = array_fill_keys($fields, true);
+
+		$this->assertEqual($expected, $doc->modified());
+		$doc->sync();
+
+		$this->assertEqual(array_fill_keys($fields, false), $doc->modified());
+
+		$doc->id = 5;
+		$doc->content = null;
+		$doc->new = null;
+		$doc->subdoc->foo = 'baz';
+		$doc->array[] = 5;
+		$doc->subdocs[] = array('id' => 5);
+		$expected['name'] = false;
+		$expected['new'] = true;
+		$fields[] = 'new';
+
+		$this->assertEqual($expected, $doc->modified());
+		$doc->sync();
+
+		$expected = array_fill_keys($fields, false);
+
+		$this->assertEqual($expected, $doc->modified());
+		$doc->sync();
+
+		$doc->subdocs[1]->updated = true;
+		$expected['subdocs'] = true;
+
+		$this->assertEqual($expected, $doc->modified());
+		$doc->sync();
+
+		$expected = array_fill_keys($fields, false);
+
+		$doc->array[1] = array(
+			'foo' => 'bar'
+		);
+		$expected['array'] = true;
+
+		$this->assertEqual($expected, $doc->modified());
+		$doc->sync();
 	}
 
 	public function testNestedKeyGetSet() {
@@ -717,6 +792,26 @@ class DocumentTest extends \lithium\test\Unit {
 
 		$document->_id == "";
 		$this->assertFalse(array_key_exists('_id', $document->data()), $message);
+	}
+
+	/**
+	 * Ensures that the data returned from the `data()` method matches the
+	 * internal state of the object.
+	 */
+	public function testEnsureArrayExportFidelity() {
+		$data = array(
+			'department_3' => 0,
+			4 => 0,
+			5 => 0,
+			6 => 0,
+			'6x' => 0,
+			7 => 0,
+			8 => 0,
+			10 => 0,
+			12 => 0
+		);
+		$doc = new Document(compact('data'));
+		$this->assertIdentical($data, $doc->data());
 	}
 }
 

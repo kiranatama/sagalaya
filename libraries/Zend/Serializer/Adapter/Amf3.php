@@ -15,29 +15,20 @@
  * @category   Zend
  * @package    Zend_Serializer
  * @subpackage Adapter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Serializer\Adapter;
 
 use Zend\Serializer\Exception\RuntimeException,
     Zend\Amf\Parser as AmfParser;
 
 /**
- * @uses       Zend\Amf\Parser\Amf3\Deserializer
- * @uses       Zend\Amf\Parser\Amf3\Serializer
- * @uses       Zend\Amf\Parser\InputStream
- * @uses       Zend\Amf\Parser\OutputStream
- * @uses       Zend\Serializer\Adapter\AbstractAdapter
- * @uses       Zend\Serializer\Exception\RuntimeException
  * @category   Zend
  * @package    Zend_Serializer
  * @subpackage Adapter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Amf3 extends AbstractAdapter
@@ -48,7 +39,7 @@ class Amf3 extends AbstractAdapter
      * @param  mixed $value 
      * @param  array $opts 
      * @return string
-     * @throws Zend\Serializer\Exception
+     * @throws RuntimeException
      */
     public function serialize($value, array $opts = array())
     {
@@ -68,7 +59,7 @@ class Amf3 extends AbstractAdapter
      * @param  mixed $value 
      * @param  array $opts 
      * @return string
-     * @throws Zend\Serializer\Exception
+     * @throws RuntimeException
      */
     public function unserialize($value, array $opts = array())
     {

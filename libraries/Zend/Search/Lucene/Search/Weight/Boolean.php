@@ -15,25 +15,19 @@
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Search\Lucene\Search\Weight;
 use Zend\Search\Lucene\Search\Query;
 use Zend\Search\Lucene;
 
 /**
- * @uses       \Zend\Search\Lucene\Search\Weight\AbstractWeight
- * @uses       \Zend\Search\Lucene\Search\Query\AbstractQuery
- * @uses       \Zend\Search\Lucene\SearchIndex
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Boolean extends AbstractWeight
@@ -41,7 +35,7 @@ class Boolean extends AbstractWeight
     /**
      * IndexReader.
      *
-     * @var \Zend\Search\Lucene\SearchIndex
+     * @var \Zend\Search\Lucene\SearchIndexInterface
      */
     private $_reader;
 
@@ -67,9 +61,9 @@ class Boolean extends AbstractWeight
      * reader - index reader
      *
      * @param \Zend\Search\Lucene\Search\Query\AbstractQuery $query
-     * @param \Zend\Search\Lucene\SearchIndex    $reader
+     * @param \Zend\Search\Lucene\SearchIndexInterface    $reader
      */
-    public function __construct(Query\AbstractQuery $query, Lucene\SearchIndex    $reader)
+    public function __construct(Query\AbstractQuery $query, Lucene\SearchIndexInterface    $reader)
     {
         $this->_query   = $query;
         $this->_reader  = $reader;

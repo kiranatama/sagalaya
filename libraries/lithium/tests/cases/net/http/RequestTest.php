@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -82,7 +82,7 @@ class RequestTest extends \lithium\test\Unit {
 			'params' => array('param' => 'value')
 		));
 
-		$expected = '/base/path/';
+		$expected = '/base/path';
 		$result = $request->path;
 		$this->assertEqual($expected, $result);
 	}
@@ -250,6 +250,57 @@ class RequestTest extends \lithium\test\Unit {
 			array('param' => array('value1', 'value2')),
 			"{:key}:{:value}/"
 		);
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testDigest() {
+		$request = new Request(array(
+			'path' => 'http_auth',
+			'auth' => array(
+				'realm' => 'app',
+				'qop' => 'auth',
+				'nonce' => '4bca0fbca7bd0',
+				'opaque' => 'd3fb67a7aa4d887ec4bf83040a820a46'
+			),
+			'username' => 'gwoo',
+			'password' => 'li3'
+		));
+		$cnonce = md5(time());
+		$user = md5("gwoo:app:li3");
+		$nonce = "4bca0fbca7bd0:00000001:{$cnonce}:auth";
+		$req = md5("GET:/http_auth");
+		$hash = md5("{$user}:{$nonce}:{$req}");
+
+		$request->to('url');
+		preg_match('/response="(.*?)"/', $request->headers('Authorization'), $matches);
+		list($match, $response) = $matches;
+
+		$expected = $hash;
+		$result = $response;
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testParseUrlToConfig() {
+		$url = "http://localhost/path/one.php?param=1&param=2";
+		$config = parse_url($url);
+		$request = new Request($config);
+
+		$expected = $url;
+		$result = $request->to('url');
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testQueryParamsConstructed() {
+		$url = "http://localhost/path/one.php?param=1&param=2";
+		$config = parse_url($url);
+		$request = new Request($config);
+
+		$expected = "?param=1&param=2";
+		$result = $request->queryString();
+		$this->assertEqual($expected, $result);
+
+		$expected = "?param=1&param=2&param3=3";
+		$result = $request->queryString(array('param3' => 3));
 		$this->assertEqual($expected, $result);
 	}
 }

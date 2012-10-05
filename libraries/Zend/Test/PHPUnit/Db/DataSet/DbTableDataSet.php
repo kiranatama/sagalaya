@@ -15,27 +15,19 @@
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Test\PHPUnit\Db\DataSet;
 
 /**
  * Aggregate several Zend_Db_Table instances into a dataset.
  *
- * @uses       \Zend\Test\PHPUnit\Db\Exception\InvalidArgumentException
- * @uses       PHPUnit_Extensions_Database_DataSet_DefaultTableIterator
- * @uses       PHPUnit_Extensions_Database_DataSet_QueryDataSet
- * @uses       PHPUnit_Extensions_Database_DB_IDatabaseConnection
- * @uses       \Zend\Test\PHPUnit\Db\DataSet\DbTable
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class DbTableDataSet extends \PHPUnit_Extensions_Database_DataSet_AbstractDataSet

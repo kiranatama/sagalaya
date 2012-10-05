@@ -14,13 +14,10 @@
  *
  * @category   Zend
  * @package    Zend_Translator
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Translator\Adapter;
 use Zend\Translator\Adapter\AbstractAdapter,
     Zend\Translator,
@@ -28,20 +25,15 @@ use Zend\Translator\Adapter\AbstractAdapter,
     Zend\Translator\Exception\InvalidFileTypeException;
 
 /**
- * @uses       \Zend\Locale\Locale
- * @uses       \Zend\Translator\Adapter\AbstractAdapter
- * @uses       \Zend\Translator\Exception\InvalidArgumentException
- * @uses       \Zend\Translator\Exception\InvalidFileTypeException
  * @category   Zend
  * @package    Zend_Translator
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Tbx extends AbstractAdapter
 {
     // Internal variables
     private $_file        = false;
-    private $_cleared     = array();
     private $_langset     = null;
     private $_termentry   = null;
     private $_content     = null;
@@ -74,9 +66,10 @@ class Tbx extends AbstractAdapter
         xml_set_character_data_handler($this->_file, "_contentElement");
 
         if (!xml_parse($this->_file, file_get_contents($filename))) {
-            $ex = sprintf('XML error: %s at line %d',
+            $ex = sprintf('XML error: %s at line %d of file %s',
                           xml_error_string(xml_get_error_code($this->_file)),
-                          xml_get_current_line_number($this->_file));
+                          xml_get_current_line_number($this->_file),
+                          $filename);
             xml_parser_free($this->_file);
             throw new InvalidFileTypeException($ex);
         }

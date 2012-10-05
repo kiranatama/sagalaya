@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -121,8 +121,7 @@ class RecordSetTest extends \lithium\test\Unit {
 		$recordSet = new MockRecordSet();
 		$this->assertEqual(array(), $recordSet->data());
 
-		$this->expectException();
-		$this->_recordSet[5];
+		$this->assertNull($this->_recordSet[5]);
 	}
 
 	public function testWithNoIndexes() {
@@ -160,8 +159,7 @@ class RecordSetTest extends \lithium\test\Unit {
 		$this->assertEqual(4, $result->id);
 		$this->assertEqual('data4', $result->data);
 
-		$this->expectException();
-		$this->_objectRecordSet[5];
+		$this->assertNull($this->_objectRecordSet[5]);
 	}
 
 	public function testOffsetGetBackwards() {
@@ -262,8 +260,7 @@ class RecordSetTest extends \lithium\test\Unit {
 		$this->_objectRecordSet[0];
 		unset($this->_objectRecordSet[1]);
 
-		$this->expectException();
-		$this->_objectRecordSet[1];
+		$this->assertNull($this->_objectRecordSet[1]);
 
 		$result = $this->_objectRecordSet[2];
 		$this->assertEqual(2, $result->id);
@@ -350,13 +347,14 @@ class RecordSetTest extends \lithium\test\Unit {
 
 	public function testNextWithWhile() {
 		$counter = 0;
+
 		while ($record = $this->_recordSet->next()) {
 			$this->assertEqual($this->_records[$counter], $record->to('array'));
 			$counter++;
 		}
 
-
 		$counter = 0;
+
 		while ($record = $this->_objectRecordSet->next()) {
 			$this->assertEqual($this->_objectRecords[$counter]->id, $record->id);
 			$this->assertEqual($this->_objectRecords[$counter]->data, $record->data);
@@ -373,7 +371,7 @@ class RecordSetTest extends \lithium\test\Unit {
 	}
 
 	public function testTo() {
-		Collection::formats('\lithium\net\http\Media');
+		Collection::formats('lithium\net\http\Media');
 
 		$this->assertFalse(isset($this->_recordSet[0]));
 		$expected = array(
@@ -443,6 +441,15 @@ class RecordSetTest extends \lithium\test\Unit {
 
 		$result = $this->_objectRecordSet->map($filter);
 		$this->assertEqual($expected, $result->get('_data'));
+	}
+
+	public function testReduce() {
+		$filter = function($memo, $rec) {
+			return $memo + $rec->id;
+		};
+		$expected = 10;
+		$result = $this->_recordSet->reduce($filter, 0);
+		$this->assertEqual($expected, $result);
 	}
 
 	public function testRecordSet() {

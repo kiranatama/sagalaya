@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of Rad, Inc. (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of Rad, Inc. (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -26,8 +26,7 @@ class CookieTest extends \lithium\test\Unit {
 
 	public function setUp() {
 		$this->cookie = new Cookie();
-		$path = explode('/', LITHIUM_APP_PATH);
-		$this->name = end($path) . 'cookie';
+		$this->name = basename(LITHIUM_APP_PATH) . 'cookie';
 	}
 
 	public function tearDown() {
@@ -82,8 +81,8 @@ class CookieTest extends \lithium\test\Unit {
 	}
 
 	public function testCustomCookieName() {
-		$Cookie = new Cookie(array('name' => 'test'));
-		$this->assertEqual('test', $Cookie->key());
+		$cookie = new Cookie(array('name' => 'test'));
+		$this->assertEqual('test', $cookie->key());
 	}
 
 

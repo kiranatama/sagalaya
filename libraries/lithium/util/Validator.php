@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -128,6 +128,19 @@ use InvalidArgumentException;
  *   containing PCRE-compatible options flags.
  *
  * - `uuid`: Checks that a value is a valid UUID.
+ *
+ * ### UTF-8 encoded input strings
+ *
+ * All rules operating on strings have been created with the possibility of
+ * UTF-8 encoded input in mind. A default PHP binary and an enabled Lithium
+ * g11n bootstrap will make these rules work correctly in any case. Should you
+ * ever experience odd behavior following paragraph with implementation
+ * details might help you to track to the cause.
+ *
+ * The rules `alphaNumeric` and `money` rely on additional functionality of
+ * PCRE to validate UTF-8 encoded strings. As no PCRE feature detection is
+ * done, having this feature enabled in PCRE isn't optional. Please ensure
+ * you've got PCRE compiled with UTF-8 support.
  */
 class Validator extends \lithium\core\StaticObject {
 
@@ -246,7 +259,7 @@ class Validator extends \lithium\core\StaticObject {
 			'boolean'      => function($value) {
 				$bool = is_bool($value);
 				$filter = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-				return ($bool || $filter !== null);
+				return ($bool || $filter !== null || empty($value));
 			},
 			'decimal' => function($value, $format = null, array $options = array()) {
 				if (isset($options['precision'])) {
@@ -446,7 +459,7 @@ class Validator extends \lithium\core\StaticObject {
 			$values = $params['values'];
 			$rules = $params['rules'];
 			$options = $params['options'];
-			
+
 			$errors = array();
 			$events = (array) (isset($options['events']) ? $options['events'] : null);
 			$values = Set::flatten($values);
@@ -464,7 +477,7 @@ class Validator extends \lithium\core\StaticObject {
 					if ($events && $rule['on'] && !array_intersect($events, (array) $rule['on'])) {
 						continue;
 					}
-					if (!isset($values[$field])) {
+					if (!array_key_exists($field, $values)) {
 						if ($rule['required']) {
 							$errors[$field][] = $rule['message'] ?: $key;
 						}
@@ -479,7 +492,7 @@ class Validator extends \lithium\core\StaticObject {
 
 					if (!$self::rule($name, $values[$field], $rule['format'], $rule + $options)) {
 						$errors[$field][] = $rule['message'] ?: $key;
-					
+
 						if ($rule['last']) {
 							break;
 						}

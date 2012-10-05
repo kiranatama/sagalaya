@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -24,9 +24,18 @@ namespace lithium\security\auth\adapter;
  * }}}
  *
  * @link http://tools.ietf.org/html/rfc2068#section-14.8
- * @see `\lithium\action\Request`
+ * @see lithium\action\Request
  */
 class Http extends \lithium\core\Object {
+
+	/**
+	 * Dynamic class dependencies.
+	 *
+	 * @var array Associative array of class names & their namespaces.
+	 */
+	protected $_classes = array(
+		'auth' => 'lithium\net\http\Auth'
+	);
 
 	/**
 	 * Setup default configuration options.
@@ -45,7 +54,7 @@ class Http extends \lithium\core\Object {
 
 	/**
 	 * Called by the `Auth` class to run an authentication check against the HTTP data using the
-	 * credientials in a data container (a `Request` object), and returns an array of user
+	 * credentials in a data container (a `Request` object), and returns an array of user
 	 * information on success, or `false` on failure.
 	 *
 	 * @param object $request A env container which wraps the authentication credentials used
@@ -79,8 +88,7 @@ class Http extends \lithium\core\Object {
 	 * @param array $options Adapter-specific options. Not implemented in the `Form` adapter.
 	 * @return void
 	 */
-	public function clear(array $options = array()) {
-	}
+	public function clear(array $options = array()) {}
 
 	/**
 	 * Handler for HTTP Basic Authentication
@@ -91,9 +99,14 @@ class Http extends \lithium\core\Object {
 	protected function _basic($request) {
 		$users = $this->_config['users'];
 		$username = $request->env('PHP_AUTH_USER');
-		$password = $request->env('PHP_AUTH_PW');
+		$auth = $this->_classes['auth'];
+		$basic = $auth::encode($username, $request->env('PHP_AUTH_PW'));
+		$encoded = array('response' => null);
 
-		if (!isset($users[$username]) || $users[$username] !== $password) {
+		if (isset($users[$username])) {
+			$encoded = $auth::encode($username, $users[$username]);
+		}
+		if ($basic['response'] !== $encoded['response']) {
 			$this->_writeHeader("WWW-Authenticate: Basic realm=\"{$this->_config['realm']}\"");
 			return;
 		}
@@ -107,36 +120,28 @@ class Http extends \lithium\core\Object {
 	 * @return void
 	 */
 	protected function _digest($request) {
-		$realm = $this->_config['realm'];
-		$data = array(
-			'username' => null, 'nonce' => null, 'nc' => null,
-			'cnonce' => null, 'qop' => null, 'uri' => null,
-			'response' => null
-		);
-
-		$result = array_map(function ($string) use (&$data) {
-			$parts = explode('=', trim($string), 2) + array('', '');
-			$data[$parts[0]] = trim($parts[1], '"');
-		}, explode(',', $request->env('PHP_AUTH_DIGEST')));
-
+		$username = $password = null;
+		$auth = $this->_classes['auth'];
+		$data = $auth::decode($request->env('PHP_AUTH_DIGEST'));
+		$data['realm'] = $this->_config['realm'];
+		$data['method'] = $request->method;
 		$users = $this->_config['users'];
-		$password = !empty($users[$data['username']]) ? $users[$data['username']] : null;
 
-		$user = md5("{$data['username']}:{$realm}:{$password}");
-		$nonce = "{$data['nonce']}:{$data['nc']}:{$data['cnonce']}:{$data['qop']}";
-		$req = md5($request->env('REQUEST_METHOD') . ':' . $data['uri']);
-		$hash = md5("{$user}:{$nonce}:{$req}");
+		if (!empty($data['username']) && !empty($users[$data['username']])) {
+			$username = $data['username'];
+			$password = $users[$data['username']];
+		}
+		$encoded = $auth::encode($username, $password, $data);
 
-		if (!$data['username'] || $hash !== $data['response']) {
+		if ($encoded['response'] !== $data['response']) {
 			$nonce = uniqid();
-			$opaque = md5($realm);
-
-			$message = "WWW-Authenticate: Digest realm=\"{$realm}\",qop=\"auth\",";
+			$opaque = md5($data['realm']);
+			$message = "WWW-Authenticate: Digest realm=\"{$data['realm']}\",qop=\"auth\",";
 			$message .= "nonce=\"{$nonce}\",opaque=\"{$opaque}\"";
 			$this->_writeHeader($message);
-			return;
+			return false;
 		}
-		return array('username' => $data['username'], 'password' => $password);
+		return array('username' => $username, 'password' => $password);
 	}
 
 	/**

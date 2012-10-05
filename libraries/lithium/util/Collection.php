@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -159,7 +159,7 @@ class Collection extends \lithium\core\Object implements \ArrayAccess, \Iterator
 	 */
 	public static function formats($format, $handler = null) {
 		if ($format === false) {
-			return static::$_formats = array('array' => '\lithium\util\Collection::toArray');
+			return static::$_formats = array('array' => 'lithium\util\Collection::toArray');
 		}
 		if ((is_null($handler)) && class_exists($format)) {
 			return static::$_formats[] = $format;
@@ -351,6 +351,17 @@ class Collection extends \lithium\core\Object implements \ArrayAccess, \Iterator
 			return new $class(compact('data'));
 		}
 		return $data;
+	}
+
+	/**
+	 * Reduce, or fold, a collection down to a single value
+	 *
+	 * @param callback $filter The filter to apply.
+	 * @param mixed $initial Initial value
+	 * @return mixed A single reduced value
+	 */
+	public function reduce($filter, $initial = false) {
+		return array_reduce($this->_data, $filter, $initial);
 	}
 
 	/**

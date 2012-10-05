@@ -15,25 +15,19 @@
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Test\PHPUnit\Db\DataSet;
 
 /**
  * Use a Zend_Db_Table for assertions with other PHPUnit Database Extension table types.
  *
- * @uses       PHPUnit_Extensions_Database_DataSet_DefaultTableMetaData
- * @uses       PHPUnit_Extensions_Database_DataSet_QueryTable
- * @uses       \Zend\Db\Table\AbstractTable
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class DbTable extends \PHPUnit_Extensions_Database_DataSet_QueryTable

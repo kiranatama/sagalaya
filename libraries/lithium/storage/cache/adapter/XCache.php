@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -134,7 +134,7 @@ class XCache extends \lithium\core\Object {
 	/**
 	 * Clears user-space cache.
 	 *
-	 * This method requires valid xcache admin credentials to be set when the
+	 * This method requires valid XCache admin credentials to be set when the
 	 * adapter was configured, due to the use of the xcache_clear_cache admin method.
 	 *
 	 * If the xcache.admin.enable_auth ini setting is set to "Off", no credentials
@@ -176,7 +176,7 @@ class XCache extends \lithium\core\Object {
 	}
 
 	/**
-	 * Determines if the APC extension has been installed and
+	 * Determines if the XCache extension has been installed and
 	 * if the userspace cache is available.
 	 *
 	 * return boolean True if enabled, false otherwise

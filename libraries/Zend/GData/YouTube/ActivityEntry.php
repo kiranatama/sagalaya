@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Health
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\YouTube;
 
 use Zend\GData\YouTube;
@@ -31,15 +28,10 @@ use Zend\GData\YouTube;
  *
  * @link http://code.google.com/apis/youtube/
  *
- * @uses       \Zend\GData\Entry
- * @uses       \Zend\GData\YouTube
- * @uses       Zend_Gdata_YouTube_Extension_Rating
- * @uses       \Zend\GData\YouTube\Extension\Username
- * @uses       \Zend\GData\YouTube\Extension\VideoId
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage YouTube
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class ActivityEntry extends \Zend\GData\Entry
@@ -57,14 +49,14 @@ class ActivityEntry extends \Zend\GData\Entry
     /**
      * The ID of the video that was part of the activity
      *
-     * @var Zend_Gdata_YouTube_VideoId
+     * @var Extension\VideoId
      */
     protected $_videoId = null;
 
     /**
      * The username for the user that was part of the activity
      *
-     * @var Zend_Gdata_YouTube_Username
+     * @var Extension\Username
      */
     protected $_username = null;
 
@@ -167,7 +159,7 @@ class ActivityEntry extends \Zend\GData\Entry
     /**
      * Returns the rating for this activity entry.
      *
-     * @return null|Zend_Gdata_YouTube_Extension_Rating
+     * @return null|Extension\Rating
      */
     public function getRating()
     {

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -66,6 +66,20 @@ class RouterTest extends \lithium\test\Unit {
 				'test',
 				'--case=lithium.tests.cases.console.RouterTest',
 				'--phase=drowning'
+			)
+		)));
+		$this->assertEqual($expected, $result);
+	}
+
+	public function testParseGnuStyleLongOptionsContainingDash() {
+		$expected = array(
+			'command' => 'test', 'action' => 'run', 'args' => array(),
+			'foo-bar' => 'something'
+		);
+		$result = Router::parse(new Request(array(
+			'args' => array(
+				'test', 'run',
+				'--foo-bar=something'
 			)
 		)));
 		$this->assertEqual($expected, $result);

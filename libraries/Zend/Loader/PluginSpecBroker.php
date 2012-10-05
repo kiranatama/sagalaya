@@ -14,7 +14,7 @@
  *
  * @category   Zend
  * @package    Zend_Loader
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -25,7 +25,7 @@ namespace Zend\Loader;
  *
  * @category   Zend
  * @package    Zend_Loader
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class PluginSpecBroker extends PluginBroker implements LazyLoadingBroker
@@ -44,7 +44,7 @@ class PluginSpecBroker extends PluginBroker implements LazyLoadingBroker
      * method, and then scanned for a "specs" key; if found, it is used to
      * configure plugin specifications.
      * 
-     * @param  array|Traversable $options 
+     * @param  array|\Traversable $options
      * @return PluginSpecBroker
      */
     public function setOptions($options)

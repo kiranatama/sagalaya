@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -462,6 +462,12 @@ class StringTest extends \lithium\test\Unit {
 		$expected = 'a9050b4f44797bf60262de984ca12967711389cd6c4c4aeee2a739c159f1f667';
 		$result = String::hash($string, compact('type'));
 		$this->assertEqual($expected, $result);
+	}
+
+	public function testCompare() {
+		$this->assertTrue(String::compare('Foo', 'Foo'));
+		$this->assertFalse(String::compare('Foo', 'foo'));
+		$this->assertFalse(String::compare('1', 1));
 	}
 
 	/**

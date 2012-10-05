@@ -1,60 +1,26 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Validator
  */
 
-/**
- * @namespace
- */
 namespace Zend\Validator\Barcode;
 
 /**
- * @uses       \Zend\Validator\Barcode\AbstractAdapter
  * @category   Zend
  * @package    Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Code93 extends AbstractAdapter
 {
     /**
-     * Allowed barcode lengths
-     * @var integer
-     */
-    protected $_length = -1;
-
-    /**
-     * Allowed barcode characters
-     * @var string
-     */
-    protected $_characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ -.$/+%';
-
-    /**
-     * Checksum function
-     * @var string
-     */
-    protected $_checksum = '_code93';
-
-    /**
      * Note that the characters !"§& are only synonyms
      * @var array
      */
-    protected $_check = array(
+    protected $check = array(
         '0' =>  0, '1' =>  1, '2' =>  2, '3' =>  3, '4' =>  4, '5' =>  5, '6' =>  6,
         '7' =>  7, '8' =>  8, '9' =>  9, 'A' => 10, 'B' => 11, 'C' => 12, 'D' => 13,
         'E' => 14, 'F' => 15, 'G' => 16, 'H' => 17, 'I' => 18, 'J' => 19, 'K' => 20,
@@ -65,15 +31,14 @@ class Code93 extends AbstractAdapter
     );
 
     /**
-     * Constructor
-     *
-     * Sets check flag to false.
-     *
-     * @return void
+     * Constructor for this barcode adapter
      */
     public function __construct()
     {
-        $this->setCheck(false);
+        $this->setLength(-1);
+        $this->setCharacters('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ -.$/+%');
+        $this->setChecksum('code93');
+        $this->useChecksum(false);
     }
 
     /**
@@ -82,7 +47,7 @@ class Code93 extends AbstractAdapter
      * @param  string $value The barcode to validate
      * @return boolean
      */
-    protected function _code93($value)
+    protected function code93($value)
     {
         $checksum = substr($value, -2, 2);
         $value    = str_split(substr($value, 0, -2));
@@ -93,11 +58,11 @@ class Code93 extends AbstractAdapter
                 $length = 20;
             }
 
-            $count += $this->_check[$char] * $length;
+            $count += $this->check[$char] * $length;
             --$length;
         }
 
-        $check   = array_search(($count % 47), $this->_check);
+        $check   = array_search(($count % 47), $this->check);
         $value[] = $check;
         $count   = 0;
         $length  = count($value) % 15;
@@ -106,10 +71,10 @@ class Code93 extends AbstractAdapter
                 $length = 15;
             }
 
-            $count += $this->_check[$char] * $length;
+            $count += $this->check[$char] * $length;
             --$length;
         }
-        $check .= array_search(($count % 47), $this->_check);
+        $check .= array_search(($count % 47), $this->check);
 
         if ($check == $checksum) {
             return true;

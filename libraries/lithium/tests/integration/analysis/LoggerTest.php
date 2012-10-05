@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -20,7 +20,7 @@ class LoggerTest extends \lithium\test\Integration {
 	public function testWriteFilter() {
 
 		$base = Libraries::get(true, 'resources') . '/tmp/logs';
-		$this->skipIf(!is_writable($base), "{$base} is not writable.");
+		$this->skipIf(!is_writable($base), "Path `{$base}` is not writable.");
 
 		Filters::apply('lithium\analysis\Logger', 'write', function($self, $params, $chain) {
 			$params['message'] = 'Filtered Message';

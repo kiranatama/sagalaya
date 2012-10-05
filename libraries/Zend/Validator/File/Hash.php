@@ -1,44 +1,25 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category  Zend
- * @package   Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Validator
  */
 
-/**
- * @namespace
- */
 namespace Zend\Validator\File;
 
-use Zend\Loader,
-    Zend\Validator,
-    Zend\Validator\Exception;
+use Zend\Validator\AbstractValidator;
+use Zend\Validator\Exception;
 
 /**
  * Validator for the hash of given files
  *
- * @uses      \Zend\Loader
- * @uses      \Zend\Validator\AbstractValidator
- * @uses      \Zend\Validator\Exception
  * @category  Zend
  * @package   Zend_Validate
- * @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Hash extends Validator\AbstractValidator
+class Hash extends AbstractValidator
 {
     /**
      * @const string Error constants
@@ -50,40 +31,39 @@ class Hash extends Validator\AbstractValidator
     /**
      * @var array Error message templates
      */
-    protected $_messageTemplates = array(
+    protected $messageTemplates = array(
         self::DOES_NOT_MATCH => "File '%value%' does not match the given hashes",
         self::NOT_DETECTED   => "A hash could not be evaluated for the given file",
         self::NOT_FOUND      => "File '%value%' is not readable or does not exist"
     );
 
     /**
-     * Hash of the file
+     * Options for this validator
      *
      * @var string
      */
-    protected $_hash;
+    protected $options = array(
+        'algorithm' => 'crc32',
+        'hash'      => null,
+    );
 
     /**
      * Sets validator options
      *
-     * @param  string|array $options
-     * @return void
+     * @param string|array $options
      */
-    public function __construct($options)
+    public function __construct($options = null)
     {
-        if ($options instanceof \Zend\Config\Config) {
-            $options = $options->toArray();
-        } elseif (is_scalar($options)) {
-            $options = array('hash1' => $options);
-        } elseif (!is_array($options)) {
-            throw new Exception\InvalidArgumentException('Invalid options to validator provided');
+        if (is_scalar($options) ||
+            (is_array($options) && !array_key_exists('hash', $options))) {
+            $options = array('hash' => $options);
         }
 
         if (1 < func_num_args()) {
             $options['algorithm'] = func_get_arg(1);
         }
 
-        $this->setHash($options);
+        parent::__construct($options);
     }
 
     /**
@@ -93,18 +73,18 @@ class Hash extends Validator\AbstractValidator
      */
     public function getHash()
     {
-        return $this->_hash;
+        return $this->options['hash'];
     }
 
     /**
      * Sets the hash for one or multiple files
      *
      * @param  string|array $options
-     * @return \Zend\Validator\File\Hash Provides a fluent interface
+     * @return Hash Provides a fluent interface
      */
     public function setHash($options)
     {
-        $this->_hash  = null;
+        $this->options['hash'] = null;
         $this->addHash($options);
 
         return $this;
@@ -114,19 +94,20 @@ class Hash extends Validator\AbstractValidator
      * Adds the hash for one or multiple files
      *
      * @param  string|array $options
-     * @return \Zend\Validator\File\Hash Provides a fluent interface
+     * @return Hash Provides a fluent interface
+     * @throws Exception\InvalidArgumentException
      */
     public function addHash($options)
     {
         if (is_string($options)) {
             $options = array($options);
-        } else if (!is_array($options)) {
+        } elseif (!is_array($options)) {
             throw new Exception\InvalidArgumentException("False parameter given");
         }
 
         $known = hash_algos();
         if (!isset($options['algorithm'])) {
-            $algorithm = 'crc32';
+            $algorithm = $this->options['algorithm'];
         } else {
             $algorithm = $options['algorithm'];
             unset($options['algorithm']);
@@ -137,7 +118,7 @@ class Hash extends Validator\AbstractValidator
         }
 
         foreach ($options as $value) {
-            $this->_hash[$value] = $algorithm;
+            $this->options['hash'][$value] = $algorithm;
         }
 
         return $this;
@@ -157,16 +138,16 @@ class Hash extends Validator\AbstractValidator
         }
 
         // Is file readable ?
-        if (!Loader::isReadable($value)) {
-            return $this->_throw($file, self::NOT_FOUND);
+        if (false === stream_resolve_include_path($value)) {
+            return $this->throwError($file, self::NOT_FOUND);
         }
 
-        $algos  = array_unique(array_values($this->_hash));
-        $hashes = array_unique(array_keys($this->_hash));
+        $algos  = array_unique(array_values($this->getHash()));
+        $hashes = array_unique(array_keys($this->getHash()));
         foreach ($algos as $algorithm) {
             $filehash = hash_file($algorithm, $value);
             if ($filehash === false) {
-                return $this->_throw($file, self::NOT_DETECTED);
+                return $this->throwError($file, self::NOT_DETECTED);
             }
 
             foreach($hashes as $hash) {
@@ -176,7 +157,7 @@ class Hash extends Validator\AbstractValidator
             }
         }
 
-        return $this->_throw($file, self::DOES_NOT_MATCH);
+        return $this->throwError($file, self::DOES_NOT_MATCH);
     }
 
     /**
@@ -186,19 +167,19 @@ class Hash extends Validator\AbstractValidator
      * @param  string $errorType
      * @return false
      */
-    protected function _throw($file, $errorType)
+    protected function throwError($file, $errorType)
     {
         if ($file !== null) {
             if (is_array($file)) {
                 if(array_key_exists('name', $file)) {
-                    $this->_value = $file['name'];
+                    $this->value = $file['name'];
                 }
-            } else if (is_string($file)) {
-                $this->_value = $file;
+            } elseif (is_string($file)) {
+                $this->value = $file;
             }
         }
 
-        $this->_error($errorType);
+        $this->error($errorType);
         return false;
     }
 }

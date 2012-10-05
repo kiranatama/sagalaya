@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -122,6 +122,25 @@ class RequestTest extends \lithium\test\Unit {
 	public function testRemoteAddr() {
 		$request = new Request(array('env' => array('REMOTE_ADDR' => '123.456.789.000')));
 		$this->assertEqual('123.456.789.000', $request->env('REMOTE_ADDR'));
+
+		$request = new Request(array('env' => array(
+			'REMOTE_ADDR' => '123.456.789.000',
+			'HTTP_X_FORWARDED_FOR' => '111.222.333.444'
+		)));
+		$this->assertEqual('111.222.333.444', $request->env('REMOTE_ADDR'));
+
+		$request = new Request(array('env' => array(
+			'REMOTE_ADDR' => '123.456.789.000',
+			'HTTP_PC_REMOTE_ADDR' => '222.333.444.555'
+		)));
+		$this->assertEqual('222.333.444.555', $request->env('REMOTE_ADDR'));
+
+		$request = new Request(array('env' => array(
+			'REMOTE_ADDR' => '123.456.789.000',
+			'HTTP_X_FORWARDED_FOR' => '111.222.333.444',
+			'HTTP_PC_REMOTE_ADDR' => '222.333.444.555'
+		)));
+		$this->assertEqual('111.222.333.444', $request->env('REMOTE_ADDR'));
 	}
 
 	public function testRemoteAddrFromHttpPcRemoteAddr() {
@@ -145,17 +164,24 @@ class RequestTest extends \lithium\test\Unit {
 		unset($_GET['url']);
 		$request = new Request(array('env' => array(
 			'PHP_SELF' => '/test_app/app/webroot/index.php',
-			'REQUEST_URI' => '/test_app'
+			'REQUEST_URI' => '/test_app/'
 		)));
 		$this->assertEqual('/test_app', $request->env('base'));
 		$this->assertEqual('/', $request->url);
+
+		$request = new Request(array('env' => array(
+			'PHP_SELF' => '/test_app/app/webroot/index.php',
+			'REQUEST_URI' => '/test_app/pages/test_app'
+		)));
+		$this->assertEqual('/test_app', $request->env('base'));
+		$this->assertEqual('pages/test_app', $request->url);
 	}
 
 	public function testRequestWithoutUrlQueryParamAndNoApp() {
 		unset($_GET['url']);
 		$request = new Request(array('env' => array(
 			'PHP_SELF' => '/test_app/webroot/index.php',
-			'REQUEST_URI' => '/test_app'
+			'REQUEST_URI' => '/test_app/'
 		)));
 		$this->assertEqual('/test_app', $request->env('base'));
 		$this->assertEqual('/', $request->url);
@@ -165,7 +191,7 @@ class RequestTest extends \lithium\test\Unit {
 		unset($_GET['url']);
 		$request = new Request(array('env' => array(
 			'PHP_SELF' => '/test_app/index.php',
-			'REQUEST_URI' => '/test_app'
+			'REQUEST_URI' => '/test_app/'
 		)));
 		$this->assertEqual('/test_app', $request->env('base'));
 		$this->assertEqual('/', $request->url);
@@ -1010,6 +1036,15 @@ class RequestTest extends \lithium\test\Unit {
 			'query' => array()
 		));
 		$expected = 'http://foo.com/';
+		$this->assertEqual($expected, $request->to('url'));
+
+		$request = new Request(array(
+			'url' => 'foo/bar',
+			'base' => null,
+			'env' => array('HTTP_HOST' => 'example.com', 'PHP_SELF' => '/index.php')
+		));
+
+		$expected = 'http://example.com/foo/bar';
 		$this->assertEqual($expected, $request->to('url'));
 	}
 

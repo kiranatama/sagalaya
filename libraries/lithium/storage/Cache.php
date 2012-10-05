@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -10,7 +10,7 @@ namespace lithium\storage;
 
 /**
  * The `Cache` static class provides a consistent interface to configure and utilize the different
- * cache adatpers included with Lithium, as well as your own adapters.
+ * cache adapters included with Lithium, as well as your own adapters.
  *
  * The Cache layer of Lithium inherits from the common `Adaptable` class, which provides the generic
  * configuration setting & retrieval logic, as well as the logic required to locate & instantiate
@@ -101,12 +101,12 @@ class Cache extends \lithium\core\Adaptable {
 		if (!isset($settings[$name])) {
 			return false;
 		}
-
 		$conditions = $options['conditions'];
+
 		if (is_callable($conditions) && !$conditions()) {
 			return false;
 		}
-		$key = static::key($key);
+		$key = static::key($key, $data);
 
 		if (is_array($key)) {
 			$expiry = $data;
@@ -140,8 +140,8 @@ class Cache extends \lithium\core\Adaptable {
 		if (!isset($settings[$name])) {
 			return false;
 		}
-
 		$conditions = $options['conditions'];
+
 		if (is_callable($conditions) && !$conditions()) {
 			return false;
 		}
@@ -151,15 +151,18 @@ class Cache extends \lithium\core\Adaptable {
 		$filters = $settings[$name]['filters'];
 		$result = static::_filter(__FUNCTION__, $params, $method, $filters);
 
-		if ($result === null && $options['write']) {
-			$write = (is_callable($options['write'])) ? $options['write']() : $options['write'];
+		if ($result === null && ($write = $options['write'])) {
+			$write = is_callable($write) ? $write() : $write;
 			list($expiry, $value) = each($write);
+			$value = is_callable($value) ? $value() : $value;
 
-			return static::write($name, $key, $value, $expiry);
+			if (static::write($name, $key, $value, $expiry)) {
+				$result = $value;
+			}
 		}
 
 		if ($options['strategies']) {
-			$options = array('key' => $key, 'mode' => 'LIFO', 'class' => __CLASS__);
+			$options = compact('key') + array('mode' => 'LIFO', 'class' => __CLASS__);
 			$result = static::applyStrategies(__FUNCTION__, $name, $result, $options);
 		}
 		return $result;
@@ -181,8 +184,8 @@ class Cache extends \lithium\core\Adaptable {
 		if (!isset($settings[$name])) {
 			return false;
 		}
-
 		$conditions = $options['conditions'];
+
 		if (is_callable($conditions) && !$conditions()) {
 			return false;
 		}
@@ -276,7 +279,7 @@ class Cache extends \lithium\core\Adaptable {
 	}
 
 	/**
-	 * Remove all cache keys from specified confiuration.
+	 * Remove all cache keys from specified configuration.
 	 *
 	 * This method is non-filterable.
 	 *

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -35,7 +35,7 @@ class Response extends \lithium\core\Object {
 	 * Status code, most often used for setting an exit status.
 	 *
 	 * It should be expected that only status codes in the range of 0-255
-	 * can be properly evalutated.
+	 * can be properly evaluated.
 	 *
 	 * @var integer
 	 * @see lithium\console\Command
@@ -111,11 +111,7 @@ class Response extends \lithium\core\Object {
 	 */
 	public function styles($styles = array()) {
 		$defaults = array(
-			'heading' => "\033[1;36m",
-			'option'  => "\033[0;35m",
-			'command' => "\033[0;35m",
-			'error'   => "\033[0;31m",
-			'success' => "\033[0;32m",
+			'end'    => "\033[0m",
 			'black'  => "\033[0;30m",
 			'red'    => "\033[0;31m",
 			'green'  => "\033[0;32m",
@@ -124,7 +120,11 @@ class Response extends \lithium\core\Object {
 			'purple' => "\033[0;35m",
 			'cyan'   => "\033[0;36m",
 			'white'  => "\033[0;37m",
-			'end'    => "\033[0m"
+			'heading' => "\033[1;36m",
+			'option'  => "\033[0;35m",
+			'command' => "\033[0;35m",
+			'error'   => "\033[0;31m",
+			'success' => "\033[0;32m"
 		);
 		if ($styles === false) {
 			return array_combine(array_keys($defaults), array_pad(array(), count($defaults), null));

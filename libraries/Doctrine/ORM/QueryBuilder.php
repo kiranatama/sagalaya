@@ -50,6 +50,7 @@ class QueryBuilder
      * @var array The array of DQL parts collected.
      */
     private $_dqlParts = array(
+        'distinct' => false,
         'select'  => array(),
         'from'    => array(),
         'join'    => array(),
@@ -192,7 +193,7 @@ class QueryBuilder
         }
 
         $this->_state = self::STATE_CLEAN;
-        $this->_dql = $dql;
+        $this->_dql   = $dql;
 
         return $dql;
     }
@@ -213,9 +214,9 @@ class QueryBuilder
     public function getQuery()
     {
         return $this->_em->createQuery($this->getDQL())
-                ->setParameters($this->_params, $this->_paramTypes)
-                ->setFirstResult($this->_firstResult)
-                ->setMaxResults($this->_maxResults);
+            ->setParameters($this->_params, $this->_paramTypes)
+            ->setFirstResult($this->_firstResult)
+            ->setMaxResults($this->_maxResults);
     }
 
     /**
@@ -224,8 +225,8 @@ class QueryBuilder
      *
      * <code>
      * $qb = $em->createQueryBuilder()
-     * ->select('u')
-     * ->from('User', 'u');
+     *     ->select('u')
+     *     ->from('User', 'u');
      *
      * echo $qb->getRootAlias(); // u
      * </code>
@@ -325,12 +326,8 @@ class QueryBuilder
     {
         $key = trim($key, ':');
 
-        if ($type === null) {
-            $type = Query\ParameterTypeInferer::inferType($value);
-        }
-
-        $this->_paramTypes[$key] = $type;
-        $this->_params[$key] = $value;
+        $this->_paramTypes[$key] = $type ?: Query\ParameterTypeInferer::inferType($value);
+        $this->_params[$key]     = $value;
 
         return $this;
     }
@@ -346,7 +343,7 @@ class QueryBuilder
      *         ->setParameters(array(
      *             'user_id1' => 1,
      *             'user_id2' => 2
-     *         ));
+              ));
      * </code>
      *
      * @param array $params The query parameters to set.
@@ -449,13 +446,13 @@ class QueryBuilder
         // TODO: Remove for 3.0
         if ($dqlPartName == 'join') {
             $newDqlPart = array();
+
             foreach ($dqlPart AS $k => $v) {
-                if (is_numeric($k)) {
-                    $newDqlPart[$this->getRootAlias()] = $v;
-                } else {
-                    $newDqlPart[$k] = $v;
-                }
+                $k = is_numeric($k) ? $this->getRootAlias() : $k;
+
+                $newDqlPart[$k] = $v;
             }
+
             $dqlPart = $newDqlPart;
         }
 
@@ -501,6 +498,26 @@ class QueryBuilder
         $selects = is_array($select) ? $select : func_get_args();
 
         return $this->add('select', new Expr\Select($selects), false);
+    }
+
+    /**
+     * Add a DISTINCT flag to this query.
+     *
+     * <code>
+     *     $qb = $em->createQueryBuilder()
+     *         ->select('u')
+     *         ->distinct()
+     *         ->from('User', 'u');
+     * </code>
+     *
+     * @param bool
+     * @return QueryBuilder
+     */
+    public function distinct($flag = true)
+    {
+        $this->_dqlParts['distinct'] = (bool) $flag;
+
+        return $this;
     }
 
     /**
@@ -771,7 +788,7 @@ class QueryBuilder
     public function andWhere($where)
     {
         $where = $this->getDQLPart('where');
-        $args = func_get_args();
+        $args  = func_get_args();
 
         if ($where instanceof Expr\Andx) {
             $where->addMultiple($args);
@@ -802,7 +819,7 @@ class QueryBuilder
     public function orWhere($where)
     {
         $where = $this->getDqlPart('where');
-        $args = func_get_args();
+        $args  = func_get_args();
 
         if ($where instanceof Expr\Orx) {
             $where->addMultiple($args);
@@ -879,7 +896,7 @@ class QueryBuilder
     public function andHaving($having)
     {
         $having = $this->getDqlPart('having');
-        $args = func_get_args();
+        $args   = func_get_args();
 
         if ($having instanceof Expr\Andx) {
             $having->addMultiple($args);
@@ -901,7 +918,7 @@ class QueryBuilder
     public function orHaving($having)
     {
         $having = $this->getDqlPart('having');
-        $args = func_get_args();
+        $args   = func_get_args();
 
         if ($having instanceof Expr\Orx) {
             $having->addMultiple($args);
@@ -923,8 +940,9 @@ class QueryBuilder
      */
     public function orderBy($sort, $order = null)
     {
-        return $this->add('orderBy',  $sort instanceof Expr\OrderBy ? $sort
-                : new Expr\OrderBy($sort, $order));
+        $orderBy = ($sort instanceof Expr\OrderBy) ? $sort : new Expr\OrderBy($sort, $order);
+
+        return $this->add('orderBy', $orderBy);
     }
 
     /**
@@ -981,7 +999,9 @@ class QueryBuilder
 
     private function _getDQLForSelect()
     {
-        $dql = 'SELECT' . $this->_getReducedDQLQueryPart('select', array('pre' => ' ', 'separator' => ', '));
+        $dql = 'SELECT'
+             . ($this->_dqlParts['distinct']===true ? ' DISTINCT' : '')
+             . $this->_getReducedDQLQueryPart('select', array('pre' => ' ', 'separator' => ', '));
 
         $fromParts   = $this->getDQLPart('from');
         $joinParts   = $this->getDQLPart('join');
@@ -1037,9 +1057,11 @@ class QueryBuilder
         if (is_null($parts)) {
             $parts = array_keys($this->_dqlParts);
         }
+
         foreach ($parts as $part) {
             $this->resetDQLPart($part);
         }
+
         return $this;
     }
 
@@ -1051,12 +1073,9 @@ class QueryBuilder
      */
     public function resetDQLPart($part)
     {
-        if (is_array($this->_dqlParts[$part])) {
-            $this->_dqlParts[$part] = array();
-        } else {
-            $this->_dqlParts[$part] = null;
-        }
-        $this->_state = self::STATE_DIRTY;
+        $this->_dqlParts[$part] = is_array($this->_dqlParts[$part]) ? array() : null;
+        $this->_state           = self::STATE_DIRTY;
+
         return $this;
     }
 
@@ -1085,7 +1104,7 @@ class QueryBuilder
                         $this->_dqlParts[$part][$idx] = clone $element;
                     }
                 }
-            } else if (\is_object($elements)) {
+            } else if (is_object($elements)) {
                 $this->_dqlParts[$part] = clone $elements;
             }
         }

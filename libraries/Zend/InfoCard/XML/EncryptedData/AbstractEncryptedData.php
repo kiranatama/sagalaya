@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\InfoCard\XML\EncryptedData;
 use Zend\InfoCard\XML\AbstractElement;
 use Zend\InfoCard\XML;
@@ -30,12 +27,10 @@ use Zend\InfoCard\XML;
  * An abstract class representing a generic EncryptedData XML block. This class is extended
  * into a specific type of EncryptedData XML block (i.e. XmlEnc) as necessary
  *
- * @uses       \Zend\InfoCard\XML\AbstractElement
- * @uses       \Zend\InfoCard\XML\KeyInfo\Factory
  * @category   Zend
  * @package    Zend_InfoCard
  * @subpackage Zend_InfoCard_Xml
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractEncryptedData extends AbstractElement
@@ -55,7 +50,7 @@ abstract class AbstractEncryptedData extends AbstractElement
      * Return the Encryption method used to encrypt the assertion document
      * (the symmetric cipher)
      *
-     * @throws \Zend\InfoCard\XML\Exception
+     * @throws XML\Exception\RuntimeException
      * @return string The URI of the Symmetric Encryption Method used
      */
     public function getEncryptionMethod()

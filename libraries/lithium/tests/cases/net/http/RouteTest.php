@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -209,7 +209,12 @@ class RouteTest extends \lithium\test\Unit {
 	}
 
 	public function testRouteMatchingWithEmptyTrailingParams() {
-		$route = new Route(array('template' => '/{:controller}/{:action}/{:args}'));
+		$route = new Route(array(
+			'template' => '/{:controller}/{:action}/{:args}',
+			'formatters' => array('args' => function($value) {
+				return is_array($value) ? join('/', $value) : $value;
+			})
+		));
 
 		$result = $route->match(array('controller' => 'posts'));
 		$this->assertEqual('/posts', $result);
@@ -288,7 +293,7 @@ class RouteTest extends \lithium\test\Unit {
 
 		$expected = array(
 			'template' => '/{:controller}/{:action}',
-			'pattern' => '@^(?:/(?P<controller>[^\\/]+))(?:/(?P<action>[^\\/]+)?)?$@',
+			'pattern' => '@^(?:/(?P<controller>[^\\/]+))(?:/(?P<action>[^\\/]+)?)?$@u',
 			'params' => array('action' => 'view'),
 			'defaults' => array('action' => 'view'),
 			'match' => array(),
@@ -304,9 +309,11 @@ class RouteTest extends \lithium\test\Unit {
 			'template' => '/images/image_{:width}x{:height}.{:format}',
 			'params' => array('format' => 'png')
 		));
+
+		$ptrn = '@^/images/image_(?P<width>[^\\/]+)x(?P<height>[^\\/]+)\\.(?P<format>[^\\/]+)?$@u';
 		$expected = array(
 			'template' => '/images/image_{:width}x{:height}.{:format}',
-			'pattern' => '@^/images/image_(?P<width>[^\\/]+)x(?P<height>[^\\/]+)\\.(?P<format>[^\\/]+)?$@',
+			'pattern' => $ptrn,
 			'params' => array('format' => 'png', 'action' => 'index'),
 			'match' => array('action' => 'index'),
 			'meta' => array(),
@@ -370,6 +377,26 @@ class RouteTest extends \lithium\test\Unit {
 	}
 
 	/**
+	 * Tests creating a route with a custom sub-pattern and trailing route
+	 */
+	public function testCustomSubPatternWithTrailing() {
+		$route = new Route(array(
+			'template' => '/{:controller}/{:action}/{:id:[0-9]+}/abcdefghijklm'
+		));
+
+		$request = new Request();
+		$request->url = '/users/view/10/abcdefghijklm';
+		$expected = array('controller' => 'users', 'action' => 'view', 'id' => '10');
+
+		$result = $route->parse($request);
+		$this->assertEqual($expected, $result->params);
+
+		$request->url = '/users/view/a/abcdefghijklm';
+		$result = $route->parse($request);
+		$this->assertFalse($result);
+	}
+
+	/**
 	 * Tests that routes with querystrings are correctly processed.
 	 */
 	public function testRoutesWithQueryStrings() {
@@ -417,14 +444,14 @@ class RouteTest extends \lithium\test\Unit {
 	public function testPatternsWithRepetition() {
 		$route = new Route(array('template' => '/{:id:[0-9a-f]{24}}.{:type}'));
 		$data = $route->export();
-		$this->assertEqual('@^(?:/(?P<id>[0-9a-f]{24}))\.(?P<type>[^\/]+)$@', $data['pattern']);
+		$this->assertEqual('@^(?:/(?P<id>[0-9a-f]{24}))\.(?P<type>[^\/]+)$@u', $data['pattern']);
 
 		$this->assertEqual(array('id' => 'id', 'type' => 'type'), $data['keys']);
 		$this->assertEqual(array('id' => '[0-9a-f]{24}'), $data['subPatterns']);
 
 		$route = new Route(array('template' => '/{:key:[a-z]{5}[0-9]{2,3}}'));
 		$data = $route->export();
-		$this->assertEqual('@^(?:/(?P<key>[a-z]{5}[0-9]{2,3}))$@', $data['pattern']);
+		$this->assertEqual('@^(?:/(?P<key>[a-z]{5}[0-9]{2,3}))$@u', $data['pattern']);
 		$this->assertEqual(array('key' => '[a-z]{5}[0-9]{2,3}'), $data['subPatterns']);
 
 		$this->assertEqual('/abcde13', $route->match(array('key' => 'abcde13')));
@@ -433,7 +460,7 @@ class RouteTest extends \lithium\test\Unit {
 		$route = new Route(array('template' => '/{:key:z[a-z]{5}[0-9]{2,3}0}/{:val:[0-9]{2}}'));
 		$data = $route->export();
 
-		$expected = '@^(?:/(?P<key>z[a-z]{5}[0-9]{2,3}0))(?:/(?P<val>[0-9]{2}))$@';
+		$expected = '@^(?:/(?P<key>z[a-z]{5}[0-9]{2,3}0))(?:/(?P<val>[0-9]{2}))$@u';
 		$this->assertEqual($expected, $data['pattern']);
 
 		$expected = array('key' => 'z[a-z]{5}[0-9]{2,3}0', 'val' => '[0-9]{2}');
@@ -600,9 +627,37 @@ class RouteTest extends \lithium\test\Unit {
 			'params' => array('controller' => 'posts', 'action' => 'archive')
 		));
 
-		$expected = '@^/posts/list(?:/(?P<foobar>[0-9a-f]{5}))/todday/fooo$@';
+		$expected = '@^/posts/list(?:/(?P<foobar>[0-9a-f]{5}))/todday/fooo$@u';
 		$result = $route->export();
 		$this->assertEqual($expected, $result['pattern']);
+	}
+
+	/**
+	 * Tests that routes with Unicode characters are correctly parsed.
+	 */
+	public function testUnicodeParameters() {
+		$route = new Route(array(
+			'template' => '/{:slug:[\pL\pN\-\%]+}',
+			'params' => array('controller' => 'users', 'action' => 'view')
+		));
+
+		$unicode = 'clément';
+		$slug = rawurlencode($unicode);
+		$params = array('controller' => 'users', 'action' => 'view') + compact('slug');
+
+		$result = $route->match($params);
+		$this->assertEqual("/{$slug}", $result);
+
+		$request = new Request(array('url' => "/{$slug}"));
+		$result = $route->parse($request, array('url' => $request->url));
+
+		$expected = array('controller' => 'users', 'action' => 'view') + compact('slug');
+		$this->assertEqual($expected, $result->params);
+
+		$request = new Request(array('url' => "/{$slug}"));
+		$result = $route->parse($request, array('url' => $request->url));
+		$expected = array('controller' => 'users', 'action' => 'view') + compact('slug');
+		$this->assertEqual($expected, $result->params);
 	}
 
 	/**
@@ -611,13 +666,13 @@ class RouteTest extends \lithium\test\Unit {
 	public function testTwoParameterRoutes() {
 		$route = new Route(array(
 			'template' => '/personnel/{:personnel_id}/position/{:position_id}/actions/create',
-			'params' => array('controller' => 'actions', 'action' => 'create'),
+			'params' => array('controller' => 'actions', 'action' => 'create')
 		));
 
 		$route->compile();
 		$data = $route->export(); $actual = $data['pattern'];
 		$expected = '@^/personnel(?:/(?P<personnel_id>[^\\/]+))/position(?:/';
-		$expected .= '(?P<position_id>[^\\/]+))/actions/create$@';
+		$expected .= '(?P<position_id>[^\\/]+))/actions/create$@u';
 
 		$this->assertEqual($expected, $actual);
 	}

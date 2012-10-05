@@ -2,7 +2,7 @@
 /**
 * Lithium: the most rad php framework
 *
-* @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+* @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
 * @license       http://opensource.org/licenses/bsd-license.php The BSD License
 */
 
@@ -41,6 +41,11 @@ class TestTest extends \lithium\test\Unit {
 		chdir($this->_backup['cwd']);
 	}
 
+	public function skip() {
+		$isWin = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+		$this->skipIf($isWin, 'The test command needs to be refactored to work on windows.');
+	}
+
 	public function testRunWithoutPath() {
 		$command = new Test(array(
 			'request' => $this->request, 'classes' => $this->classes
@@ -55,7 +60,23 @@ class TestTest extends \lithium\test\Unit {
 		));
 		$path = 'Foobar/lithium/tests/mocks/test/cases/MockTest.php';
 		$command->run($path);
-		$this->assertEqual("Not a valid path.\n", $command->response->error);
+		$expected = "Path `.*` not found.\n";
+		$result = $command->response->error;
+		$this->assertPattern("/{$expected}/", $result);
+	}
+
+	public function testRunWithInvalidLibrary() {
+		$command = new Test(array(
+			'request' => $this->request,
+			'classes' => $this->classes
+		));
+		$command->format = 'foobar';
+		$path = LITHIUM_LIBRARY_PATH . '/bob/tests/mocks/test/cases/MockTest.php';
+		$command->run($path);
+		$expected = "No library found in path `";
+		$expected .= LITHIUM_LIBRARY_PATH . "/bob/tests/mocks/test/cases/MockTest.php`.\n";
+		$result = $command->response->error;
+		$this->assertEqual($expected, $result);
 	}
 
 	public function testRunWithInvalidHandler() {
@@ -66,7 +87,9 @@ class TestTest extends \lithium\test\Unit {
 		$command->format = 'foobar';
 		$path = LITHIUM_LIBRARY_PATH . '/lithium/tests/mocks/test/cases/MockTest.php';
 		$command->run($path);
-		$this->assertEqual("No handler for format `foobar`... \n", $command->response->error);
+		$expected = "No handler for format `foobar`... \n";
+		$result = $command->response->error;
+		$this->assertEqual($expected, $result);
 	}
 
 	public function testRunSingleTestWithAbsolutePath() {
@@ -76,7 +99,7 @@ class TestTest extends \lithium\test\Unit {
 		$path = LITHIUM_LIBRARY_PATH . '/lithium/tests/mocks/test/cases/MockTest.php';
 		$command->run($path);
 
-		$expected = "1 passes\n0 fails and 0 exceptions\n";
+		$expected = "1 pass\n0 fails and 0 exceptions\n";
 		$expected = preg_quote($expected);
 		$result = $command->response->output;
 		$this->assertPattern("/{$expected}/", $result);
@@ -90,7 +113,7 @@ class TestTest extends \lithium\test\Unit {
 		$path = 'tests/mocks/test/cases/MockTest.php';
 		$command->run($path);
 
-		$expected = "1 passes\n0 fails and 0 exceptions\n";
+		$expected = "1 pass\n0 fails and 0 exceptions\n";
 		$expected = preg_quote($expected);
 		$result = $command->response->output;
 		$this->assertPattern("/{$expected}/", $result);
@@ -103,7 +126,16 @@ class TestTest extends \lithium\test\Unit {
 		$path = "../{$current}/tests/mocks/test/cases/MockTest.php";
 		$command->run($path);
 
-		$expected = "1 passes\n0 fails and 0 exceptions\n";
+		$expected = "1 pass\n0 fails and 0 exceptions\n";
+		$expected = preg_quote($expected);
+		$result = $command->response->output;
+		$this->assertPattern("/{$expected}/", $result);
+
+		$current = basename(getcwd());
+		$path = "{$current}/tests/mocks/test/cases/MockTest.php";
+		$command->run($path);
+
+		$expected = "1 pass\n0 fails and 0 exceptions\n";
 		$expected = preg_quote($expected);
 		$result = $command->response->output;
 		$this->assertPattern("/{$expected}/", $result);
@@ -116,7 +148,7 @@ class TestTest extends \lithium\test\Unit {
 		$path = LITHIUM_LIBRARY_PATH . '/lithium/tests/mocks/test/cases';
 		$command->run($path);
 
-		$expected = "1 / 1 passes\n0 fails and 2 exceptions\n";
+		$expected = "4 exceptions";
 		$expected = preg_quote($expected, '/');
 		$result = $command->response->output;
 		$this->assertPattern("/{$expected}/", $result);

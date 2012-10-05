@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -20,6 +20,17 @@ class CacheTest extends \lithium\test\Unit {
 
 	public function tearDown() {
 		Cache::reset();
+	}
+
+	protected function _checkPath() {
+		$resources = Libraries::get(true, 'resources');
+
+		if (is_writable($resources) && !is_dir("{$resources}/tmp/cache")) {
+			mkdir("{$resources}/tmp/cache", 0777, true);
+		}
+		$directory = new SplFileInfo("{$resources}/tmp/cache");
+
+		return ($directory->isDir() && $directory->isReadable() && $directory->isWritable());
 	}
 
 	public function testBasicCacheConfig() {
@@ -192,19 +203,16 @@ class CacheTest extends \lithium\test\Unit {
 	}
 
 	public function testCacheReadWithConditions() {
-		$config = array('default' => array(
-			'adapter' => 'Memory', 'filters' => array()
-		));
+		$config = array('default' => array('adapter' => 'Memory', 'filters' => array()));
 		Cache::config($config);
+
 		$result = Cache::config();
 		$expected = $config;
 		$this->assertEqual($expected, $result);
 
-		$conditions = function() {
+		$result = Cache::read('default', 'some_key', array('conditions' => function() {
 			return false;
-		};
-
-		$result = Cache::read('default', 'some_key', compact('conditions'));
+		}));
 		$this->assertFalse($result);
 
 		$conditions = function() use (&$config) {
@@ -215,8 +223,7 @@ class CacheTest extends \lithium\test\Unit {
 		$result = Cache::read('default', 'some_key', compact('conditions'));
 		$this->assertTrue($result);
 
-		$result = Cache::read('non_existing', 'key_value', compact('conditions'));
-		$this->assertFalse($result);
+		$this->assertFalse(Cache::read('non_existing', 'key_value', compact('conditions')));
 	}
 
 	public function testCacheIncrementDecrementWithConditions() {
@@ -302,21 +309,29 @@ class CacheTest extends \lithium\test\Unit {
 		$write = function() {
 			return array('+1 minute' => 'read-through write');
 		};
-		$result = Cache::read('default', 'read_through');
-		$this->assertNull($result);
+		$this->assertNull(Cache::read('default', 'read_through'));
 
 		$result = Cache::read('default', 'read_through', compact('write'));
-		$this->assertEqual('read-through write', $result);
+		$this->assertIdentical('read-through write', $result);
 
 		$result = Cache::read('default', 'read_through');
-		$this->assertEqual('read-through write', $result);
+		$this->assertIdentical('read-through write', $result);
 
 		$write = array('+1 minute' => 'string read-through write');
 		$result = Cache::read('default', 'string_read_through', compact('write'));
-		$this->assertEqual('string read-through write', $result);
+		$this->assertIdentical('string read-through write', $result);
 
 		$result = Cache::read('default', 'string_read_through');
-		$this->assertEqual('string read-through write', $result);
+		$this->assertIdentical('string read-through write', $result);
+
+		$this->assertNull(Cache::read('default', 'string_read_through_2'));
+
+		$result = Cache::read('default', 'string_read_through_2', array('write' => array(
+			'+1 minute' => function() {
+				return 'read-through write 2';
+			}
+		)));
+		$this->assertIdentical('read-through write 2', $result);
 	}
 
 	public function testCacheReadAndWrite() {
@@ -545,25 +560,19 @@ class CacheTest extends \lithium\test\Unit {
 	public function testIntegrationFileAdapterCacheConfig() {
 		$result = Cache::config();
 		$this->assertFalse($result);
+		$config = array('default' => array('adapter' => 'File', 'filters' => array()));
 
-		$config = array('default' => array(
-			'adapter' => 'File', 'filters' => array()
-		));
 		Cache::config($config);
-		$result = Cache::config();
-		$expected = $config;
-		$this->assertEqual($expected, $result);
+		$this->assertEqual($config, Cache::config());
 	}
 
 	public function testIntegrationFileAdapterWrite() {
-		$directory = new SplFileInfo(Libraries::get(true, 'resources') . "/tmp/cache/");
-		$accessible = ($directory->isDir() && $directory->isReadable() && $directory->isWritable());
-		$message = "$directory does not have the proper permissions.";
-		$this->skipIf(!$accessible, $message);
+		$resources = Libraries::get(true, 'resources');
+		$path = "{$resources}/tmp/cache";
+		$this->skipIf(!$this->_checkPath(), "{$path} does not have the proper permissions.");
 
-		$config = array('default' => array(
+		$config = array('default' => compact('path') + array(
 			'adapter' => 'File',
-			'path' => Libraries::get(true, 'resources') . '/tmp/cache',
 			'filters' => array()
 		));
 		Cache::config($config);
@@ -572,24 +581,22 @@ class CacheTest extends \lithium\test\Unit {
 		$this->assertTrue($result);
 
 		$time = time() + 60;
-		$result = file_get_contents(Libraries::get(true, 'resources') . '/tmp/cache/key');
+		$result = file_get_contents("{$path}/key");
 		$expected = "{:expiry:$time}\nvalue";
 		$this->assertEqual($result, $expected);
 
-		$result = unlink(Libraries::get(true, 'resources') . '/tmp/cache/key');
+		$result = unlink("{$path}/key");
 		$this->assertTrue($result);
-		$this->assertFalse(file_exists(Libraries::get(true, 'resources') . '/tmp/cache/key'));
+		$this->assertFalse(file_exists("{$path}/key"));
 	}
 
 	public function testIntegrationFileAdapterWithStrategies() {
-		$directory = new SplFileInfo(Libraries::get(true, 'resources') . "/tmp/cache/");
-		$accessible = ($directory->isDir() && $directory->isReadable() && $directory->isWritable());
-		$message = "$directory does not have the proper permissions.";
-		$this->skipIf(!$accessible, $message);
+		$resources = Libraries::get(true, 'resources');
+		$path = "{$resources}/tmp/cache";
+		$this->skipIf(!$this->_checkPath(), "{$path} does not have the proper permissions.");
 
-		$config = array('default' => array(
+		$config = array('default' => compact('path') + array(
 			'adapter' => 'File',
-			'path' => Libraries::get(true, 'resources') . '/tmp/cache',
 			'filters' => array(),
 			'strategies' => array('Serializer')
 		));
@@ -600,7 +607,7 @@ class CacheTest extends \lithium\test\Unit {
 		$this->assertTrue($result);
 
 		$time = time() + 60;
-		$result = file_get_contents(Libraries::get(true, 'resources') . '/tmp/cache/key');
+		$result = file_get_contents("{$path}/key");
 
 		$expected = "{:expiry:$time}\na:1:{s:4:\"some\";s:4:\"data\";}";
 		$this->assertEqual($result, $expected);
@@ -608,20 +615,18 @@ class CacheTest extends \lithium\test\Unit {
 		$result = Cache::read('default', 'key');
 		$this->assertEqual($data, $result);
 
-		$result = unlink(Libraries::get(true, 'resources') . '/tmp/cache/key');
+		$result = unlink("{$path}/key");
 		$this->assertTrue($result);
-		$this->assertFalse(file_exists(Libraries::get(true, 'resources') . '/tmp/cache/key'));
+		$this->assertFalse(file_exists("{$path}/key"));
 	}
 
 	public function testIntegrationFileAdapterMultipleStrategies() {
-		$directory = new SplFileInfo(Libraries::get(true, 'resources') . "/tmp/cache/");
-		$accessible = ($directory->isDir() && $directory->isReadable() && $directory->isWritable());
-		$message = "$directory does not have the proper permissions.";
-		$this->skipIf(!$accessible, $message);
+		$resources = Libraries::get(true, 'resources');
+		$path = "{$resources}/tmp/cache";
+		$this->skipIf(!$this->_checkPath(), "{$path} does not have the proper permissions.");
 
-		$config = array('default' => array(
+		$config = array('default' => compact('path') + array(
 			'adapter' => 'File',
-			'path' => Libraries::get(true, 'resources') . '/tmp/cache',
 			'filters' => array(),
 			'strategies' => array('Serializer', 'Base64')
 		));
@@ -632,7 +637,7 @@ class CacheTest extends \lithium\test\Unit {
 		$this->assertTrue($result);
 
 		$time = time() + 60;
-		$result = file_get_contents(Libraries::get(true, 'resources') . '/tmp/cache/key');
+		$result = file_get_contents("{$path}/key");
 
 		$expected = "{:expiry:$time}\nYToxOntzOjQ6InNvbWUiO3M6NDoiZGF0YSI7fQ==";
 		$this->assertEqual($result, $expected);
@@ -640,9 +645,9 @@ class CacheTest extends \lithium\test\Unit {
 		$result = Cache::read('default', 'key');
 		$this->assertEqual($data, $result);
 
-		$result = unlink(Libraries::get(true, 'resources') . '/tmp/cache/key');
+		$result = unlink("{$path}/key");
 		$this->assertTrue($result);
-		$this->assertFalse(file_exists(Libraries::get(true, 'resources') . '/tmp/cache/key'));
+		$this->assertFalse(file_exists("{$path}/key"));
 	}
 }
 

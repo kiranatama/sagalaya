@@ -15,25 +15,19 @@
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Index
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Search\Lucene\Index\SegmentWriter;
 use Zend\Search\Lucene\Storage\Directory;
 use Zend\Search\Lucene\Index as LuceneIndex;
 
 /**
- * @uses       \Zend\Search\Lucene\Index\SegmentInfo
- * @uses       \Zend\Search\Lucene\Index\SegmentWriter\AbstractSegmentWriter
- * @uses       \Zend\Search\Lucene\Storage\Directory
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Index
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class StreamWriter extends AbstractSegmentWriter
@@ -41,10 +35,10 @@ class StreamWriter extends AbstractSegmentWriter
     /**
      * Object constructor.
      *
-     * @param \Zend\Search\Lucene\Storage\Directory $directory
+     * @param Directory\DirectoryInterface $directory
      * @param string $name
      */
-    public function __construct(Directory $directory, $name)
+    public function __construct(Directory\DirectoryInterface $directory, $name)
     {
         parent::__construct($directory, $name);
     }

@@ -32,3 +32,5 @@ class SessionsController extends \lithium\action\Controller {
 		return $this->redirect('/');
 	}
 }
+
+?>

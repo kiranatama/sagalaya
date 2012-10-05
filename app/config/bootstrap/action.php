@@ -18,7 +18,6 @@
  */
 
 use lithium\core\Libraries;
-use lithium\net\http\Router;
 use lithium\core\Environment;
 use lithium\action\Dispatcher;
 use lithium\security\Auth;
@@ -43,6 +42,7 @@ use lithium\action\Response;
  * @see lithium\net\http\Router
  */
 Dispatcher::applyFilter('run', function($self, $params, $chain) {
+	$params['app'] = 'app';	
 	Environment::set($params['request']);
 
 	foreach (array_reverse(Libraries::get()) as $name => $config) {
@@ -53,35 +53,6 @@ Dispatcher::applyFilter('run', function($self, $params, $chain) {
 		file_exists($file) ? include $file : null;
 	}
 	return $chain->next($self, $params, $chain);
-});
-
-Dispatcher::applyFilter('_callable', function($self, $params, $chain) {
-
-	$ctrl = $chain->next($self, $params, $chain);
-	$request = isset($params['request']) ? $params['request'] : null;
-	$action = $params['params']['action'];
-
-	if ($request->args) {
-		$arguments = array();
-		foreach ($request->args as $value) {
-			$param = explode(":", $value);
-			$arguments[$param[0]] = (isset($param[1]))?$param[1]:null;			
-		}
-		$request->args = $arguments;
-	}	
-
-	if (Auth::check('default') || preg_match('|test.*|', $request->url)) {
-		return $ctrl;
-	}
-
-	if (isset($ctrl->publicActions) && in_array($action, $ctrl->publicActions)) {
-		return $ctrl;
-	}	
-
-	return function() use ($request) {
-		Session::write('message', 'You need to login to access that page.');
-		return new Response(compact('request') + array('location' => 'Sessions::add'));
-	};
 });
 
 ?>

@@ -15,24 +15,19 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Image
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\BinaryParser\Image;
 use Zend\Pdf\BinaryParser;
 
 /**
  * \Zend\Pdf\Image related file parsers abstract class.
  *
- * @uses       \Zend\Pdf\BinaryParser\AbstractBinaryParser
- * @uses       \Zend\Pdf\Image
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Image
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractImage extends BinaryParser\AbstractBinaryParser

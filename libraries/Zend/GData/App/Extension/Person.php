@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage App
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\App\Extension;
 
 use Zend\GData\App\Extension;
@@ -29,14 +26,10 @@ use Zend\GData\App\Extension;
 /**
  * Base class for people (currently used by atom:author, atom:contributor)
  *
- * @uses       \Zend\GData\App\Extension
- * @uses       \Zend\GData\App\Extension\Name
- * @uses       \Zend\GData\App\Extension\Email
- * @uses       \Zend\GData\App\Extension\Uri
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage App
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class Person extends Extension

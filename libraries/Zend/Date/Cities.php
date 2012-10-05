@@ -14,13 +14,10 @@
  *
  * @category  Zend
  * @package   Zend_Date
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Date;
 
 /**
@@ -29,11 +26,10 @@ namespace Zend\Date;
  * Holds the geographical data for all capital cities and many others worldwide
  * Original data from http://www.fallingrain.com/world/
  *
- * @uses       \Zend\Date\Exception
  * @category   Zend
  * @package    Zend_Date
  * @subpackage Zend_Date_Cities
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Cities

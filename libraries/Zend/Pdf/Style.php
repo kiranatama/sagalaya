@@ -14,13 +14,10 @@
  *
  * @category   Zend
  * @package    Zend_PDF
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf;
 
 /**
@@ -29,12 +26,8 @@ namespace Zend\Pdf;
  * It's utility class, used as a container for style information.
  * It's used by \Zend\Pdf\Page class for draw operations.
  *
- * @uses       \Zend\Pdf\Color\
- * @uses       \Zend\Pdf\InternalType
- * @uses       \Zend\Pdf\Page
- * @uses       \Zend\Pdf\Resource\Font\AbstractFont
  * @package    Zend_PDF
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Style

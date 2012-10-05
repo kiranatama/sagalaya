@@ -1,39 +1,29 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Dom
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Dom
  */
 
-/**
- * @namespace
- */
 namespace Zend\Dom;
+
+use Countable;
+use DOMDocument;
+use DOMElement;
+use DOMNodeList;
+use DOMXPath;
+use Iterator;
 
 /**
  * Nodelist for DOM XPath query
  *
- * @uses       Iterator
- * @uses       Countable
  * @package    Zend_Dom
  * @subpackage Query
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class NodeList implements \Iterator,\Countable
+class NodeList implements Iterator, Countable
 {
     /**
      * Number of results
@@ -83,7 +73,7 @@ class NodeList implements \Iterator,\Countable
      * @param  DOMNodeList $nodeList
      * @return void
      */
-    public function  __construct($cssQuery, $xpathQuery, \DOMDocument $document, \DOMNodeList $nodeList)
+    public function  __construct($cssQuery, $xpathQuery, DOMDocument $document, DOMNodeList $nodeList)
     {
         $this->_cssQuery   = $cssQuery;
         $this->_xpathQuery = $xpathQuery;

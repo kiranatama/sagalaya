@@ -15,28 +15,20 @@
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Test\PHPUnit\Db\DataSet;
 use Zend\Db\Select;
 
 /**
  * Uses several query strings or Zend_Db_Select objects to form a dataset of tables for assertion with other datasets.
  *
- * @uses       PHPUnit_Extensions_Database_DataSet_QueryDataSet
- * @uses       PHPUnit_Extensions_Database_DB_IDatabaseConnection
- * @uses       \Zend\Db\Select
- * @uses       \Zend\Test\PHPUnit\Db\DataSet\QueryTable
- * @uses       \Zend\Test\PHPUnit\Db\Exception\InvalidArgumentException
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class QueryDataSet extends \PHPUnit_Extensions_Database_DataSet_QueryDataSet

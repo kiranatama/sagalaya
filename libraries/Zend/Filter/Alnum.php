@@ -14,25 +14,21 @@
  *
  * @category   Zend
  * @package    Zend_Filter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Filter;
 
-use Zend\Config\Config,
-    Zend\Locale\Locale as ZendLocale,
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
+use Zend\Locale\Locale as ZendLocale,
     Zend\Registry;
 
 /**
- * @uses       Zend\Filter\AbstractFilter
- * @uses       Zend\Locale\Locale
  * @category   Zend
  * @package    Zend_Filter
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Alnum extends AbstractFilter
@@ -54,25 +50,25 @@ class Alnum extends AbstractFilter
     /**
      * Locale to use
      *
-     * @var \Zend\Locale\Locale object
+     * @var ZendLocale object
      */
     protected $locale;
 
     /**
      * Sets default option values for this instance
      *
-     * @param  boolean $allowWhiteSpace
-     * @return void
+     * @param  boolean|Traversable|array $allowWhiteSpace
      */
-    public function __construct($options = null)
+    public function __construct($options = false)
     {
-        if ($options instanceof Config) {
-            $options = $options->toArray();
-        } elseif (!is_array($options)) {
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
+        }
+        if (!is_array($options)) {
             $options = func_get_args();
             $temp    = array();
             if (!empty($options)) {
-                $temp['allowwhitespace'] = array_shift($options);
+                $temp['allowWhiteSpace'] = array_shift($options);
             }
 
             if (!empty($options)) {
@@ -86,8 +82,8 @@ class Alnum extends AbstractFilter
             self::$unicodeEnabled = (@preg_match('/\pL/u', 'a')) ? true : false;
         }
 
-        if (array_key_exists('allowwhitespace', $options)) {
-            $this->setAllowWhiteSpace($options['allowwhitespace']);
+        if (array_key_exists('allowWhiteSpace', $options)) {
+            $this->setAllowWhiteSpace($options['allowWhiteSpace']);
         }
 
         if (!array_key_exists('locale', $options)) {
@@ -111,7 +107,7 @@ class Alnum extends AbstractFilter
      * Sets the allowWhiteSpace option
      *
      * @param boolean $allowWhiteSpace
-     * @return \Zend\Filter\Alnum Provides a fluent interface
+     * @return Alnum Provides a fluent interface
      */
     public function setAllowWhiteSpace($allowWhiteSpace)
     {
@@ -133,7 +129,7 @@ class Alnum extends AbstractFilter
      * Sets the locale option
      *
      * @param boolean $locale
-     * @return \Zend\Filter\Alnum Provides a fluent interface
+     * @return Alnum Provides a fluent interface
      */
     public function setLocale($locale = null)
     {
@@ -142,7 +138,7 @@ class Alnum extends AbstractFilter
     }
 
     /**
-     * Defined by Zend_Filter_Interface
+     * Defined by Zend\Filter\FilterInterface
      *
      * Returns the string $value, removing all but alphabetic and digit characters
      *
@@ -156,14 +152,14 @@ class Alnum extends AbstractFilter
         if (!self::$unicodeEnabled) {
             // POSIX named classes are not supported, use alternative a-zA-Z0-9 match
             $pattern = '/[^a-zA-Z0-9' . $whiteSpace . ']/';
-        } elseif (((string) $this->locale == 'ja') 
-                  || ((string) $this->locale == 'ko') 
+        } elseif (((string) $this->locale == 'ja')
+                  || ((string) $this->locale == 'ko')
                   || ((string) $this->locale == 'zh')
         ) {
-            // The Alphabet means english alphabet.
+            // Use english alphabeth
             $pattern = '/[^a-zA-Z0-9'  . $whiteSpace . ']/u';
         } else {
-            // The Alphabet means each language's alphabet.
+            // Use native language alphabeth
             $pattern = '/[^\p{L}\p{N}' . $whiteSpace . ']/u';
         }
 

@@ -15,27 +15,22 @@
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Search\Lucene\Search;
 
 use Zend\Search\Lucene,
 	Zend\Search\Lucene\Exception\UnexpectedValueException,
+    Zend\Search\Lucene\Exception\ExceptionInterface,
 	Zend\Search\Lucene\Search\Exception\QueryParserException;
 
 /**
- * @uses       \Zend\Search\Lucene\Exception\UnexpectedValueException
- * @uses 	   \Zend\Search\Lucene\Search\Exception\QueryParserException
- * @uses       \Zend\Search\Lucene\Search\Query
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class QueryParserContext
@@ -84,7 +79,7 @@ class QueryParserContext
      * Entries signs.
      * Used in GM_SIGNS grouping mode
      *
-     * @var arrays
+     * @var array
      */
     private $_signs = array();
 
@@ -320,7 +315,7 @@ class QueryParserContext
             }
 
             $conjuctions = $expressionRecognizer->finishExpression();
-        } catch (\Zend\Search\Lucene\Exception $e) {
+        } catch (ExceptionInterface $e) {
             // It's query syntax error message and it should be user friendly. So FSM message is omitted
             throw new QueryParserException('Boolean expression error.', 0, $e);
         }

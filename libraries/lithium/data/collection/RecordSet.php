@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -185,7 +185,9 @@ class RecordSet extends \lithium\data\Collection {
 		$return = null;
 
 		if ($this->_valid) {
-			$this->_pointer++;
+			if (count($this->_data) > 1) {
+				$this->_pointer++;
+			}
 			$return = $this->current();
 		}
 		return $return;
@@ -226,7 +228,7 @@ class RecordSet extends \lithium\data\Collection {
 		switch ($format) {
 			case 'array':
 				$result = array_map(function($r) { return $r->to('array'); }, $this->_data);
-				
+
 				if (!(is_scalar(current($this->_index)) && $options['indexed'])) {
 					break;
 				}
@@ -268,6 +270,20 @@ class RecordSet extends \lithium\data\Collection {
 	public function find($filter, array $options = array()) {
 		$this->offsetGet(null);
 		return parent::find($filter, $options);
+	}
+
+	/**
+	 * Reduce, or fold, a collection down to a single value
+	 *
+	 * Overriden to load any data that has not yet been loaded.
+	 *
+	 * @param callback $filter The filter to apply.
+	 * @param mixed $initial Initial value
+	 * @return mixed A single reduced value
+	 */
+	public function reduce($filter, $initial = false) {
+		$this->offsetGet(null);
+		return parent::reduce($filter, $initial);
 	}
 
 	/**

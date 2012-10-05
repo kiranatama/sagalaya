@@ -2,13 +2,11 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
 namespace lithium\action;
-
-use BadMethodCallException;
 
 /**
  * A `Response` object is typically instantiated automatically by the `Controller`. It is assigned
@@ -51,17 +49,6 @@ class Response extends \lithium\net\http\Response {
 			$location = $classes['router']::match($config['location'], $config['request']);
 			$this->headers('location', $location);
 		}
-	}
-
-	/**
-	 * Disables HTTP caching for web clients and proxies.
-	 *
-	 * @deprecated
-	 * @return void
-	 */
-	public function disableCache() {
-		$message = '`Request::disableCache()` is deprecated. Please use `Request::cache(false)`.';
-		throw new BadMethodCallException($message);
 	}
 
 	/**

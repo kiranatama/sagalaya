@@ -15,27 +15,19 @@
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Test\PHPUnit\Db\DataSet;
 
 /**
  * Represent a PHPUnit Database Extension table with Queries using a Zend_Db adapter for assertion against other tables.
  *
- * @uses       PHPUnit_Extensions_Database_DataSet_DefaultTableMetaData
- * @uses       PHPUnit_Extensions_Database_DataSet_QueryTable
- * @uses       PHPUnit_Extensions_Database_DB_IDatabaseConnection
- * @uses       \Zend\Db\Db
- * @uses       \Zend\Test\PHPUnit\Db\Exception\InvalidArgumentException
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class QueryTable extends \PHPUnit_Extensions_Database_DataSet_QueryTable

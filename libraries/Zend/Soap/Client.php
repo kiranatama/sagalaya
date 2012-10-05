@@ -1,43 +1,27 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Soap
- * @subpackage Client
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Soap
  */
 
-/**
- * @namespace
- */
 namespace Zend\Soap;
+
+use Traversable;
+use Zend\Server\Client as ServerClient;
+use Zend\Stdlib\ArrayUtils;
 
 /**
  * \Zend\Soap\Client\Client
  *
- * @uses       \Zend\Soap\Client\Common
- * @uses       \Zend\Soap\Client\Exception
- * @uses       \Zend\Soap\Client\Local
- * @uses       \Zend\Soap\Server
  * @category   Zend
  * @package    Zend_Soap
  * @subpackage Client
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Client
+class Client implements ServerClient
 {
     /**
      * Encoding
@@ -135,9 +119,9 @@ class Client
     /**
      * Constructor
      *
-     * @param string $wsdl
-     * @param array $options
-     * @throws \Zend\Soap\Client\Exception
+     * @param  string $wsdl
+     * @param  array|Traversable $options
+     * @throws Exception\ExtensionNotLoadedException
      */
     public function __construct($wsdl = null, $options = null)
     {
@@ -182,14 +166,14 @@ class Client
      *
      * Allows setting options as an associative array of option => value pairs.
      *
-     * @param  array|\Zend\Config\Config $options
+     * @param  array|Traversable $options
      * @return \Zend\Soap\Client\Client
-     * @throws \Zend\Soap\Client\Exception
+     * @throws Exception\InvalidArgumentException
      */
     public function setOptions($options)
     {
-        if($options instanceof \Zend\Config\Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         }
 
         foreach ($options as $key => $value) {
@@ -313,7 +297,7 @@ class Client
              * ugly hack as I don't know if checking for '=== null'
              * breaks some other option
              */
-            if ($key == 'user_agent') {
+            if (in_array($key, array('user_agent', 'cache_wsdl', 'compression'))) {
                 if ($value === null) {
                     unset($options[$key]);
                 }
@@ -398,7 +382,7 @@ class Client
     public function setEncoding($encoding)
     {
         if (!is_string($encoding)) {
-            throw new ClientException('Invalid encoding specified');
+            throw new Exception\InvalidArgumentException('Invalid encoding specified');
         }
 
         $this->_encoding = $encoding;
@@ -752,13 +736,16 @@ class Client
     /**
      * Set compression options
      *
-     * @param  int $compressionOptions
+     * @param  int|null $compressionOptions
      * @return \Zend\Soap\Client\Client
      */
     public function setCompressionOptions($compressionOptions)
     {
-        $this->_compression = $compressionOptions;
-
+        if ($compressionOptions === null) {
+            $this->_compression = null;
+        } else {
+            $this->_compression = (int)$compressionOptions;
+        }
         $this->_soapClient = null;
 
         return $this;
@@ -836,17 +823,23 @@ class Client
     /**
      * Set the SOAP WSDL Caching Options
      *
-     * @param string|int|boolean $caching
+     * @param string|int|boolean|null $caching
      * @return \Zend\Soap\Client\Client
      */
-    public function setWSDLCache($options)
+    public function setWSDLCache($caching)
     {
-        $this->_cache_wsdl = $options;
+        if ($caching === null) {
+            $this->_cache_wsdl = null;
+        } else {
+            $this->_cache_wsdl = (int)$caching;
+        }
         return $this;
     }
 
     /**
      * Get current SOAP WSDL Caching option
+     *
+     * @return int
      */
     public function getWSDLCache()
     {
@@ -963,7 +956,7 @@ class Client
     {
         // Perform request as is
         if ($one_way === null) {
-        	return call_user_func(array($client,'SoapClient::__doRequest'), $request, $location, $action, $version);
+            return call_user_func(array($client,'SoapClient::__doRequest'), $request, $location, $action, $version);
         }
         return call_user_func(array($client, 'SoapClient::__doRequest'), $request, $location, $action, $version, $one_way);
     }
@@ -1092,6 +1085,17 @@ class Client
         return $this->_preProcessResult($result);
     }
 
+    /**
+     * Send an RPC request to the service for a specific method.
+     *
+     * @param  string $method Name of the method we want to call.
+     * @param  array $params List of parameters for the method.
+     * @return mixed Returned results.
+     */
+    public function call($method, $params = array())
+    {
+        return call_user_func_array(array($this, '__call'), $params);
+    }
 
     /**
      * Return a list of available functions

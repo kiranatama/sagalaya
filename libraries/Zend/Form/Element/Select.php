@@ -15,30 +15,74 @@
  * @category   Zend
  * @package    Zend_Form
  * @subpackage Element
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Form\Element;
 
+use Traversable;
+use Zend\Form\Element;
+use Zend\InputFilter\InputProviderInterface;
+use Zend\Validator\InArray as InArrayValidator;
+use Zend\Validator\ValidatorInterface;
+
 /**
- * Select.php form element
- *
- * @uses       \Zend\Form\Element\Multi
  * @category   Zend
  * @package    Zend_Form
  * @subpackage Element
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Select extends Multi
+class Select extends Element
 {
     /**
-     * Use formSelect view helper by default
-     * @var string
+     * Seed attributes
+     *
+     * @var array
      */
-    public $helper = 'formSelect';
+    protected $attributes = array(
+        'type' => 'select',
+    );
+
+    /**
+    * @var ValidatorInterface
+    */
+    protected $validator;
+
+    /**
+    * Get validator
+    *
+    * @return ValidatorInterface
+    */
+    protected function getValidator()
+    {
+        if (null === $this->validator) {
+            $this->validator = new InArrayValidator(array(
+                'haystack' => (array) $this->getAttribute('options'),
+                'strict'   => false
+            ));
+        }
+        return $this->validator;
+    }
+
+    /**
+     * Provide default input rules for this element
+     *
+     * Attaches the captcha as a validator.
+     *
+     * @return array
+     */
+    public function getInputSpecification()
+    {
+        $spec = array(
+            'name' => $this->getName(),
+            'required' => true,
+            'validators' => array(
+                $this->getValidator()
+            )
+        );
+
+        return $spec;
+    }
 }

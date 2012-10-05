@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Media
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Media\Extension;
 
 /**
@@ -30,12 +27,10 @@ namespace Zend\GData\Media\Extension;
  * the same content can be represented using a
  * media:group (Zend_Gdata_Media_Extension_MediaGroup) element.
  *
- * @uses       \Zend\GData\Extension
- * @uses       \Zend\GData\Media
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Media
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class MediaContent extends \Zend\GData\Extension

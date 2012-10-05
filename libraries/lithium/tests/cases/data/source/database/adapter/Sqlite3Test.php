@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -119,14 +119,14 @@ class Sqlite3Test extends \lithium\test\Unit {
 		$this->db->read($sql, array('return' => 'resource'));
 		$result = $this->db->describe('foo');
 		$expected = array(
-		  'bar' => array (
-		  'type' => 'VARCHAR',
-		  'length' => '20',
-		  'null' => true,
-		  'default' => 'baz'
-		  )
+			'bar' => array(
+				'type' => 'VARCHAR',
+				'length' => '20',
+				'null' => true,
+				'default' => 'baz'
+			)
 		);
-    $this->assertEqual($expected, $result);
+		$this->assertEqual($expected, $result);
 	}
 
 	public function testExecuteException() {

@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -17,7 +17,7 @@ class ContextTest extends \lithium\test\Unit {
 	protected $_testConfig = array(
 		'persistent' => false,
 		'scheme' => 'http',
-		'host' => 'lithify.me',
+		'host' => 'google.com',
 		'port' => 80,
 		'timeout' => 4,
 		'classes' => array('request' => 'lithium\net\http\Request')
@@ -68,7 +68,7 @@ class ContextTest extends \lithium\test\Unit {
 	}
 
 	public function testMessageInConfig() {
-		$socket = new Context(array('message' => new Request()));
+		$socket = new Context(array('message' => new Request($this->_testConfig)));
 		$this->assertTrue(is_resource($socket->open()));
 	}
 

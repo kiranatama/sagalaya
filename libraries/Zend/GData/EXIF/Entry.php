@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Exif
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\EXIF;
 
 use Zend\GData\EXIF;
@@ -29,13 +26,10 @@ use Zend\GData\EXIF;
 /**
  * An Atom entry containing EXIF metadata.
  *
- * @uses       \Zend\GData\Entry
- * @uses       \Zend\GData\EXIF
- * @uses       \Zend\GData\EXIF\Extension\Tags
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Exif
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Entry extends \Zend\GData\Entry

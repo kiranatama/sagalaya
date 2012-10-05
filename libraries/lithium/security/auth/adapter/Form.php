@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -311,7 +311,7 @@ class Form extends \lithium\core\Object {
 
 	/**
 	 * Called by the `Auth` class to run an authentication check against a model class using the
-	 * credientials in a data container (a `Request` object), and returns an array of user
+	 * credentials in a data container (a `Request` object), and returns an array of user
 	 * information on success, or `false` on failure.
 	 *
 	 * @param object $credentials A data container which wraps the authentication credentials used
@@ -326,7 +326,8 @@ class Form extends \lithium\core\Object {
 		$query = $this->_query;
 		$data = $this->_filters($credentials->data);
 
-		$conditions = $this->_scope + array_diff_key($data, $this->_validators);
+		$validate = array_flip(array_intersect_key($this->_fields, $this->_validators));
+		$conditions = $this->_scope + array_diff_key($data, $validate);
 		$user = $model::$query(compact('conditions') + $options);
 
 		if (!$user) {
@@ -372,7 +373,7 @@ class Form extends \lithium\core\Object {
 			$result[$to] = isset($data[$from]) ? $data[$from] : null;
 
 			if (!isset($this->_filters[$from])) {
-				$result[$to] = !is_scalar($result[$to]) ? strval($result[$to]) : $result[$to];
+				$result[$to] = is_scalar($result[$to]) ? $result[$to] : null;
 				continue;
 			}
 			if ($this->_filters[$from] === false) {

@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Books
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Books;
 
 use Zend\GData\Books;
@@ -29,12 +26,10 @@ use Zend\GData\Books;
 /**
  * Assists in constructing queries for Books volumes
  *
- * @uses       \Zend\GData\Books\Books
- * @uses       \Zend\GData\Query
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Books
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class VolumeQuery extends \Zend\GData\Query

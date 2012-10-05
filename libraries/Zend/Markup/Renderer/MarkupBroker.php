@@ -15,7 +15,7 @@
  * @category   Zend
  * @package    Zend_Markup
  * @subpackage Renderer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
@@ -29,7 +29,7 @@ use Zend\Loader\PluginBroker;
  * @category   Zend
  * @package    Zend_Markup
  * @subpackage Renderer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class MarkupBroker extends PluginBroker
@@ -44,12 +44,14 @@ class MarkupBroker extends PluginBroker
      * 
      * @param  mixed $plugin 
      * @return true
-     * @throws Exception
+     * @throws Exception\InvalidArgumentException
      */
     protected function validatePlugin($plugin)
     {
-        if (!$plugin instanceof Markup) {
-            throw new Exception('Markup converters must implement Zend\Markup\Renderer\Markup');
+        if (!$plugin instanceof Markup\MarkupInterface) {
+            throw new Exception\InvalidArgumentException(
+                'Markup converters must implement Zend\Markup\Renderer\Markup\MarkupInterface'
+            );
         }
         return true;
     }

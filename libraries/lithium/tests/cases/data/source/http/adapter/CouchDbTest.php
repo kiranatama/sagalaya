@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -70,8 +70,7 @@ class CouchDbTest extends \lithium\test\Unit {
 
 	public function testDisconnect() {
 		$couchdb = new CouchDb($this->_testConfig);
-		$result = $couchdb->connect();
-		$this->assertTrue($result);
+		$couchdb->connect();
 
 		$result = $couchdb->disconnect();
 		$this->assertTrue($result);
@@ -85,20 +84,14 @@ class CouchDbTest extends \lithium\test\Unit {
 
 	public function testDescribe() {
 		$couchdb = new CouchDb($this->_testConfig);
-		$this->expectException('/companies is not available/');
-		$result = $couchdb->describe('companies');
-		$this->assertNull($result);
+		$this->assertNull($couchdb->describe('companies'));
 	}
 
 	public function testItem() {
 		$couchdb = new CouchDb($this->_testConfig);
-		$data = array(
-			'_id' => 'a1', '_rev' => '1-2', 'author' => 'author 1', 'body' => 'body 1'
-		);
-		$expected = array(
-			'id' => 'a1', 'rev' => '1-2',
-			'author' => 'author 1', 'body' => 'body 1'
-		);
+		$data = array('_id' => 'a1', '_rev' => '1-2', 'author' => 'author 1', 'body' => 'body 1');
+		$expected = array('id' => 'a1', 'rev' => '1-2', 'author' => 'author 1', 'body' => 'body 1');
+
 		$item = $couchdb->item($this->query->model(), $data);
 		$result = $item->data();
 		$this->assertEqual($expected, $result);

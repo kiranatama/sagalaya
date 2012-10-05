@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  *
  */
@@ -178,7 +178,7 @@ class Sqlite3 extends \lithium\data\source\Database {
 	 */
 	public function describe($entity, array $meta = array()) {
 		$params = compact('entity', 'meta');
-		$regex = &$this->_regex;
+		$regex = $this->_regex;
 		return $this->_filter(__METHOD__, $params, function($self, $params) use ($regex) {
 			extract($params);
 
@@ -282,8 +282,8 @@ class Sqlite3 extends \lithium\data\source\Database {
 
 	/**
 	 * Execute a given query.
- 	 *
- 	 * @see lithium\data\source\Database::renderCommand()
+	 *
+	 * @see lithium\data\source\Database::renderCommand()
 	 * @param string $sql The sql string to execute
 	 * @param array $options No available options.
 	 * @return resource

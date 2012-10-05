@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage GApps
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\GApps;
 
 use Zend\GData\GApps;
@@ -38,16 +35,10 @@ use Zend\GData\GApps;
  *
  * This class represents <atom:entry> in the Google Data protocol.
  *
- * @uses       \Zend\GData\Entry
- * @uses       \Zend\GData\Extension\FeedLink
- * @uses       \Zend\GData\GApps
- * @uses       \Zend\GData\GApps\Extension\Login
- * @uses       \Zend\GData\GApps\Extension\Name
- * @uses       \Zend\GData\GApps\Extension\Quota
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage GApps
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class UserEntry extends \Zend\GData\Entry
@@ -270,7 +261,7 @@ class UserEntry extends \Zend\GData\Entry
      *
      * @param array $value A collection of
      *          Zend_Gdata_GApps_Extension_FeedLink objects.
-     * @return Zend_Gdata_GApps_EventEntry Provides a fluent interface.
+     * @return EventEntry Provides a fluent interface.
      */
     public function setFeedLink($value)
     {

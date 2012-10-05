@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Docs
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData\Docs;
 
 use Zend\GData\Docs;
@@ -30,12 +27,10 @@ use Zend\GData\Docs;
  * Represents a Documents List entry in the Documents List data API meta feed
  * of a user's documents.
  *
- * @uses       \Zend\GData\Docs
- * @uses       \Zend\GData\Entry
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Docs
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class DocumentListEntry extends \Zend\GData\Entry

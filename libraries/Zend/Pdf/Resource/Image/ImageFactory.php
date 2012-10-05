@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Image
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Pdf\Resource\Image;
 use Zend\Pdf\Exception;
 use Zend\Pdf;
@@ -31,13 +28,9 @@ use Zend\Pdf;
  *
  * Helps manage the diverse set of supported image file types.
  *
- * @uses       \Zend\Pdf\Exception
- * @uses       \Zend\Pdf\Resource\Image\Jpeg
- * @uses       \Zend\Pdf\Resource\Image\Png
- * @uses       \Zend\Pdf\Resource\Image\Tiff
  * @package    Zend_PDF
  * @subpackage Zend_PDF_Image
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @todo       Use Zend_Mime not file extension for type determination.
  */

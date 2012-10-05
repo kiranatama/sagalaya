@@ -14,20 +14,21 @@
  *
  * @category   Zend
  * @package    Zend_Serializer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
 namespace Zend\Serializer;
 
-use Zend\Loader\PluginBroker;
+use Zend\Loader\PluginBroker,
+    Zend\Serializer\Adapter\AdapterInterface as Adapter;
 
 /**
  * Broker for serializer adapter instances
  *
  * @category   Zend
  * @package    Zend_Serializer
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class AdapterBroker extends PluginBroker
@@ -42,12 +43,14 @@ class AdapterBroker extends PluginBroker
      * 
      * @param  mixed $plugin 
      * @return true
-     * @throws Exception
+     * @throws Exception\RuntimeException
      */
     protected function validatePlugin($plugin)
     {
         if (!$plugin instanceof Adapter) {
-            throw new Exception\RuntimeException('Serializer adapters must implement Zend\Serializer\Adapter');
+            throw new Exception\RuntimeException(
+                'Serializer adapters must implement Zend\Serializer\Adapter\AdapterInterface'
+            );
         }
         return true;
     }

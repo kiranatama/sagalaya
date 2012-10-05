@@ -14,13 +14,10 @@
  *
  * @category   Zend
  * @package    Zend_Loader
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Loader;
 
 use Zend\Stdlib\ArrayStack,
@@ -33,7 +30,7 @@ use Zend\Stdlib\ArrayStack,
  *
  * @category   Zend
  * @package    Zend_Loader
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class PrefixPathLoader implements ShortNameLocator, PrefixPathMapper
@@ -133,7 +130,7 @@ class PrefixPathLoader implements ShortNameLocator, PrefixPathMapper
      *
      * Proxies to {@link addPrefixPaths()}.
      * 
-     * @param  array|Traversable $options 
+     * @param  array|\Traversable $options
      * @return PrefixPathLoader
      */
     public function setOptions($options)
@@ -458,7 +455,7 @@ class PrefixPathLoader implements ShortNameLocator, PrefixPathMapper
      */
     protected function formatPrefix($prefix, $namespaced = true)
     {
-        if($prefix == "") {
+        if ($prefix == "") {
             return $prefix;
         }
 

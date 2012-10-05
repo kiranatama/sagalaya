@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -27,7 +27,7 @@ class Help extends \lithium\console\Command {
 	 * @return void
 	 */
 	public function run($command = null) {
-	    $message = 'Lithium console started in the ' . Environment::get() . ' environment.';
+		$message = 'Lithium console started in the ' . Environment::get() . ' environment.';
 		$message .= ' Use the --env=environment key to alter this.';
 		$this->out($message);
 
@@ -37,14 +37,13 @@ class Help extends \lithium\console\Command {
 		}
 
 		if (!preg_match('/\\\\/', $command)) {
-			$command = ucwords($command);
+			$command = Inflector::camelize($command);
 		}
 
 		if (!$class = Libraries::locate('command', $command)) {
 			$this->error("Command `{$command}` not found");
 			return false;
 		}
-		$command = Inflector::classify($command);
 
 		if (strpos($command, '\\') !== false) {
 			$command = join('', array_slice(explode("\\", $command), -1));
@@ -301,7 +300,7 @@ class Help extends \lithium\console\Command {
 	/**
 	 * Output the formatted command description.
 	 *
-	 * @param array $info Info from insepcting the class of the command.
+	 * @param array $info Info from inspecting the class of the command.
 	 * @return void
 	 */
 	protected function _renderDescription($info) {

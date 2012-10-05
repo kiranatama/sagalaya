@@ -1,35 +1,22 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category   Zend
- * @package    Zend_Feed_Reader
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Feed
  */
 
-/**
- * @namespace
- */
 namespace Zend\Feed\Reader;
 
+use DOMDocument;
+use DOMElement;
+use DOMXPath;
+
 /**
- * @uses       \Zend\Feed\Exception
- * @uses       \Zend\Feed\Reader\Reader
  * @category   Zend
  * @package    Zend_Feed_Reader
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 abstract class AbstractEntry
 {
@@ -83,7 +70,7 @@ abstract class AbstractEntry
      * @param  string $type
      * @return void
      */
-    public function __construct(\DOMElement $entry, $entryKey, $type = null)
+    public function __construct(DOMElement $entry, $entryKey, $type = null)
     {
         $this->_entry       = $entry;
         $this->_entryKey    = $entryKey;
@@ -137,7 +124,7 @@ abstract class AbstractEntry
      */
     public function saveXml()
     {
-        $dom = new \DOMDocument('1.0', $this->getEncoding());
+        $dom = new DOMDocument('1.0', $this->getEncoding());
         $entry = $dom->importNode($this->getElement(), true);
         $dom->appendChild($entry);
         return $dom->saveXml();
@@ -161,7 +148,7 @@ abstract class AbstractEntry
     public function getXpath()
     {
         if (!$this->_xpath) {
-            $this->setXpath(new \DOMXPath($this->getDomDocument()));
+            $this->setXpath(new DOMXPath($this->getDomDocument()));
         }
         return $this->_xpath;
     }
@@ -172,7 +159,7 @@ abstract class AbstractEntry
      * @param  DOMXPath $xpath
      * @return Zend\Feed\Reader\AbstractEntry
      */
-    public function setXpath(\DOMXPath $xpath)
+    public function setXpath(DOMXPath $xpath)
     {
         $this->_xpath = $xpath;
         return $this;
@@ -208,7 +195,7 @@ abstract class AbstractEntry
      * @param  string $method
      * @param  array $args
      * @return mixed
-     * @throws \Zend\Feed\Exception if no extensions implements the method
+     * @throws Exception\BadMethodCallException if no extensions implements the method
      */
     public function __call($method, $args)
     {
@@ -217,7 +204,7 @@ abstract class AbstractEntry
                 return call_user_func_array(array($extension, $method), $args);
             }
         }
-        throw new \Zend\Feed\Exception('Method: ' . $method
+        throw new Exception\BadMethodCallException('Method: ' . $method
             . 'does not exist and could not be located on a registered Extension');
     }
 

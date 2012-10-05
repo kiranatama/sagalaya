@@ -16,34 +16,26 @@
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Books
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\GData;
 
 /**
  * Service class for interacting with the Books service
  *
- * @uses       \Zend\GData\GData
- * @uses       \Zend\GData\Books\CollectionEntry
- * @uses       \Zend\GData\Books\CollectionFeed
- * @uses       \Zend\GData\Books\VolumeEntry
- * @uses       \Zend\GData\Books\VolumeFeed
  * @category   Zend
  * @package    Zend_Gdata
  * @subpackage Books
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Books extends GData
 {
-    const VOLUME_FEED_URI = 'http://books.google.com/books/feeds/volumes';
-    const MY_LIBRARY_FEED_URI = 'http://books.google.com/books/feeds/users/me/collections/library/volumes';
-    const MY_ANNOTATION_FEED_URI = 'http://books.google.com/books/feeds/users/me/volumes';
+    const VOLUME_FEED_URI = 'https://books.google.com/books/feeds/volumes';
+    const MY_LIBRARY_FEED_URI = 'https://books.google.com/books/feeds/users/me/collections/library/volumes';
+    const MY_ANNOTATION_FEED_URI = 'https://books.google.com/books/feeds/users/me/volumes';
     const AUTH_SERVICE_NAME = 'print';
 
     /**
@@ -68,7 +60,7 @@ class Books extends GData
         $this->registerPackage('Zend\GData\Books');
         $this->registerPackage('Zend\GData\Books\Extension');
         parent::__construct($client, $applicationId);
-        $this->_httpClient->setParameterPost('service', self::AUTH_SERVICE_NAME);
+        $this->_httpClient->setParameterPost(array('service' => self::AUTH_SERVICE_NAME));
      }
 
     /**

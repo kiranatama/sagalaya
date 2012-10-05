@@ -1,41 +1,26 @@
 <?php
 /**
- * Zend Framework
+ * Zend Framework (http://framework.zend.com/)
  *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://framework.zend.com/license/new-bsd
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@zend.com so we can send you a copy immediately.
- *
- * @category  Zend
- * @package   Zend_Validate
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd     New BSD License
+ * @link      http://github.com/zendframework/zf2 for the canonical source repository
+ * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @package   Zend_Validator
  */
 
-/**
- * @namespace
- */
 namespace Zend\Validator\File;
 
-use Zend\Loader;
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
+use Zend\Validator\AbstractValidator;
 
 /**
  * Validator for the file extension of a file
  *
- * @uses      \Zend\Loader
- * @uses      \Zend\Validator\AbstractValidator
  * @category  Zend
  * @package   Zend_Validate
- * @copyright Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Extension extends \Zend\Validator\AbstractValidator
+class Extension extends AbstractValidator
 {
     /**
      * @const string Error constants
@@ -46,54 +31,62 @@ class Extension extends \Zend\Validator\AbstractValidator
     /**
      * @var array Error message templates
      */
-    protected $_messageTemplates = array(
+    protected $messageTemplates = array(
         self::FALSE_EXTENSION => "File '%value%' has a false extension",
         self::NOT_FOUND       => "File '%value%' is not readable or does not exist",
     );
 
     /**
-     * Internal list of extensions
-     * @var string
-     */
-    protected $_extension = '';
-
-    /**
-     * Validate case sensitive
+     * Options for this validator
      *
-     * @var boolean
+     * @var array
      */
-    protected $_case = false;
+    protected $options = array(
+        'case' => false,   // Validate case sensitive
+        'extension' => '', // List of extensions
+    );
 
     /**
      * @var array Error message template variables
      */
-    protected $_messageVariables = array(
-        'extension' => '_extension'
+    protected $messageVariables = array(
+        'extension' => array('options' => 'extension'),
     );
 
     /**
      * Sets validator options
      *
-     * @param  string|array|\Zend\Config\Config $options
-     * @return void
+     * @param  string|array|\Traversable $options
      */
-    public function __construct($options)
+    public function __construct($options = null)
     {
-        if ($options instanceof \Zend\Config\Config) {
-            $options = $options->toArray();
+        if ($options instanceof Traversable) {
+            $options = ArrayUtils::iteratorToArray($options);
         }
 
+        $case = null;
         if (1 < func_num_args()) {
             $case = func_get_arg(1);
-            $this->setCase($case);
         }
 
-        if (is_array($options) and isset($options['case'])) {
-            $this->setCase($options['case']);
-            unset($options['case']);
+        if (is_array($options)) {
+            if (isset($options['case'])) {
+                $case = $options['case'];
+                unset($options['case']);
+            }
+
+            if (!array_key_exists('extension', $options)) {
+                $options = array('extension' => $options);
+            }
+        } else {
+            $options = array('extension' => $options);
         }
 
-        $this->setExtension($options);
+        if ($case !== null) {
+            $options['case'] = $case;
+        }
+
+        parent::__construct($options);
     }
 
     /**
@@ -103,18 +96,18 @@ class Extension extends \Zend\Validator\AbstractValidator
      */
     public function getCase()
     {
-        return $this->_case;
+        return $this->options['case'];
     }
 
     /**
      * Sets the case to use
      *
      * @param  boolean $case
-     * @return \Zend\Validator\File\Extension Provides a fluent interface
+     * @return Extension Provides a fluent interface
      */
     public function setCase($case)
     {
-        $this->_case = (boolean) $case;
+        $this->options['case'] = (boolean) $case;
         return $this;
     }
 
@@ -125,7 +118,7 @@ class Extension extends \Zend\Validator\AbstractValidator
      */
     public function getExtension()
     {
-        $extension = explode(',', $this->_extension);
+        $extension = explode(',', $this->options['extension']);
 
         return $extension;
     }
@@ -134,11 +127,11 @@ class Extension extends \Zend\Validator\AbstractValidator
      * Sets the file extensions
      *
      * @param  string|array $extension The extensions to validate
-     * @return \Zend\Validator\File\Extension Provides a fluent interface
+     * @return Extension Provides a fluent interface
      */
     public function setExtension($extension)
     {
-        $this->_extension = null;
+        $this->options['extension'] = null;
         $this->addExtension($extension);
         return $this;
     }
@@ -147,7 +140,7 @@ class Extension extends \Zend\Validator\AbstractValidator
      * Adds the file extensions
      *
      * @param  string|array $extension The extensions to add for validation
-     * @return \Zend\Validator\File\Extension Provides a fluent interface
+     * @return Extension Provides a fluent interface
      */
     public function addExtension($extension)
     {
@@ -163,6 +156,7 @@ class Extension extends \Zend\Validator\AbstractValidator
 
             $extensions[] = trim($content);
         }
+
         $extensions = array_unique($extensions);
 
         // Sanity check to ensure no empty values
@@ -172,13 +166,12 @@ class Extension extends \Zend\Validator\AbstractValidator
             }
         }
 
-        $this->_extension = implode(',', $extensions);
-
+        $this->options['extension'] = implode(',', $extensions);
         return $this;
     }
 
     /**
-     * Returns true if and only if the fileextension of $value is included in the
+     * Returns true if and only if the file extension of $value is included in the
      * set extension list
      *
      * @param  string  $value Real file to check for extension
@@ -192,8 +185,8 @@ class Extension extends \Zend\Validator\AbstractValidator
         }
 
         // Is file readable ?
-        if (!Loader::isReadable($value)) {
-            return $this->_throw($file, self::NOT_FOUND);
+        if (false === stream_resolve_include_path($value)) {
+            return $this->throwError($file, self::NOT_FOUND);
         }
 
         if ($file !== null) {
@@ -204,9 +197,9 @@ class Extension extends \Zend\Validator\AbstractValidator
 
         $extensions = $this->getExtension();
 
-        if ($this->_case && (in_array($info['extension'], $extensions))) {
+        if ($this->getCase() && (in_array($info['extension'], $extensions))) {
             return true;
-        } else if (!$this->getCase()) {
+        } elseif (!$this->getCase()) {
             foreach ($extensions as $extension) {
                 if (strtolower($extension) == strtolower($info['extension'])) {
                     return true;
@@ -214,7 +207,7 @@ class Extension extends \Zend\Validator\AbstractValidator
             }
         }
 
-        return $this->_throw($file, self::FALSE_EXTENSION);
+        return $this->throwError($file, self::FALSE_EXTENSION);
     }
 
     /**
@@ -224,19 +217,19 @@ class Extension extends \Zend\Validator\AbstractValidator
      * @param  string $errorType
      * @return false
      */
-    protected function _throw($file, $errorType)
+    protected function throwError($file, $errorType)
     {
         if ($file !== null) {
             if (is_array($file)) {
                 if(array_key_exists('name', $file)) {
-                    $this->_value = $file['name'];
+                    $this->value = $file['name'];
                 }
-            } else if (is_string($file)) {
-                $this->_value = $file;
+            } elseif (is_string($file)) {
+                $this->value = $file;
             }
         }
 
-        $this->_error($errorType);
+        $this->error($errorType);
         return false;
     }
 }

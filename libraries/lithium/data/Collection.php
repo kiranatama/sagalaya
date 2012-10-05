@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -145,6 +145,15 @@ abstract class Collection extends \lithium\util\Collection {
 		return $this->_model;
 	}
 
+	/**
+	 * Returns the object's parent `Document` object.
+	 *
+	 * @return object
+	 */
+	public function parent() {
+		return $this->_parent;
+	}
+
 	public function schema($field = null) {
 		$schema = array();
 
@@ -248,6 +257,22 @@ abstract class Collection extends \lithium\util\Collection {
 	}
 
 	/**
+	 * Reduce, or fold, a collection down to a single value
+	 *
+	 * Overridden to load any data that has not yet been loaded.
+	 *
+	 * @param callback $filter The filter to apply.
+	 * @param mixed $initial Initial value
+	 * @return mixed A single reduced value
+	 */
+	public function reduce($filter, $initial = false) {
+		if (!$this->closed()) {
+			while ($this->next()) {}
+		}
+		return parent::reduce($filter);
+	}
+
+	/**
 	 * Sorts the objects in the collection, useful in situations where
 	 * you are already using the underlying datastore to sort results.
 	 *
@@ -305,6 +330,17 @@ abstract class Collection extends \lithium\util\Collection {
 			$data->assignTo($this);
 		}
 		return $this->_data[] = $data;
+	}
+
+	/**
+	 * Return's the pointer or resource that is used to load entities from the backend
+	 * data source that originated this collection. This is useful in many cases for
+	 * additional methods related to debugging queries.
+	 *
+	 * @return object The pointer or resource from the data source
+	*/
+	public function result() {
+		return $this->_result;
 	}
 
 	/**

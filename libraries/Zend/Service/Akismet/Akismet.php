@@ -15,13 +15,10 @@
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Akismet
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 
-/**
- * @namespace
- */
 namespace Zend\Service\Akismet;
 use Zend\Http,
     Zend\Uri;
@@ -32,7 +29,7 @@ use Zend\Http,
  * @category   Zend
  * @package    Zend_Service
  * @subpackage Akismet
- * @copyright  Copyright (c) 2005-2011 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Akismet extends \Zend\Service\AbstractService
@@ -223,7 +220,7 @@ class Akismet extends \Zend\Service\AbstractService
         $uri    = 'http://' . $host . ':' . $this->getPort() . $path;
         $client = $this->getHttpClient();
         $client->setUri($uri);
-        $client->setConfig(array(
+        $client->setOptions(array(
             'useragent'    => $this->getUserAgent(),
         ));
 
@@ -233,8 +230,8 @@ class Akismet extends \Zend\Service\AbstractService
         ));
         $client->setParameterPost($params);
 
-        $client->setMethod(Http\Client::POST);
-        return $client->request();
+        $client->setMethod(Http\Request::METHOD_POST);
+        return $client->send();
     }
 
     /**
@@ -267,7 +264,7 @@ class Akismet extends \Zend\Service\AbstractService
      *
      * @param string $path
      * @param array $params
-     * @return Zend_Http_Response
+     * @return Zend\Http\Response
      * @throws Zend\Service\Exception if missing user_ip or user_agent fields
      */
     protected function _makeApiCall($path, $params)

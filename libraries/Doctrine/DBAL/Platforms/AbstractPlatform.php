@@ -198,6 +198,20 @@ abstract class AbstractPlatform
         }
     }
 
+    /**
+     * Get the SQL Snippet to create a GUID/UUID field.
+     *
+     * By default this maps directly to a VARCHAR and only maps to more
+     * special datatypes when the underlying databases support this datatype.
+     *
+     * @param array $field
+     * @return string
+     */
+    public function getGuidTypeDeclartionSQL(array $field)
+    {
+        return $this->getVarcharTypeDeclarationSQL($field);
+    }
+
     protected function getVarcharTypeDeclarationSQLSnippet($length, $fixed)
     {
         throw DBALException::notSupported('VARCHARs not supported by Platform.');
@@ -508,10 +522,20 @@ abstract class AbstractPlatform
     }
 
     /**
+     * Returns the squared value of a column
+     *
+     * @param string $column    the column to use
+     * @return string           generated sql including an SQRT aggregate function
+     */
+    public function getSqrtExpression($column)
+    {
+        return 'SQRT(' . $column . ')';
+    }
+
+    /**
      * Rounds a numeric field to the number of decimals specified.
      *
      * @param string $expression1
-     * @param string $expression2
      * @return string
      */
     public function getRoundExpression($column, $decimals = 0)
@@ -703,7 +727,7 @@ abstract class AbstractPlatform
         $values = $this->getIdentifiers($values);
 
         if (count($values) == 0) {
-            throw \InvalidArgumentException('Values must not be empty.');
+            throw new \InvalidArgumentException('Values must not be empty.');
         }
         return $column . ' IN (' . implode(', ', $values) . ')';
     }
@@ -1028,6 +1052,7 @@ abstract class AbstractPlatform
                 /* @var $index Index */
                 if ($index->isPrimary()) {
                     $options['primary'] = $index->getColumns();
+                    $options['primary_index'] = $index;
                 } else {
                     $options['indexes'][$index->getName()] = $index;
                 }
@@ -1250,16 +1275,27 @@ abstract class AbstractPlatform
         if ($index->isPrimary()) {
             return $this->getCreatePrimaryKeySQL($index, $table);
         } else {
-            $type = '';
-            if ($index->isUnique()) {
-                $type = 'UNIQUE ';
-            }
 
-            $query = 'CREATE ' . $type . 'INDEX ' . $name . ' ON ' . $table;
+            $query = 'CREATE ' . $this->getCreateIndexSQLFlags($index) . 'INDEX ' . $name . ' ON ' . $table;
             $query .= ' (' . $this->getIndexFieldDeclarationListSQL($columns) . ')';
         }
 
         return $query;
+    }
+
+    /**
+     * Adds additional flags for index generation
+     *
+     * @param Index $index
+     * @return string
+     */
+    protected function getCreateIndexSQLFlags(Index $index)
+    {
+        $type = '';
+        if ($index->isUnique()) {
+            $type = 'UNIQUE ';
+        }
+        return $type;
     }
 
     /**
@@ -1655,6 +1691,8 @@ abstract class AbstractPlatform
                     $default = " DEFAULT ".$field['default'];
                 } else if ((string)$field['type'] == 'DateTime' && $field['default'] == $this->getCurrentTimestampSQL()) {
                     $default = " DEFAULT ".$this->getCurrentTimestampSQL();
+                } else if ((string) $field['type'] == 'Boolean') {
+                    $default = " DEFAULT '" . $this->convertBooleans($field['default']) . "'";
                 }
             }
         }
@@ -1700,7 +1738,7 @@ abstract class AbstractPlatform
     public function getUniqueConstraintDeclarationSQL($name, Index $index)
     {
         if (count($index->getColumns()) == 0) {
-            throw \InvalidArgumentException("Incomplete definition. 'columns' required.");
+            throw new \InvalidArgumentException("Incomplete definition. 'columns' required.");
         }
 
         return 'CONSTRAINT ' . $name . ' UNIQUE ('
@@ -1725,7 +1763,7 @@ abstract class AbstractPlatform
         }
 
         if (count($index->getColumns()) == 0) {
-            throw \InvalidArgumentException("Incomplete definition. 'columns' required.");
+            throw new \InvalidArgumentException("Incomplete definition. 'columns' required.");
         }
 
         return $type . 'INDEX ' . $name . ' ('
@@ -2239,7 +2277,7 @@ abstract class AbstractPlatform
         return Connection::TRANSACTION_READ_COMMITTED;
     }
 
-    /* supports*() metods */
+    /* supports*() methods */
 
     /**
      * Whether the platform supports sequences.
@@ -2349,6 +2387,20 @@ abstract class AbstractPlatform
     }
 
     /**
+     * Can this platform emulate schemas?
+     *
+     * Platforms that either support or emulate schemas don't automatically
+     * filter a schema for the namespaced elements in {@link
+     * AbstractManager#createSchema}.
+     *
+     * @return bool
+     */
+    public function canEmulateSchemas()
+    {
+        return false;
+    }
+
+    /**
      * Some databases don't allow to create and drop databases at all or only with certain tools.
      *
      * @return bool
@@ -2392,6 +2444,16 @@ abstract class AbstractPlatform
     public function getIdentityColumnNullInsertSQL()
     {
         return "";
+    }
+
+    /**
+     * Does this platform views ?
+     *
+     * @return boolean
+     */
+    public function supportsViews()
+    {
+        return true;
     }
 
     /**
@@ -2454,6 +2516,13 @@ abstract class AbstractPlatform
 
         if ( $offset !== null) {
             $offset = (int)$offset;
+
+            if ($offset < 0) {
+                throw new DBALException("LIMIT argument offset=$offset is not valid");
+            }
+            if ( $offset > 0 && ! $this->supportsLimitOffset()) {
+                throw new DBALException(sprintf("Platform %s does not support offset values in limit queries.", $this->getName()));
+            }
         }
 
         return $this->doModifyLimitQuery($query, $limit, $offset);
@@ -2476,6 +2545,16 @@ abstract class AbstractPlatform
         }
 
         return $query;
+    }
+
+    /**
+     * Does the database platform support offsets in modify limit clauses?
+     *
+     * @return bool
+     */
+    public function supportsLimitOffset()
+    {
+        return true;
     }
 
     /**

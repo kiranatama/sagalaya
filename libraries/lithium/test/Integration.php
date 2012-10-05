@@ -2,7 +2,7 @@
 /**
  * Lithium: the most rad php framework
  *
- * @copyright     Copyright 2011, Union of RAD (http://union-of-rad.org)
+ * @copyright     Copyright 2012, Union of RAD (http://union-of-rad.org)
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
@@ -17,7 +17,6 @@ namespace lithium\test;
  * with. Example: the `Session` class and the `Php` adapter. Unit tests will ensure that
  * both the `Session` and `Php` classes behave correctly under isolation, while an integration
  * test ensures that the two classes interact and interface correctly.
- *
  */
 class Integration extends \lithium\test\Unit {
 
